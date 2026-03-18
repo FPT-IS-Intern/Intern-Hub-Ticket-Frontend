@@ -10,7 +10,7 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
   template: `
     <form [formGroup]="form" class="ticket-form">
       <!-- Date Range -->
-      <div class="form-group full-width">
+      <div class="form-group full-width date-work">
         <label>Ngày làm <span class="required">*</span></label>
         <div class="date-range-picker">
           <app-date-picker

@@ -30,12 +30,12 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" style="display: flex; flex-direction: column;">
+          <label>Tổng ngày nghỉ<span class="required">*</span></label>
           <app-input-text
-            headerInput="Tổng ngày nghỉ"
             formControlName="totalDays"
             typeInput="number"
-            [readonly]="true"
+            [readonly]="false"
           ></app-input-text>
         </div>
       </div>

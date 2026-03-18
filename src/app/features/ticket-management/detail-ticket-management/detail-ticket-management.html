@@ -1,0 +1,39 @@
+<div class="detail-ticket-management-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <span class="breadcrumb-home" (click)="goToHome()">
+            <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        </span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Chi tiết phiếu yêu cầu</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Chi tiết phiếu</span>
+    </div>
+
+    <div class="page-title">
+        Chi tiết phiếu
+    </div>
+
+    <div class="info-ticket-card" style="display: flex; flex-direction: column;">
+        <div class="title-detail-ticket">
+            Thông tin chi tiết phiếu
+        </div>
+        <div class="detail-info">
+
+        </div>
+    </div>
+
+    <div class="approval-information">
+        <div class="title-approval-information">
+            Thông tin phê duyệt
+        </div>
+        <div class="approval-info">
+
+        </div>
+        <div class="button-action">
+            <app-button-container content="Trở về" backgroundColor="var(--neutral-color-10)" color="white" (buttonClick)=""></app-button-container>
+            <app-button-container content="Từ chối" backgroundColor="var(--utility-500)" color="white" (buttonClick)=""></app-button-container>
+            <app-button-container content="Duyệt" backgroundColor="var(--theme-green-500)" color="white" (buttonClick)=""></app-button-container>
+        </div>
+    </div>
+</div>
