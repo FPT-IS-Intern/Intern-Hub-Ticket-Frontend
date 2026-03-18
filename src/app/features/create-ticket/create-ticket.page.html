@@ -1,0 +1,60 @@
+<div class="create-ticket-page">
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-home" (click)="goToHome()">
+      <app-icon
+        icon="dsi-home-01-line"
+        colorIcon="var(--brand-600)"
+        width="18px"
+        height="18px"
+      ></app-icon>
+    </span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Tạo phiếu yêu cầu</span>
+  </div>
+
+  <div class="page-header">
+    <div class="header-left">
+      <app-icon icon="dsi-arrow-narrow-left-line" class="back-icon" (click)="goToHome()"></app-icon>
+      <span class="page-title">Tạo phiếu yêu cầu</span>
+    </div>
+    <div class="header-right">
+      <app-button-container class="cancel-button" content="Huỷ" (buttonClick)="goToHome()" border="1px solid var(--gray-300)" backgroundColor="white" color="var(--gray-700)"> </app-button-container>
+      <app-button-container class="send-button" content="Gửi" (buttonClick)="onSubmit()" backgroundColor="var(--brand-600)" color="white"> </app-button-container>
+    </div>
+  </div>
+
+  <!-- Ticket Type Selection (Always visible) -->
+  <div class="form-group" style="margin-bottom: 16px">
+    <app-input-text
+      headerInput="Loại phiếu"
+      [required]="true"
+      [readonly]="true"
+      [value]="getTicketTypeLabel()"
+      icon="dsi-chevron-down-line"
+    ></app-input-text>
+    <select [(ngModel)]="selectedTicketType" (change)="onTicketTypeChange()" class="form-control hidden-select">
+      @for (type of ticketTypesList; track type.value) {
+        <option [value]="type.value">
+          {{ type.label }}
+        </option>
+      }
+    </select>
+  </div>
+
+  <!-- Dynamic Form Components -->
+  @switch (selectedTicketType) {
+    @case ('EXPLANATION') {
+      <app-explanation-form (formChange)="onFormChange($event)"></app-explanation-form>
+    }
+    @case ('REMOTE_WFH') {
+      <app-remote-wfh-form (formChange)="onFormChange($event)"></app-remote-wfh-form>
+    }
+    @case ('REMOTE_ONSITE') {
+      <app-remote-onsite-form (formChange)="onFormChange($event)"></app-remote-onsite-form>
+    }
+    @case ('LEAVE') {
+      <app-leave-form (formChange)="onFormChange($event)"></app-leave-form>
+    }
+  }
+</div>
