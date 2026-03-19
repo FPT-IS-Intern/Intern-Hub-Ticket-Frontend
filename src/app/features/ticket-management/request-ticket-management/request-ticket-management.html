@@ -1,5 +1,4 @@
 <div class="request-ticket-management-page">
-    <!-- Breadcrumb -->
   <div class="breadcrumb">
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
@@ -10,24 +9,233 @@
       ></app-icon>
     </span>
     <span class="breadcrumb-separator">/</span>
-    <span class="breadcrumb-current">Quản lý phiếu yêu cầu</span>
+    <span class="breadcrumb-current">Quản Lý Nghỉ Phép</span>
   </div>
 
-  <div class="page-title">
-    Quản lý Phiếu Yêu Cầu
-  </div>
+  <div class="page-title">Quản Lý Nghỉ Phép</div>
 
-  <div class="stat-card" style="display: flex; flex-direction: row;">
-    <!-- Statistic cards will be displayed here -->
+  <div class="card-container">
+    <div class="stat-card">
+      <div class="stat-icon icon-total">
+        <app-icon
+          icon="dsi dsi-file-05-line"
+          colorIcon="var(--brand-600)"
+          width="28px"
+          height="28px"
+        ></app-icon>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Tổng yêu cầu</p>
+        <h3 class="stat-value">{{ totalRequests }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-approved">
+        <app-icon
+          icon="dsi-check-circle-line"
+          colorIcon="var(--theme-green-700)"
+          width="28px"
+          height="28px"
+        ></app-icon>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Đã duyệt</p>
+        <h3 class="stat-value">{{ approvedRequests }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-pending">
+        <app-icon
+          icon="dsi-clock-line"
+          colorIcon="var(--brand-600)"
+          width="28px"
+          height="28px"
+        ></app-icon>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Chưa duyệt</p>
+        <h3 class="stat-value">{{ pendingRequests }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon icon-rejected">
+        <app-icon
+          icon="dsi-x-circle-line"
+          colorIcon="var(--utility-600)"
+          width="28px"
+          height="28px"
+        ></app-icon>
+      </div>
+      <div class="stat-content">
+        <p class="stat-label">Từ chối</p>
+        <h3 class="stat-value">{{ rejectedRequests }}</h3>
+      </div>
+    </div>
   </div>
 
   <div class="filter">
+    <div class="search-box-wrapper">
+      <app-input-text
+        placeholder="Tìm kiếm tên hoặc email"
+        icon="dsi dsi-search-lg-line"
+        [value]="searchKeyword"
+        [showLabel]="false"
+        border="1px solid var(--neutral-color-300)"
+        (valueChange)="onSearchChange($event)"
+        (iconClick)="onSearch()"
+      >
+      </app-input-text>
+    </div>
 
+    <div class="filter-select-field">
+      <select
+        class="ticket-type-select"
+        [(ngModel)]="selectedTicketType"
+        (change)="onTicketTypeChange()"
+      >
+        <option value="">Loại phiếu yêu cầu</option>
+        @for (type of ticketTypeOptions; track type) {
+        <option [value]="type">{{ type }}</option>
+        }
+      </select>
+      <i class="dsi dsi-chevron-down-line select-icon"></i>
+    </div>
+
+    <div class="filter-select-field">
+      <select class="status-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+        <option value="">Trạng thái</option>
+        @for (status of filterStatusOptions; track status.value) {
+        <option [value]="status.value">{{ status.label }}</option>
+        }
+      </select>
+      <i class="dsi dsi-chevron-down-line select-icon"></i>
+    </div>
+
+    <div class="refresh-action-wrapper">
+      <app-button-container
+        size="sm"
+        leftIcon="dsi dsi-refresh-ccw-02-line dsi-neutral-color-10"
+        backgroundColor="var(--brand-500)"
+        color="var(--neutral-color-10)"
+        border="none"
+        borderRadius="8px"
+        width="40px"
+        height="40px"
+        (buttonClick)="onRefresh()"
+      >
+      </app-button-container>
+    </div>
+  </div>
+
+  <div class="bulk-actions">
+    <app-button-container
+      content="Từ chối"
+      size="sm"
+      border="1px solid var(--utility-500)"
+      backgroundColor="var(--neutral-color-10)"
+      color="var(--utility-600)"
+      (buttonClick)="openBulkConfirm('reject')"
+    ></app-button-container>
+    <app-button-container
+      content="Duyệt"
+      size="sm"
+      backgroundColor="var(--theme-green-600)"
+      color="var(--neutral-color-10)"
+      (buttonClick)="openBulkConfirm('approve')"
+    ></app-button-container>
   </div>
 
   <div class="table-content">
-    
+    <div class="table-wrapper">
+      <table class="request-table">
+        <thead>
+          <tr
+            app-table-header
+            [columns]="columns"
+            textColor="var(--neutral-color-700)"
+            backgroundColor="var(--neutral-color-10)"
+            fontSize="14px"
+          ></tr>
+        </thead>
+        <tbody
+          app-table-body
+          [rows]="tableRows"
+          [columns]="columns"
+          [columnTemplates]="columnTemplates"
+          fontSize="14px"
+        ></tbody>
+      </table>
+
+      <div class="header-checkbox-overlay">
+        <input
+          type="checkbox"
+          [checked]="isHeaderChecked"
+          (change)="onHeaderCheckboxChange($event)"
+          aria-label="select-all"
+        />
+      </div>
+    </div>
   </div>
 
-  <div class="paging"></div>
+  <ng-template #selectTemplate let-row="row">
+    <div class="cell-center">
+      <input
+        type="checkbox"
+        [checked]="row.selected"
+        (change)="onRowCheckboxChange(row.id, $event)"
+        aria-label="select-row"
+      />
+    </div>
+  </ng-template>
+
+  <ng-template #sttTemplate let-value>
+    <div class="cell-center">{{ value }}</div>
+  </ng-template>
+
+  <ng-template #nameTemplate let-row="row">
+    <div class="name-email">
+      <div class="name-value">{{ row.fullName }}</div>
+      <div class="email-value">{{ row.email }}</div>
+    </div>
+  </ng-template>
+
+  <ng-template #detailTemplate let-row="row">
+    <div class="cell-center">
+      <button class="detail-btn" type="button" (click)="onViewDetail(row)">
+        <app-icon icon="dsi dsi-eye-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        <span class="detail-text">Xem</span>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #statusTemplate let-value>
+    <div class="cell-center">
+      <app-label-button
+        [label]="getStatusLabel(value)"
+        [bgColor]="getStatusBg(value)"
+        [textColor]="getStatusText(value)"
+        width="95px"
+        height="28px"
+      ></app-label-button>
+    </div>
+  </ng-template>
+
+  <ng-template #approverTemplate let-value>
+    {{ value || '-' }}
+  </ng-template>
+
+  @if (showBulkConfirm) {
+  <app-pop-up-confirm
+    [title]="confirmTitle"
+    [content]="confirmContent"
+    [colorButton]="confirmButtonColor"
+    confirmLabel="Xác nhận"
+    cancelLabel="Hủy"
+    (confirmClick)="confirmBulkAction()"
+    (cancelClick)="cancelBulkConfirm()"
+  ></app-pop-up-confirm>
+  }
 </div>

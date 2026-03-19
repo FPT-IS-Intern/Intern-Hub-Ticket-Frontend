@@ -1,0 +1,38 @@
+<div class="user-ticket-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <span class="breadcrumb-home" (click)="goToHome()">
+            <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        </span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Phiếu của tôi</span>
+    </div>
+
+    <div class="page-title">
+        Phiếu của tôi
+    </div>
+
+    <div class="filter">
+        <div class="search-box-wrapper">
+            <app-input-text placeholder="Tìm kiếm mã phiếu" icon="dsi dsi-search-lg-line" [value]="ticketCode"
+                [showLabel]="false" border="1px solid var(--neutral-300)" (valueChange)=""
+                (iconClick)="onSearch()">
+            </app-input-text>
+        </div>
+
+        <!-- Ticket Type -->
+        <div class="filter-select-field">
+            <select class="ticket-type-select" [(ngModel)]="" (change)="">
+                <option value="">Chọn loại phiếu yêu cầu</option>
+                <option></option>
+            </select>
+            <i class="dsi dsi-chevron-down-line select-icon"></i>
+        </div>
+    </div>
+
+    <div class="row-col-content">
+
+    </div>
+
+
+</div>

@@ -1,0 +1,28 @@
+.breadcrumb {
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+
+    .breadcrumb-home {
+        cursor: pointer;
+    }
+
+    .breadcrumb-separator {
+        color: var(--neutral-400);
+    }
+
+    .breadcrumb-current {
+        color: var(--brand-700);
+        font-weight: 500;
+    }
+}
+
+.page-title {
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.5px;
+    color: var(--branch-500);
+}
