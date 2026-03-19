@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   ButtonContainerComponent,
   IconComponent,
-  LabelButtonComponent,
 } from '@goat-bravos/intern-hub-layout';
 
 import {
@@ -26,13 +25,14 @@ import {
 } from './components/detail-explanation.component';
 
 type TicketType = 'REMOTE_ONSITE' | 'REMOTE_WFH' | 'LEAVE_REQUEST' | 'EXPLANATION';
-type ApprovalStatus = 'APPROVED' | 'PENDING' | 'REJECTED';
 
-interface ApprovalData {
-  status: ApprovalStatus;
-  approverName: string | null;
-  approvedDate: string | null;
-  rejectReason: string | null;
+interface ApprovalStep {
+  stepNumber: number;
+  statusLabel: string;       // e.g. "Đã tạo", "Chờ duyệt"
+  statusType: 'done' | 'pending' | 'rejected';
+  date: string | null;       // e.g. "05/01/2026" or "--:--"
+  personName: string;        // e.g. "Vũ Ngọc Thùy Anh"
+  description: string;       // e.g. "Khởi tạo", "Phê duyệt cấp 1 - Duyệt bởi ..."
 }
 
 // Maps ticketType from request-ticket-management to internal type
@@ -58,7 +58,6 @@ const TICKET_TITLE_MAP: { [key in TicketType]: string } = {
     FormsModule,
     IconComponent,
     ButtonContainerComponent,
-    LabelButtonComponent,
     DetailRemoteOnsiteComponent,
     DetailRemoteWfhComponent,
     DetailLeaveRequestComponent,
@@ -117,12 +116,35 @@ export class DetailTicketManagementPage implements OnInit {
     reason: 'Đi muộn do kẹt xe trên đường Nguyễn Văn Linh',
   };
 
-  approvalData: ApprovalData = {
-    status: 'PENDING',
-    approverName: null,
-    approvedDate: null,
-    rejectReason: null,
-  };
+  // ============================
+  // Approval Steps (timeline)
+  // ============================
+  approvalSteps: ApprovalStep[] = [
+    {
+      stepNumber: 1,
+      statusLabel: 'Đã tạo',
+      statusType: 'done',
+      date: '05/01/2026',
+      personName: 'Vũ Ngọc Thùy Anh',
+      description: 'Khởi tạo',
+    },
+    {
+      stepNumber: 2,
+      statusLabel: 'Chờ duyệt',
+      statusType: 'pending',
+      date: null,
+      personName: 'Nguyen Thi Linh hoặc Nguyen Van Tien',
+      description: 'Phê duyệt cấp 1 - Duyệt bởi <strong>Nguyen Thi Linh</strong>',
+    },
+    {
+      stepNumber: 3,
+      statusLabel: 'Chờ duyệt',
+      statusType: 'pending',
+      date: null,
+      personName: 'Nguyen Van B',
+      description: 'Phê duyệt cấp 2',
+    },
+  ];
 
   constructor(
     private readonly router: Router,
@@ -167,13 +189,6 @@ export class DetailTicketManagementPage implements OnInit {
     if (this.rejectReason.trim().length === 0) return;
 
     // TODO: integrate with API - send rejectReason
-    this.approvalData = {
-      ...this.approvalData,
-      status: 'REJECTED',
-      approverName: 'Quản lý trực tiếp',
-      approvedDate: new Date().toLocaleDateString('vi-VN'),
-      rejectReason: this.rejectReason,
-    };
     this.showRejectPopup = false;
     this.failMessage = 'Phiếu đã bị từ chối thành công';
     this.showFailPopup = true;
@@ -184,13 +199,6 @@ export class DetailTicketManagementPage implements OnInit {
   // ============================
   onApprove(): void {
     // TODO: integrate with API
-    this.approvalData = {
-      ...this.approvalData,
-      status: 'APPROVED',
-      approverName: 'Quản lý trực tiếp',
-      approvedDate: new Date().toLocaleDateString('vi-VN'),
-      rejectReason: null,
-    };
     this.successMessage = 'Duyệt phiếu thành công!';
     this.showSuccessPopup = true;
   }
@@ -201,26 +209,5 @@ export class DetailTicketManagementPage implements OnInit {
 
   closeFailPopup(): void {
     this.showFailPopup = false;
-  }
-
-  // ============================
-  // Status helpers
-  // ============================
-  getStatusLabel(status: ApprovalStatus): string {
-    if (status === 'APPROVED') return 'Đã duyệt';
-    if (status === 'REJECTED') return 'Từ chối';
-    return 'Chưa duyệt';
-  }
-
-  getStatusBg(status: ApprovalStatus): string {
-    if (status === 'APPROVED') return 'var(--theme-green-50)';
-    if (status === 'REJECTED') return 'var(--utility-50)';
-    return 'var(--neutral-color-10)';
-  }
-
-  getStatusText(status: ApprovalStatus): string {
-    if (status === 'APPROVED') return 'var(--theme-green-700)';
-    if (status === 'REJECTED') return 'var(--utility-600)';
-    return 'var(--neutral-color-600)';
   }
 }

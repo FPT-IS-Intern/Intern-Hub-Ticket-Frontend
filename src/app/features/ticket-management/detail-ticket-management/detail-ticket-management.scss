@@ -82,42 +82,118 @@
   border-bottom: 1px solid var(--neutral-color-200);
 }
 
-.approval-info {
-  padding: 20px 24px;
+// ==============================================
+// Approval Timeline
+// ==============================================
+.approval-timeline {
+  padding: 24px 24px 8px;
 }
 
-.approval-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 16px;
+.timeline-row {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  min-height: 70px;
+
+  &:last-child {
+    min-height: unset;
+  }
 }
 
-.approval-field {
+.timeline-left {
+  width: 90px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: flex-end;
+  text-align: right;
+  padding-right: 16px;
+  padding-top: 2px;
+  flex-shrink: 0;
+
+  .timeline-status-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--neutral-color-600);
+    line-height: 18px;
+  }
+
+  .timeline-date {
+    font-size: 12px;
+    color: var(--neutral-color-400);
+    line-height: 18px;
+  }
 }
 
-.field-label {
-  font-size: 13px;
-  color: var(--neutral-color-500);
-  font-weight: 400;
-}
-
-.field-value {
-  font-size: 14px;
-  color: var(--neutral-color-800);
-  font-weight: 400;
-}
-
-.reject-reason {
-  margin-top: 16px;
+.timeline-center {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  padding-top: 0;
 
-  .reject-text {
-    color: var(--utility-600);
+  .timeline-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+
+    &.done {
+      background-color: var(--theme-green-500);
+    }
+
+    &.pending {
+      background-color: var(--brand-500);
+    }
+
+    &.rejected {
+      background-color: var(--utility-500);
+    }
+
+    .step-number {
+      font-size: 13px;
+      font-weight: 600;
+      color: white;
+    }
+  }
+
+  .timeline-connector {
+    width: 2px;
+    flex: 1;
+    min-height: 30px;
+    background-color: var(--neutral-color-200);
+    margin: 4px 0;
+  }
+}
+
+.timeline-right {
+  display: flex;
+  flex-direction: column;
+  padding-left: 16px;
+  padding-top: 2px;
+  flex: 1;
+
+  .timeline-person {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--neutral-color-900);
+    line-height: 20px;
+  }
+
+  .timeline-description {
+    font-size: 13px;
+    color: var(--neutral-color-500);
+    line-height: 18px;
+    margin-top: 2px;
+
+    strong {
+      font-weight: 600;
+      color: var(--neutral-color-800);
+    }
   }
 }
 
@@ -129,7 +205,6 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid var(--neutral-color-200);
 }
 
 // ==============================================
@@ -294,8 +369,12 @@
 // Animations
 // ==============================================
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {

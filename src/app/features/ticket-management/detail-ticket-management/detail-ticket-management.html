@@ -41,31 +41,36 @@
   <!-- Approval Information Card -->
   <div class="approval-information">
     <div class="title-approval-information">Thông tin phê duyệt</div>
-    <div class="approval-info">
-      <div class="approval-grid">
-        <div class="approval-field">
-          <span class="field-label">Trạng thái</span>
-          <app-label-button
-            [label]="getStatusLabel(approvalData.status)"
-            [bgColor]="getStatusBg(approvalData.status)"
-            [textColor]="getStatusText(approvalData.status)"
-            width="95px"
-            height="28px"
-          ></app-label-button>
-        </div>
-        <div class="approval-field">
-          <span class="field-label">Người phê duyệt</span>
-          <span class="field-value">{{ approvalData.approverName || '-' }}</span>
-        </div>
-        <div class="approval-field">
-          <span class="field-label">Ngày phê duyệt</span>
-          <span class="field-value">{{ approvalData.approvedDate || '-' }}</span>
-        </div>
-      </div>
-      @if (approvalData.rejectReason) {
-        <div class="reject-reason">
-          <span class="field-label">Lý do từ chối</span>
-          <span class="field-value reject-text">{{ approvalData.rejectReason }}</span>
+    <div class="approval-timeline">
+      @for (step of approvalSteps; track step.stepNumber; let last = $last) {
+        <div class="timeline-row">
+          <!-- Left column: status label + date -->
+          <div class="timeline-left">
+            <span class="timeline-status-label">{{ step.statusLabel }}</span>
+            <span class="timeline-date">{{ step.date || '--:--' }}</span>
+          </div>
+
+          <!-- Center column: step circle + connector line -->
+          <div class="timeline-center">
+            <div class="timeline-circle" [class.done]="step.statusType === 'done'" [class.pending]="step.statusType === 'pending'" [class.rejected]="step.statusType === 'rejected'">
+              @if (step.statusType === 'done') {
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              } @else {
+                <span class="step-number">{{ step.stepNumber }}</span>
+              }
+            </div>
+            @if (!last) {
+              <div class="timeline-connector"></div>
+            }
+          </div>
+
+          <!-- Right column: person name + description -->
+          <div class="timeline-right">
+            <span class="timeline-person">{{ step.personName }}</span>
+            <span class="timeline-description" [innerHTML]="step.description"></span>
+          </div>
         </div>
       }
     </div>
