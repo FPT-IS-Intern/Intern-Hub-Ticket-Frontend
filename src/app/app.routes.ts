@@ -18,6 +18,13 @@ export const routes: Routes = [
         (m) => m.RequestTicketManagementPage
       ),
   },
+  {
+    path: 'detail-ticket-management',
+    loadComponent: () =>
+      import('./features/ticket-management/detail-ticket-management/detail-ticket-management').then(
+        (m) => m.DetailTicketManagementPage
+      ),
+  },
 
   // ==============================================
   // Default Route

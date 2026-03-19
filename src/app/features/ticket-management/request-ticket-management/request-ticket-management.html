@@ -9,10 +9,10 @@
       ></app-icon>
     </span>
     <span class="breadcrumb-separator">/</span>
-    <span class="breadcrumb-current">Quản Lý Nghỉ Phép</span>
+    <span class="breadcrumb-current">Quản lý phiếu yêu cầu</span>
   </div>
 
-  <div class="page-title">Quản Lý Nghỉ Phép</div>
+  <div class="page-title">Quản lý phiếu yêu cầu</div>
 
   <div class="card-container">
     <div class="stat-card">
@@ -130,8 +130,6 @@
     </div>
   </div>
 
-
-
   <div class="table-content">
     <div class="table-wrapper">
       <table class="request-table">
@@ -144,76 +142,90 @@
             fontSize="14px"
           ></tr>
         </thead>
-        <tbody
-          app-table-body
-          [rows]="tableRows"
-          [columns]="columns"
-          [columnTemplates]="columnTemplates"
-          fontSize="14px"
-        ></tbody>
+        @if (filteredRows.length > 0) {
+          <tbody
+            app-table-body
+            [rows]="tableRows"
+            [columns]="columns"
+            [columnTemplates]="columnTemplates"
+            fontSize="14px"
+          ></tbody>
+        }
       </table>
 
-      <div class="header-checkbox-overlay">
-        <input
-          type="checkbox"
-          [checked]="isHeaderChecked"
-          (change)="onHeaderCheckboxChange($event)"
-          aria-label="select-all"
-        />
-      </div>
+      @if (filteredRows.length === 0) {
+        <div class="empty-data">
+          Không có dữ liệu
+        </div>
+      }
+
+      @if (filteredRows.length > 0) {
+        <div class="header-checkbox-overlay">
+          <input
+            type="checkbox"
+            [checked]="isHeaderChecked"
+            (change)="onHeaderCheckboxChange($event)"
+            aria-label="select-all"
+          />
+        </div>
+      }
     </div>
 
     <!-- Pagination -->
     @if (filteredRows.length > 0) {
-    <div class="pagination">
-      <div class="pagination-info">
-        <span>Hiển thị {{ getShowingRange() }}</span>
-        <i class="dsi dsi-info-circle-line pagination-info-icon"></i>
-      </div>
+      <div class="pagination">
+        <div class="pagination-info">
+          <span>Hiển thị {{ getShowingRange() }}</span>
+          <i class="dsi dsi-info-circle-line pagination-info-icon"></i>
+        </div>
 
-      <div class="pagination-nav">
-        <button
-          class="approve-all-btn"
-          [disabled]="selectedCount === 0"
-          (click)="openBulkConfirm('approve')"
-        >
-          Duyệt tất cả
-        </button>
-
-        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
-          <i class="dsi dsi-chevron-left-line" style="font-size: 16px;"></i>
-        </button>
-
-        <div class="page-numbers">
-          @for (pageNum of getVisiblePages(); track $index) {
+        <div class="pagination-nav">
           <button
-            class="page-number"
-            [class.active]="currentPage === pageNum"
-            [class.ellipsis]="pageNum === -1"
-            (click)="pageNum !== -1 && goToPage(pageNum)"
-            [disabled]="pageNum === -1"
+            class="approve-all-btn"
+            [disabled]="selectedCount === 0"
+            (click)="openBulkConfirm('approve')"
           >
-            {{ pageNum === -1 ? '···' : pageNum }}
+            Duyệt tất cả
           </button>
-          }
-          <span class="total-pages">{{ totalPages }}</span>
-        </div>
 
-        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
-          <i class="dsi dsi-chevron-right-line" style="font-size: 16px;"></i>
-        </button>
+          <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+            <i class="dsi dsi-chevron-left-line" style="font-size: 16px"></i>
+          </button>
 
-        <div class="page-size-dropdown">
-          <select (change)="onPageSizeChange($any($event.target).value)">
-            <option value="7" [selected]="pageSize === 7">7 / trang</option>
-            <option value="10" [selected]="pageSize === 10">10 / trang</option>
-            <option value="20" [selected]="pageSize === 20">20 / trang</option>
-            <option value="50" [selected]="pageSize === 50">50 / trang</option>
-          </select>
-          <i class="dsi dsi-chevron-down-line dropdown-icon" style="font-size: 12px;"></i>
+          <div class="page-numbers">
+            @for (pageNum of getVisiblePages(); track $index) {
+              <button
+                class="page-number"
+                [class.active]="currentPage === pageNum"
+                [class.ellipsis]="pageNum === -1"
+                (click)="pageNum !== -1 && goToPage(pageNum)"
+                [disabled]="pageNum === -1"
+              >
+                {{ pageNum === -1 ? '···' : pageNum }}
+              </button>
+            }
+            <span class="total-pages">{{ totalPages }}</span>
+          </div>
+
+          <button
+            class="pagination-btn"
+            [disabled]="currentPage === totalPages"
+            (click)="nextPage()"
+          >
+            <i class="dsi dsi-chevron-right-line" style="font-size: 16px"></i>
+          </button>
+
+          <div class="page-size-dropdown">
+            <select (change)="onPageSizeChange($any($event.target).value)">
+              <option value="7" [selected]="pageSize === 7">7 / trang</option>
+              <option value="10" [selected]="pageSize === 10">10 / trang</option>
+              <option value="20" [selected]="pageSize === 20">20 / trang</option>
+              <option value="50" [selected]="pageSize === 50">50 / trang</option>
+            </select>
+            <i class="dsi dsi-chevron-down-line dropdown-icon" style="font-size: 12px"></i>
+          </div>
         </div>
       </div>
-    </div>
     }
   </div>
 

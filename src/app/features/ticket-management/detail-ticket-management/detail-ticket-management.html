@@ -1,39 +1,149 @@
 <div class="detail-ticket-management-page">
-    <!-- Breadcrumb -->
-    <div class="breadcrumb">
-        <span class="breadcrumb-home" (click)="goToHome()">
-            <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
-        </span>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">Chi tiết phiếu yêu cầu</span>
-        <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">Chi tiết phiếu</span>
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <span class="breadcrumb-home" (click)="goToHome()">
+      <app-icon
+        icon="dsi-home-01-line"
+        colorIcon="var(--brand-600)"
+        width="18px"
+        height="18px"
+      ></app-icon>
+    </span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-link" (click)="goToRequestManagement()">Quản lý phiếu yêu cầu</span>
+    <span class="breadcrumb-separator">/</span>
+    <span class="breadcrumb-current">Chi tiết phiếu</span>
+  </div>
+
+  <div class="page-title">Chi tiết phiếu</div>
+
+  <!-- Ticket Info Card -->
+  <div class="info-ticket-card">
+    <div class="title-detail-ticket">{{ ticketTitle }}</div>
+    <div class="detail-info">
+      @switch (ticketType) {
+        @case ('REMOTE_ONSITE') {
+          <app-detail-remote-onsite [data]="remoteOnsiteData"></app-detail-remote-onsite>
+        }
+        @case ('REMOTE_WFH') {
+          <app-detail-remote-wfh [data]="remoteWfhData"></app-detail-remote-wfh>
+        }
+        @case ('LEAVE_REQUEST') {
+          <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
+        }
+        @case ('EXPLANATION') {
+          <app-detail-explanation [data]="explanationData"></app-detail-explanation>
+        }
+      }
     </div>
+  </div>
 
-    <div class="page-title">
-        Chi tiết phiếu
+  <!-- Approval Information Card -->
+  <div class="approval-information">
+    <div class="title-approval-information">Thông tin phê duyệt</div>
+    <div class="approval-info">
+      <div class="approval-grid">
+        <div class="approval-field">
+          <span class="field-label">Trạng thái</span>
+          <app-label-button
+            [label]="getStatusLabel(approvalData.status)"
+            [bgColor]="getStatusBg(approvalData.status)"
+            [textColor]="getStatusText(approvalData.status)"
+            width="95px"
+            height="28px"
+          ></app-label-button>
+        </div>
+        <div class="approval-field">
+          <span class="field-label">Người phê duyệt</span>
+          <span class="field-value">{{ approvalData.approverName || '-' }}</span>
+        </div>
+        <div class="approval-field">
+          <span class="field-label">Ngày phê duyệt</span>
+          <span class="field-value">{{ approvalData.approvedDate || '-' }}</span>
+        </div>
+      </div>
+      @if (approvalData.rejectReason) {
+        <div class="reject-reason">
+          <span class="field-label">Lý do từ chối</span>
+          <span class="field-value reject-text">{{ approvalData.rejectReason }}</span>
+        </div>
+      }
     </div>
-
-    <div class="info-ticket-card" style="display: flex; flex-direction: column;">
-        <div class="title-detail-ticket">
-            Thông tin chi tiết phiếu
-        </div>
-        <div class="detail-info">
-
-        </div>
+    <div class="button-action">
+      <app-button-container
+        content="Trở về"
+        backgroundColor="var(--neutral-color-10)"
+        color="var(--neutral-color-700)"
+        border="1px solid var(--neutral-color-300)"
+        (buttonClick)="goToRequestManagement()"
+      ></app-button-container>
+      <app-button-container
+        content="Từ chối"
+        backgroundColor="var(--utility-500)"
+        color="white"
+        (buttonClick)="openRejectPopup()"
+      ></app-button-container>
+      <app-button-container
+        content="Duyệt"
+        backgroundColor="var(--theme-green-500)"
+        color="white"
+        (buttonClick)="onApprove()"
+      ></app-button-container>
     </div>
-
-    <div class="approval-information">
-        <div class="title-approval-information">
-            Thông tin phê duyệt
-        </div>
-        <div class="approval-info">
-
-        </div>
-        <div class="button-action">
-            <app-button-container content="Trở về" backgroundColor="var(--neutral-color-10)" color="white" (buttonClick)=""></app-button-container>
-            <app-button-container content="Từ chối" backgroundColor="var(--utility-500)" color="white" (buttonClick)=""></app-button-container>
-            <app-button-container content="Duyệt" backgroundColor="var(--theme-green-500)" color="white" (buttonClick)=""></app-button-container>
-        </div>
-    </div>
+  </div>
 </div>
+
+<!-- Reject Confirmation Popup -->
+@if (showRejectPopup) {
+  <div class="popup-overlay" (click)="closeRejectPopup()">
+    <div class="popup-container reject-popup" (click)="$event.stopPropagation()">
+      <div class="popup-icon">
+        <img src="https://s3.vn-hcm-1.vietnix.cloud/bravos/uploads/failed-popup.svg" alt="reject" width="80" height="80" />
+      </div>
+      <div class="popup-title">Lí do từ chối</div>
+      <div class="popup-body">
+        <textarea
+          class="reject-textarea"
+          [(ngModel)]="rejectReason"
+          placeholder="Nhập lí do từ chối"
+          maxlength="255"
+        ></textarea>
+        <div class="char-count">{{ rejectReason.length }}/255</div>
+      </div>
+      <div class="popup-actions">
+        <button class="popup-btn btn-cancel" (click)="closeRejectPopup()">Quay lại</button>
+        <button class="popup-btn btn-confirm-reject" (click)="confirmReject()" [disabled]="rejectReason.trim().length === 0">Đồng ý</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Success Popup -->
+@if (showSuccessPopup) {
+  <div class="popup-overlay" (click)="closeSuccessPopup()">
+    <div class="popup-container success-popup" (click)="$event.stopPropagation()">
+      <div class="popup-icon">
+        <img src="https://s3.vn-hcm-1.vietnix.cloud/bravos/uploads/success-popup.svg" alt="success" width="80" height="80" />
+      </div>
+      <div class="popup-title success-title">{{ successMessage }}</div>
+      <div class="popup-actions">
+        <button class="popup-btn btn-success" (click)="closeSuccessPopup()">Đóng</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Failure Popup (for reject success notification) -->
+@if (showFailPopup) {
+  <div class="popup-overlay" (click)="closeFailPopup()">
+    <div class="popup-container fail-popup" (click)="$event.stopPropagation()">
+      <div class="popup-icon">
+        <img src="https://s3.vn-hcm-1.vietnix.cloud/bravos/uploads/failed-popup.svg" alt="fail" width="80" height="80" />
+      </div>
+      <div class="popup-title fail-title">{{ failMessage }}</div>
+      <div class="popup-actions">
+        <button class="popup-btn btn-fail" (click)="closeFailPopup()">Đóng</button>
+      </div>
+    </div>
+  </div>
+}
