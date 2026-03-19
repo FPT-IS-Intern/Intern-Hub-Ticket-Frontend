@@ -83,6 +83,11 @@ export class RequestTicketManagementPage implements AfterViewInit {
   showBulkConfirm = false;
   bulkAction: 'approve' | 'reject' = 'approve';
 
+  // Pagination
+  currentPage = 1;
+  pageSize = 10;
+  filteredRows: RequestTicketTableRow[] = [];
+
   readonly filterStatusOptions = [
     { label: 'Đã duyệt', value: 'APPROVED' as const },
     { label: 'Chưa duyệt', value: 'PENDING' as const },
@@ -192,6 +197,10 @@ export class RequestTicketManagementPage implements AfterViewInit {
 
   get selectedCount(): number {
     return this.tableRows.filter((row) => row.selected).length;
+  }
+
+  get totalPages(): number {
+    return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
   }
 
   get totalRequests(): number {
@@ -327,6 +336,73 @@ export class RequestTicketManagementPage implements AfterViewInit {
     return 'var(--neutral-color-600)';
   }
 
+  getShowingRange(): string {
+    if (this.filteredRows.length === 0) return '0';
+    const start = (this.currentPage - 1) * this.pageSize + 1;
+    const end = Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
+    return `${start}-${end}`;
+  }
+
+  getVisiblePages(): number[] {
+    const pages: number[] = [];
+    const total = this.totalPages;
+    const current = this.currentPage;
+
+    if (total <= 5) {
+      for (let i = 1; i < total; i++) {
+        pages.push(i);
+      }
+      return pages;
+    }
+
+    // Always show first page
+    pages.push(1);
+
+    if (current > 3) {
+      pages.push(-1); // ellipsis
+    }
+
+    const start = Math.max(2, current - 1);
+    const end = Math.min(total - 1, current + 1);
+
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    if (current < total - 2) {
+      pages.push(-1); // ellipsis
+    }
+
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      this.applyPagination();
+    }
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.applyPagination();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.applyPagination();
+    }
+  }
+
+  onPageSizeChange(value: string): void {
+    this.pageSize = Number(value);
+    this.currentPage = 1;
+    this.applyPagination();
+  }
+
   private applyFilters(): void {
     const keyword = this.searchKeyword.trim().toLowerCase();
 
@@ -345,13 +421,24 @@ export class RequestTicketManagementPage implements AfterViewInit {
       return matchesKeyword && matchesType && matchesStatus;
     });
 
-    this.tableRows = filtered.map((row, index) => ({
+    this.filteredRows = filtered.map((row, index) => ({
       ...row,
       department: 'Phòng Banking',
       stt: index + 1,
       selected: false,
     }));
 
+    this.currentPage = 1;
+    this.applyPagination();
+  }
+
+  private applyPagination(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.tableRows = this.filteredRows.slice(start, end).map((row, index) => ({
+      ...row,
+      stt: start + index + 1,
+    }));
     this.isHeaderChecked = false;
   }
 

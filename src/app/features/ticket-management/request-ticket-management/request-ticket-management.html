@@ -98,7 +98,7 @@
       >
         <option value="">Loại phiếu yêu cầu</option>
         @for (type of ticketTypeOptions; track type) {
-        <option [value]="type">{{ type }}</option>
+          <option [value]="type">{{ type }}</option>
         }
       </select>
       <i class="dsi dsi-chevron-down-line select-icon"></i>
@@ -108,7 +108,7 @@
       <select class="status-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
         <option value="">Trạng thái</option>
         @for (status of filterStatusOptions; track status.value) {
-        <option [value]="status.value">{{ status.label }}</option>
+          <option [value]="status.value">{{ status.label }}</option>
         }
       </select>
       <i class="dsi dsi-chevron-down-line select-icon"></i>
@@ -117,7 +117,7 @@
     <div class="refresh-action-wrapper">
       <app-button-container
         size="sm"
-        leftIcon="dsi dsi-refresh-ccw-02-line dsi-neutral-color-10"
+        leftIcon="dsi dsi-refresh-ccw-02-line dsi-neutral-10"
         backgroundColor="var(--brand-500)"
         color="var(--neutral-color-10)"
         border="none"
@@ -130,23 +130,7 @@
     </div>
   </div>
 
-  <div class="bulk-actions">
-    <app-button-container
-      content="Từ chối"
-      size="sm"
-      border="1px solid var(--utility-500)"
-      backgroundColor="var(--neutral-color-10)"
-      color="var(--utility-600)"
-      (buttonClick)="openBulkConfirm('reject')"
-    ></app-button-container>
-    <app-button-container
-      content="Duyệt"
-      size="sm"
-      backgroundColor="var(--theme-green-600)"
-      color="var(--neutral-color-10)"
-      (buttonClick)="openBulkConfirm('approve')"
-    ></app-button-container>
-  </div>
+
 
   <div class="table-content">
     <div class="table-wrapper">
@@ -178,6 +162,59 @@
         />
       </div>
     </div>
+
+    <!-- Pagination -->
+    @if (filteredRows.length > 0) {
+    <div class="pagination">
+      <div class="pagination-info">
+        <span>Hiển thị {{ getShowingRange() }}</span>
+        <i class="dsi dsi-info-circle-line pagination-info-icon"></i>
+      </div>
+
+      <div class="pagination-nav">
+        <button
+          class="approve-all-btn"
+          [disabled]="selectedCount === 0"
+          (click)="openBulkConfirm('approve')"
+        >
+          Duyệt tất cả
+        </button>
+
+        <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="dsi dsi-chevron-left-line" style="font-size: 16px;"></i>
+        </button>
+
+        <div class="page-numbers">
+          @for (pageNum of getVisiblePages(); track $index) {
+          <button
+            class="page-number"
+            [class.active]="currentPage === pageNum"
+            [class.ellipsis]="pageNum === -1"
+            (click)="pageNum !== -1 && goToPage(pageNum)"
+            [disabled]="pageNum === -1"
+          >
+            {{ pageNum === -1 ? '···' : pageNum }}
+          </button>
+          }
+          <span class="total-pages">{{ totalPages }}</span>
+        </div>
+
+        <button class="pagination-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          <i class="dsi dsi-chevron-right-line" style="font-size: 16px;"></i>
+        </button>
+
+        <div class="page-size-dropdown">
+          <select (change)="onPageSizeChange($any($event.target).value)">
+            <option value="7" [selected]="pageSize === 7">7 / trang</option>
+            <option value="10" [selected]="pageSize === 10">10 / trang</option>
+            <option value="20" [selected]="pageSize === 20">20 / trang</option>
+            <option value="50" [selected]="pageSize === 50">50 / trang</option>
+          </select>
+          <i class="dsi dsi-chevron-down-line dropdown-icon" style="font-size: 12px;"></i>
+        </div>
+      </div>
+    </div>
+    }
   </div>
 
   <ng-template #selectTemplate let-row="row">
@@ -205,7 +242,12 @@
   <ng-template #detailTemplate let-row="row">
     <div class="cell-center">
       <button class="detail-btn" type="button" (click)="onViewDetail(row)">
-        <app-icon icon="dsi dsi-eye-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        <app-icon
+          icon="dsi dsi-eye-line"
+          colorIcon="var(--brand-600)"
+          width="18px"
+          height="18px"
+        ></app-icon>
         <span class="detail-text">Xem</span>
       </button>
     </div>
@@ -228,14 +270,14 @@
   </ng-template>
 
   @if (showBulkConfirm) {
-  <app-pop-up-confirm
-    [title]="confirmTitle"
-    [content]="confirmContent"
-    [colorButton]="confirmButtonColor"
-    confirmLabel="Xác nhận"
-    cancelLabel="Hủy"
-    (confirmClick)="confirmBulkAction()"
-    (cancelClick)="cancelBulkConfirm()"
-  ></app-pop-up-confirm>
+    <app-pop-up-confirm
+      [title]="confirmTitle"
+      [content]="confirmContent"
+      [colorButton]="confirmButtonColor"
+      confirmLabel="Xác nhận"
+      cancelLabel="Hủy"
+      (confirmClick)="confirmBulkAction()"
+      (cancelClick)="cancelBulkConfirm()"
+    ></app-pop-up-confirm>
   }
 </div>

@@ -158,19 +158,176 @@
   }
 }
 
-.bulk-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
 .table-content {
   width: 100%;
   border: 1px solid var(--neutral-color-200);
   border-radius: 12px;
-  overflow: auto;
+  overflow: hidden;
   background-color: var(--neutral-color-10);
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--neutral-color-200);
+  background-color: var(--neutral-color-10);
+}
+
+.pagination-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--neutral-color-600);
+  white-space: nowrap;
+
+  .pagination-info-icon {
+    font-size: 14px;
+    color: var(--neutral-color-400);
+    cursor: pointer;
+  }
+}
+
+.pagination-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.approve-all-btn {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid var(--neutral-color-300);
+  background-color: var(--theme-green-500);
+  color: var(--neutral-color-10);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--neutral-color-50);
+    border-color: var(--neutral-color-400);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.pagination-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-color-300);
+  border-radius: 8px;
+  background-color: var(--neutral-color-10);
+  color: var(--neutral-color-600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--neutral-color-50);
+    border-color: var(--neutral-color-400);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-number {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-color-300);
+  border-radius: 8px;
+  background-color: var(--neutral-color-10);
+  color: var(--neutral-color-700);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled):not(.active) {
+    background-color: var(--neutral-color-50);
+  }
+
+  &.active {
+    background-color: var(--brand-600);
+    color: var(--neutral-color-10);
+    border-color: var(--brand-600);
+  }
+
+  &.ellipsis {
+    border: none;
+    background: none;
+    cursor: default;
+    color: var(--neutral-color-500);
+    min-width: 28px;
+    letter-spacing: 2px;
+  }
+}
+
+.total-pages {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--neutral-color-300);
+  border-radius: 8px;
+  background-color: var(--neutral-color-10);
+  color: var(--neutral-color-700);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.page-size-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  select {
+    height: 36px;
+    padding: 0 32px 0 12px;
+    border: 1px solid var(--neutral-color-300);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--neutral-color-700);
+    background-color: var(--neutral-color-10);
+    appearance: none;
+    outline: none;
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--neutral-color-400);
+    }
+  }
+
+  .dropdown-icon {
+    position: absolute;
+    right: 10px;
+    color: var(--neutral-color-500);
+    pointer-events: none;
+  }
 }
 
 .table-wrapper {
@@ -237,18 +394,20 @@
   }
 }
 
-::ng-deep .request-table tr[app-table-header] th {
-  min-height: 28px;
-  height: 44px;
-  padding-top: var(--com-table-title-cell-vertical-padding);
-  padding-right: var(--com-table-title-cell-horizontal-padding);
-  padding-bottom: var(--com-table-title-cell-vertical-padding);
-  padding-left: var(--com-table-title-cell-horizontal-padding);
-  border-right: none;
-  border-bottom: var(--com-table-row-cell-divider-stroke-width) solid var(--neutral-color-200);
-  gap: 2px;
-  background-color: var(--branch-500);
-  opacity: 1;
+.request-table {
+  &::ng-deep tr[app-table-header] th {
+    min-height: 28px;
+    height: 44px;
+    padding-top: var(--com-table-title-cell-vertical-padding);
+    padding-right: var(--com-table-title-cell-horizontal-padding);
+    padding-bottom: var(--com-table-title-cell-vertical-padding);
+    padding-left: var(--com-table-title-cell-horizontal-padding);
+    border-right: none;
+    border-bottom: var(--com-table-row-cell-divider-stroke-width) solid var(--neutral-color-200);
+    gap: 2px;
+    background: var(--branch-500);
+    opacity: 1;
+  }
 }
 
 ::ng-deep .request-table tr[app-table-header] th .header-container {
