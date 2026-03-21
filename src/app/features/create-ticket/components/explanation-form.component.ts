@@ -12,7 +12,12 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
       <!-- Date -->
       <div class="form-group">
         <label>Thời gian <span class="required">*</span></label>
-        <app-date-picker formControlName="date" style="width: 100%;" height="40px"></app-date-picker>
+        <app-date-picker
+          [disabledDate]="disabledPastDate"
+          formControlName="date"
+          style="width: 100%;"
+          height="40px">
+        </app-date-picker>
       </div>
 
       <!-- Reason -->
@@ -64,4 +69,10 @@ export class ExplanationFormComponent implements OnInit {
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
   }
+
+  disabledPastDate = (current: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return current < today;
+  };
 }

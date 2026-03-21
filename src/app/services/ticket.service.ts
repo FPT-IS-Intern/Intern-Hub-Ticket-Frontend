@@ -1,41 +1,118 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CreateTicketRequest } from '../models/ticket.model';
+import {
+  CreateTicketRequest,
+  TicketResponse,
+  ResponseApi,
+  TicketTypeDto,
+  UploadEvidenceRequest,
+  EvidenceDto,
+  TicketDto,
+  PaginatedData,
+  TicketDetailDto,
+  ApproveTicketRequest,
+  CreateTicketTypeRequest,
+  TicketTypeResponse,
+} from '../models/ticket.model';
+import { environment } from '../../environment/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TicketService {
-  private readonly baseUrl = '/ticket'; // Replace with real base_url if different
+  private readonly baseUrl = `${environment.apiUrl}/ticket`;
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Create a new ticket
-   * @param request The ticket creation request
+   * List active ticket types
+   * GET
+   * /ticket/ticket-types/all
    */
-  createTicket(request: CreateTicketRequest): Observable<any> {
-    // API endpoint: POST /ticket
-    return this.http.post<any>(`${this.baseUrl}`, request);
+  getTicketTypes(): Observable<ResponseApi<TicketTypeDto[]>> {
+    return this.http.get<ResponseApi<TicketTypeDto[]>>(`${this.baseUrl}/ticket-types/all`);
   }
 
   /**
-   * List active ticket types
-   * @returns Observable of TicketTypeDto[]
+   * Create ticket type (admin)
+   * POST /ticket/types
    */
-  getTicketTypes(): Observable<any> {
-    // API endpoint: GET /ticket/ticket-types
-    return this.http.get<any>(`${this.baseUrl}/ticket-types`);
+  createTicketType(
+    request: CreateTicketTypeRequest,
+  ): Observable<ResponseApi<TicketTypeResponse>> {
+    return this.http.post<ResponseApi<TicketTypeResponse>>(
+      `${this.baseUrl}/types`,
+      request,
+    );
+  }
+
+  /**
+   * List all tickets (paginated)
+   * GET /ticket/all
+   */
+  getAllTickets(page: number = 0, size: number = 20): Observable<ResponseApi<PaginatedData<TicketDto>>> {
+    return this.http.get<ResponseApi<PaginatedData<TicketDto>>>(`${this.baseUrl}/all`, {
+      params: { page: page.toString(), size: size.toString() },
+    });
+  }
+
+  /**
+   * List pending tickets
+   * GET /ticket/pending
+   */
+  getPendingTickets(page: number = 0, size: number = 20): Observable<ResponseApi<TicketDto[]>> {
+    return this.http.get<ResponseApi<TicketDto[]>>(`${this.baseUrl}/pending`, {
+      params: { page: page.toString(), size: size.toString() },
+    });
+  }
+
+  /**
+   * Get ticket detail
+   * GET /ticket/{ticketId}
+   */
+  getTicketDetail(ticketId: string): Observable<ResponseApi<TicketDetailDto>> {
+    return this.http.get<ResponseApi<TicketDetailDto>>(`${this.baseUrl}/${ticketId}`);
+  }
+
+  /**
+   * Create a new ticket
+   * POST /ticket
+   */
+  createTicket(request: CreateTicketRequest): Observable<ResponseApi<TicketResponse>> {
+    return this.http.post<ResponseApi<TicketResponse>>(`${this.baseUrl}`, request);
+  }
+
+  /**
+   * Approve ticket
+   * POST /ticket/{ticketId}/approve
+   */
+  approveTicket(
+    ticketId: string,
+    request: ApproveTicketRequest,
+  ): Observable<ResponseApi<void>> {
+    return this.http.post<ResponseApi<void>>(`${this.baseUrl}/${ticketId}/approve`, request);
   }
 
   /**
    * Upload evidence for a ticket
-   * @param ticketId The ID of the ticket
-   * @param evidenceData The evidence upload request
+   * POST /ticket/{ticketId}/evidences
    */
-  uploadEvidence(ticketId: string, evidenceData: any): Observable<any> {
-    // API endpoint: POST /ticket/{ticketId}/evidences
-    return this.http.post<any>(`${this.baseUrl}/${ticketId}/evidences`, evidenceData);
+  uploadEvidence(
+    ticketId: string,
+    request: UploadEvidenceRequest,
+  ): Observable<ResponseApi<EvidenceDto>> {
+    return this.http.post<ResponseApi<EvidenceDto>>(
+      `${this.baseUrl}/${ticketId}/evidences`,
+      request,
+    );
+  }
+
+  /**
+   * List evidences for a ticket
+   * GET /ticket/{ticketId}/evidences
+   */
+  getEvidences(ticketId: string): Observable<ResponseApi<EvidenceDto[]>> {
+    return this.http.get<ResponseApi<EvidenceDto[]>>(`${this.baseUrl}/${ticketId}/evidences`);
   }
 }

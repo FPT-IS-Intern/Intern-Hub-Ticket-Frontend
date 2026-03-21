@@ -20,7 +20,7 @@
     </div>
     <div class="header-right">
       <app-button-container class="cancel-button" content="Huỷ" (buttonClick)="goToHome()" border="1px solid var(--gray-300)" backgroundColor="white" color="var(--gray-700)"> </app-button-container>
-      <app-button-container class="send-button" content="Gửi" (buttonClick)="onSubmit()" backgroundColor="var(--brand-600)" color="white"> </app-button-container>
+      <app-button-container class="send-button" [content]="isSubmitting ? 'Đang gửi...' : 'Gửi'" (buttonClick)="onSubmit()" backgroundColor="var(--brand-600)" color="white"> </app-button-container>
     </div>
   </div>
 
@@ -33,28 +33,31 @@
       [value]="getTicketTypeLabel()"
       icon="dsi-chevron-down-line"
     ></app-input-text>
-    <select [(ngModel)]="selectedTicketType" (change)="onTicketTypeChange()" class="form-control hidden-select">
-      @for (type of ticketTypesList; track type.value) {
-        <option [value]="type.value">
-          {{ type.label }}
+    <select [(ngModel)]="selectedTicketTypeId" (change)="onTicketTypeChange()" class="form-control hidden-select">
+      @for (type of ticketTypesList; track type.ticketTypeId) {
+        <option [value]="type.ticketTypeId">
+          {{ type.typeName }}
         </option>
       }
     </select>
   </div>
 
   <!-- Dynamic Form Components -->
-  @switch (selectedTicketType) {
-    @case ('EXPLANATION') {
-      <app-explanation-form (formChange)="onFormChange($event)"></app-explanation-form>
+  <div class="form-container">
+    @switch (getSelectedComponentKey()) {
+      @case ('EXPLANATION') {
+        <app-explanation-form (formChange)="onFormChange($event)"></app-explanation-form>
+      }
+      @case ('REMOTE_WFH') {
+        <app-remote-wfh-form (formChange)="onFormChange($event)"></app-remote-wfh-form>
+      }
+      @case ('REMOTE_ONSITE') {
+        <app-remote-onsite-form (formChange)="onFormChange($event)"></app-remote-onsite-form>
+      }
+      @case ('LEAVE') {
+        <app-leave-form (formChange)="onFormChange($event)"></app-leave-form>
+      }
     }
-    @case ('REMOTE_WFH') {
-      <app-remote-wfh-form (formChange)="onFormChange($event)"></app-remote-wfh-form>
-    }
-    @case ('REMOTE_ONSITE') {
-      <app-remote-onsite-form (formChange)="onFormChange($event)"></app-remote-onsite-form>
-    }
-    @case ('LEAVE') {
-      <app-leave-form (formChange)="onFormChange($event)"></app-leave-form>
-    }
-  }
+  </div>
+
 </div>

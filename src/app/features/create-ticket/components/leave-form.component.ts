@@ -17,12 +17,14 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           <label>Thời gian nghỉ <span class="required">*</span></label>
           <div class="date-range-picker">
             <app-date-picker
+              [disabledDate]="disabledPastDate"
               (dateChange)="onStartDateChange($event)"
               style="width: 100%;"
               height="40px">
             </app-date-picker>
             <span>&rarr;</span>
             <app-date-picker
+              [disabledDate]="disabledPastDate"
               (dateChange)="onEndDateChange($event)"
               style="width: 100%;"
               height="40px">
@@ -35,8 +37,13 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           <app-input-text
             formControlName="totalDays"
             typeInput="number"
-            [readonly]="false"
+            [readonly]="true"
           ></app-input-text>
+          @if (form.get('totalDays')?.value >= 7) {
+            <div class="info-message" style="color: var(--brand-600); font-size: 12px; margin-top: 4px;">
+              Vì tổng ngày nghỉ của bạn lớn hơn 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ duyệt cuối
+            </div>
+          }
         </div>
       </div>
 
@@ -75,8 +82,8 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      dateRange: [[], Validators.required],
-      totalDays: [{ value: 0, disabled: true }],
+      dateRange: [[null, null], Validators.required],
+      totalDays: [{ value: 0, disabled: false }],
       reason: [null, Validators.required],
       attachments: [[]]
     });
@@ -84,11 +91,18 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
     // Calculate total days when date range changes
     this.form.get('dateRange')?.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe((dates: Date[]) => {
+      .subscribe((dates: any[]) => {
         if (dates && dates.length === 2 && dates[0] && dates[1]) {
-          const diffTime = Math.abs(dates[1].getTime() - dates[0].getTime());
+          const start = new Date(dates[0]);
+          const end = new Date(dates[1]);
+          start.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+
+          const diffTime = Math.abs(end.getTime() - start.getTime());
           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
           this.form.get('totalDays')?.setValue(diffDays);
+        } else {
+          this.form.get('totalDays')?.setValue(0);
         }
       });
 
@@ -117,4 +131,10 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
   }
+
+  disabledPastDate = (current: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return current < today;
+  };
 }

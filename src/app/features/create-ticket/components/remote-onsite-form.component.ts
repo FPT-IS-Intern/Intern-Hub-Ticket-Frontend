@@ -14,12 +14,14 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
         <label>Ngày làm <span class="required">*</span></label>
         <div class="date-range-picker">
           <app-date-picker
+            [disabledDate]="disabledPastDate"
             (dateChange)="onStartDateChange($event)"
             style="width: 100%;"
             height="40px">
           </app-date-picker>
           <span>&rarr;</span>
           <app-date-picker
+            [disabledDate]="disabledPastDate"
             (dateChange)="onEndDateChange($event)"
             style="width: 100%;"
             height="40px">
@@ -114,4 +116,10 @@ export class RemoteOnsiteFormComponent implements OnInit {
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
   }
+
+  disabledPastDate = (current: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return current < today;
+  };
 }

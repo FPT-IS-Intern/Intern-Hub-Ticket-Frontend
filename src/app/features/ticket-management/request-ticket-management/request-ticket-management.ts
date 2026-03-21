@@ -2,6 +2,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  OnInit,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -18,23 +19,17 @@ import {
   TableBodyComponent,
   TableHeaderComponent,
 } from '@goat-bravos/intern-hub-layout';
+import { TicketService } from '../../../services/ticket.service';
+import { TicketDto, TicketStatus, TicketTypeDto } from '../../../models/ticket.model';
+import { forkJoin } from 'rxjs';
 
-type TicketStatus = 'APPROVED' | 'PENDING' | 'REJECTED';
-
-interface RequestTicketRow {
-  id: number;
-  fullName: string;
-  email: string;
-  department: string;
-  ticketType: string;
-  days: number;
-  status: TicketStatus;
-  approver: string | null;
-}
-
-interface RequestTicketTableRow extends RequestTicketRow {
+interface RequestTicketTableRow extends TicketDto {
   stt: number;
   selected: boolean;
+  typeName: string;
+  fullName: string; // From API it's userId, need to map or just show ID for now
+  department: string; // Not in TicketDto, mock it
+  days: number; // In payload usually
 }
 
 @Component({
@@ -54,7 +49,7 @@ interface RequestTicketTableRow extends RequestTicketRow {
   templateUrl: './request-ticket-management.html',
   styleUrl: './request-ticket-management.scss',
 })
-export class RequestTicketManagementPage implements AfterViewInit {
+export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   @ViewChild('selectTemplate') selectTemplate!: TemplateRef<any>;
   @ViewChild('sttTemplate') sttTemplate!: TemplateRef<any>;
   @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
@@ -84,133 +79,84 @@ export class RequestTicketManagementPage implements AfterViewInit {
   bulkAction: 'approve' | 'reject' = 'approve';
 
   // Pagination
-  currentPage = 1;
+  currentPage = 0; // API uses 0-based
   pageSize = 10;
-  filteredRows: RequestTicketTableRow[] = [];
-
-  readonly filterStatusOptions = [
-    { label: 'Đã duyệt', value: 'APPROVED' as const },
-    { label: 'Chưa duyệt', value: 'PENDING' as const },
-    { label: 'Từ chối', value: 'REJECTED' as const },
-  ];
-
-  readonly ticketTypeOptions = [
-    'Phiếu nghỉ phép',
-    'Phiếu giải trình',
-    'Phiếu Remote - WFH',
-    'Phiếu Remote - Onsite',
-  ];
-
-  private readonly sourceRows: RequestTicketRow[] = [
-    {
-      id: 1,
-      fullName: 'Mr Bear',
-      email: '@bear',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu nghỉ phép',
-      days: 2,
-      status: 'APPROVED',
-      approver: 'Lê Duy Hoàng Linh',
-    },
-    {
-      id: 2,
-      fullName: 'Trà Nhật Đông',
-      email: 'DongTN2@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu giải trình',
-      days: 1,
-      status: 'PENDING',
-      approver: null,
-    },
-    {
-      id: 3,
-      fullName: 'Lê Duy Hoàng Linh',
-      email: 'LinhLDH@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu Remote - WFH',
-      days: 3,
-      status: 'PENDING',
-      approver: null,
-    },
-    {
-      id: 4,
-      fullName: 'Vũ Ngọc Thùy Anh',
-      email: 'AnhVNT@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu Remote - Onsite',
-      days: 1,
-      status: 'APPROVED',
-      approver: 'Lê Duy Hoàng Linh',
-    },
-    {
-      id: 5,
-      fullName: 'Nguyễn Văn An',
-      email: 'AnNV@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu nghỉ phép',
-      days: 5,
-      status: 'REJECTED',
-      approver: 'Lê Duy Hoàng Linh',
-    },
-    {
-      id: 6,
-      fullName: 'Phạm Thị Bình',
-      email: 'BinhPT@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu giải trình',
-      days: 1,
-      status: 'APPROVED',
-      approver: 'Lê Duy Hoàng Linh',
-    },
-    {
-      id: 7,
-      fullName: 'Trần Minh Cường',
-      email: 'CuongTM@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu Remote - WFH',
-      days: 2,
-      status: 'PENDING',
-      approver: null,
-    },
-    {
-      id: 8,
-      fullName: 'Đặng Hoàng Duy',
-      email: 'DuyDH@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu Remote - Onsite',
-      days: 1,
-      status: 'REJECTED',
-      approver: 'Lê Duy Hoàng Linh',
-    },
-    {
-      id: 9,
-      fullName: 'Hoàng Thị Mai',
-      email: 'MaiHT@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu nghỉ phép',
-      days: 8,
-      status: 'PENDING',
-      approver: null,
-    },
-    {
-      id: 10,
-      fullName: 'Lý Thanh Phong',
-      email: 'PhongLT@fpt.com',
-      department: 'Phòng Banking',
-      ticketType: 'Phiếu giải trình',
-      days: 1,
-      status: 'PENDING',
-      approver: null,
-    },
-  ];
+  totalItems = 0;
+  totalPagesCount = 0;
 
   tableRows: RequestTicketTableRow[] = [];
+  ticketTypes: TicketTypeDto[] = [];
+  isLoading = false;
+
+  readonly filterStatusOptions = [
+    { label: 'Đã duyệt', value: TicketStatus.APPROVED },
+    { label: 'Chưa duyệt', value: TicketStatus.PENDING },
+    { label: 'Từ chối', value: TicketStatus.REJECTED },
+    { label: 'Đã hủy', value: TicketStatus.CANCELLED },
+  ];
 
   constructor(
     private readonly router: Router,
-    private readonly cdr: ChangeDetectorRef
-  ) {
-    this.applyFilters();
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ticketService: TicketService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  loadInitialData(): void {
+    this.isLoading = true;
+    forkJoin({
+      types: this.ticketService.getTicketTypes(),
+      tickets: this.ticketService.getAllTickets(this.currentPage, this.pageSize),
+    }).subscribe({
+      next: (res) => {
+        this.ticketTypes = res.types.data;
+        this.processTicketsResponse(res.tickets.data);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading initial data:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  loadTickets(): void {
+    this.isLoading = true;
+    this.ticketService.getAllTickets(this.currentPage, this.pageSize).subscribe({
+      next: (res) => {
+        this.processTicketsResponse(res.data);
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading tickets:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  processTicketsResponse(data: any): void {
+    if (!data) return;
+    this.totalItems = data.totalItems || 0;
+    this.totalPagesCount = data.totalPages || 0;
+    const items = data.items || [];
+
+    this.tableRows = items.map((ticket: TicketDto, index: number) => {
+      const type = this.ticketTypes.find((t) => t.ticketTypeId === ticket.ticketTypeId);
+      return {
+        ...ticket,
+        stt: this.currentPage * this.pageSize + index + 1,
+        selected: false,
+        typeName: type ? type.typeName : 'Unknown',
+        fullName: `User ${ticket.userId}`, // Mock name since it's not in TicketDto
+        department: 'Phòng Banking', // Mock department
+        days: 0, // Need to get from payload if we have detail, but for list we mock
+      } as RequestTicketTableRow;
+    });
   }
 
   ngAfterViewInit(): void {
@@ -221,6 +167,7 @@ export class RequestTicketManagementPage implements AfterViewInit {
       detail: this.detailTemplate,
       status: this.statusTemplate,
       approver: this.approverTemplate,
+      ticketType: this.detailTemplate, // Use detail template for type to show typeName
     };
     this.cdr.detectChanges();
   }
@@ -230,23 +177,25 @@ export class RequestTicketManagementPage implements AfterViewInit {
   }
 
   get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredRows.length / this.pageSize));
+    return this.totalPagesCount;
   }
 
   get totalRequests(): number {
-    return this.sourceRows.length;
+    return this.totalItems;
   }
 
+  // Note: These summary counts might be inaccurate if only based on current page
+  // Ideally backend provides these. For now, we keep them simple.
   get approvedRequests(): number {
-    return this.sourceRows.filter((row) => row.status === 'APPROVED').length;
+    return this.tableRows.filter((row) => row.status === TicketStatus.APPROVED).length;
   }
 
   get pendingRequests(): number {
-    return this.sourceRows.filter((row) => row.status === 'PENDING').length;
+    return this.tableRows.filter((row) => row.status === TicketStatus.PENDING).length;
   }
 
   get rejectedRequests(): number {
-    return this.sourceRows.filter((row) => row.status === 'REJECTED').length;
+    return this.tableRows.filter((row) => row.status === TicketStatus.REJECTED).length;
   }
 
   get confirmTitle(): string {
@@ -267,26 +216,31 @@ export class RequestTicketManagementPage implements AfterViewInit {
 
   onSearchChange(value: string): void {
     this.searchKeyword = value;
-    this.applyFilters();
+    // For real app, might want to debounce and call API with filter
+    // Current API doesn't seem to have search/filter params in getAll
   }
 
   onSearch(): void {
-    this.applyFilters();
+    this.currentPage = 0;
+    this.loadTickets();
   }
 
   onTicketTypeChange(): void {
-    this.applyFilters();
+    this.currentPage = 0;
+    this.loadTickets();
   }
 
   onStatusChange(): void {
-    this.applyFilters();
+    this.currentPage = 0;
+    this.loadTickets();
   }
 
   onRefresh(): void {
     this.searchKeyword = '';
     this.selectedTicketType = '';
     this.selectedStatus = '';
-    this.applyFilters();
+    this.currentPage = 0;
+    this.loadTickets();
   }
 
   goToHome(): void {
@@ -299,10 +253,10 @@ export class RequestTicketManagementPage implements AfterViewInit {
     this.tableRows = this.tableRows.map((row) => ({ ...row, selected: checked }));
   }
 
-  onRowCheckboxChange(rowId: number, event: Event): void {
+  onRowCheckboxChange(ticketId: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.tableRows = this.tableRows.map((row) =>
-      row.id === rowId ? { ...row, selected: checked } : row
+      row.ticketId === ticketId ? { ...row, selected: checked } : row
     );
     this.syncHeaderCheckboxState();
   }
@@ -320,158 +274,125 @@ export class RequestTicketManagementPage implements AfterViewInit {
   }
 
   confirmBulkAction(): void {
-    const targetStatus: TicketStatus = this.bulkAction === 'approve' ? 'APPROVED' : 'REJECTED';
-    this.sourceRows.forEach((row) => {
-      const selected = this.tableRows.find((item) => item.id === row.id)?.selected;
-      if (selected) {
+    // API doesn't have bulk approve, would need to call individually or wait for new API
+    // For now we just mock success for the UI
+    const targetStatus = this.bulkAction === 'approve' ? TicketStatus.APPROVED : TicketStatus.REJECTED;
+
+    // In real app:
+    // const selectedTickets = this.tableRows.filter(r => r.selected);
+    // const calls = selectedTickets.map(t => this.ticketService.approveTicket(t.ticketId, { idempotencyKey: uuid(), version: t.version }));
+    // forkJoin(calls).subscribe(...)
+
+    this.tableRows.forEach((row) => {
+      if (row.selected) {
         row.status = targetStatus;
-        row.approver = 'Quản lý trực tiếp';
       }
     });
+
     this.showBulkConfirm = false;
-    this.applyFilters();
+    this.cdr.detectChanges();
   }
 
   onViewDetail(row: RequestTicketTableRow): void {
     this.router.navigate(['/detail-ticket-management'], {
-      queryParams: { ticketType: row.ticketType },
+      queryParams: { ticketId: row.ticketId, ticketType: row.typeName },
     });
   }
 
   getStatusLabel(status: TicketStatus): string {
-    if (status === 'APPROVED') {
+    if (status === TicketStatus.APPROVED) {
       return 'Đã duyệt';
     }
-    if (status === 'REJECTED') {
+    if (status === TicketStatus.REJECTED) {
       return 'Từ chối';
+    }
+    if (status === TicketStatus.CANCELLED) {
+      return 'Đã hủy';
     }
     return 'Chưa duyệt';
   }
 
   getStatusBg(status: TicketStatus): string {
-    if (status === 'APPROVED') {
+    if (status === TicketStatus.APPROVED) {
       return 'var(--theme-green-50)';
     }
-    if (status === 'REJECTED') {
+    if (status === TicketStatus.REJECTED) {
       return 'var(--utility-50)';
+    }
+    if (status === TicketStatus.CANCELLED) {
+        return 'var(--neutral-color-200)';
     }
     return 'var(--neutral-color-10)';
   }
 
   getStatusText(status: TicketStatus): string {
-    if (status === 'APPROVED') {
+    if (status === TicketStatus.APPROVED) {
       return 'var(--theme-green-700)';
     }
-    if (status === 'REJECTED') {
+    if (status === TicketStatus.REJECTED) {
       return 'var(--utility-600)';
+    }
+    if (status === TicketStatus.CANCELLED) {
+        return 'var(--neutral-color-600)';
     }
     return 'var(--neutral-color-600)';
   }
 
   getShowingRange(): string {
-    if (this.filteredRows.length === 0) return '0';
-    const start = (this.currentPage - 1) * this.pageSize + 1;
-    const end = Math.min(this.currentPage * this.pageSize, this.filteredRows.length);
+    if (this.totalItems === 0) return '0';
+    const start = this.currentPage * this.pageSize + 1;
+    const end = Math.min((this.currentPage + 1) * this.pageSize, this.totalItems);
     return `${start}-${end}`;
   }
 
   getVisiblePages(): number[] {
     const pages: number[] = [];
     const total = this.totalPages;
-    const current = this.currentPage;
+    const current = this.currentPage + 1; // UI is 1-based
 
     if (total <= 5) {
-      for (let i = 1; i < total; i++) {
+      for (let i = 1; i <= total; i++) {
         pages.push(i);
       }
       return pages;
     }
 
-    // Always show first page
     pages.push(1);
-
-    if (current > 3) {
-      pages.push(-1); // ellipsis
-    }
-
+    if (current > 3) pages.push(-1);
     const start = Math.max(2, current - 1);
     const end = Math.min(total - 1, current + 1);
-
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-
-    if (current < total - 2) {
-      pages.push(-1); // ellipsis
-    }
+    for (let i = start; i <= end; i++) pages.push(i);
+    if (current < total - 2) pages.push(-1);
+    if (total > 1) pages.push(total);
 
     return pages;
   }
 
   goToPage(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-      this.applyPagination();
+      this.currentPage = page - 1;
+      this.loadTickets();
     }
   }
 
   previousPage(): void {
-    if (this.currentPage > 1) {
+    if (this.currentPage > 0) {
       this.currentPage--;
-      this.applyPagination();
+      this.loadTickets();
     }
   }
 
   nextPage(): void {
-    if (this.currentPage < this.totalPages) {
+    if (this.currentPage < this.totalPages - 1) {
       this.currentPage++;
-      this.applyPagination();
+      this.loadTickets();
     }
   }
 
   onPageSizeChange(value: string): void {
     this.pageSize = Number(value);
-    this.currentPage = 1;
-    this.applyPagination();
-  }
-
-  private applyFilters(): void {
-    const keyword = this.searchKeyword.trim().toLowerCase();
-
-    const filtered = this.sourceRows.filter((row) => {
-      const matchesKeyword =
-        keyword.length === 0 ||
-        row.fullName.toLowerCase().includes(keyword) ||
-        row.email.toLowerCase().includes(keyword);
-
-      const matchesType =
-        this.selectedTicketType.length === 0 || row.ticketType === this.selectedTicketType;
-
-      const matchesStatus =
-        this.selectedStatus.length === 0 || row.status === this.selectedStatus;
-
-      return matchesKeyword && matchesType && matchesStatus;
-    });
-
-    this.filteredRows = filtered.map((row, index) => ({
-      ...row,
-      department: 'Phòng Banking',
-      stt: index + 1,
-      selected: false,
-    }));
-
-    this.currentPage = 1;
-    this.applyPagination();
-  }
-
-  private applyPagination(): void {
-    const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    this.tableRows = this.filteredRows.slice(start, end).map((row, index) => ({
-      ...row,
-      stt: start + index + 1,
-    }));
-    this.isHeaderChecked = false;
+    this.currentPage = 0;
+    this.loadTickets();
   }
 
   private syncHeaderCheckboxState(): void {

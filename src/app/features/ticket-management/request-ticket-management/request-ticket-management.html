@@ -97,8 +97,8 @@
         (change)="onTicketTypeChange()"
       >
         <option value="">Loại phiếu yêu cầu</option>
-        @for (type of ticketTypeOptions; track type) {
-          <option [value]="type">{{ type }}</option>
+        @for (type of ticketTypes; track type.ticketTypeId) {
+          <option [value]="type.typeName">{{ type.typeName }}</option>
         }
       </select>
       <i class="dsi dsi-chevron-down-line select-icon"></i>
@@ -142,7 +142,7 @@
             fontSize="14px"
           ></tr>
         </thead>
-        @if (filteredRows.length > 0) {
+        @if (tableRows.length > 0) {
           <tbody
             app-table-body
             [rows]="tableRows"
@@ -153,13 +153,13 @@
         }
       </table>
 
-      @if (filteredRows.length === 0) {
+      @if (tableRows.length === 0) {
         <div class="empty-data">
           Không có dữ liệu
         </div>
       }
 
-      @if (filteredRows.length > 0) {
+      @if (tableRows.length > 0) {
         <div class="header-checkbox-overlay">
           <input
             type="checkbox"
@@ -172,7 +172,7 @@
     </div>
 
     <!-- Pagination -->
-    @if (filteredRows.length > 0) {
+    @if (tableRows.length > 0) {
       <div class="pagination">
         <div class="pagination-info">
           <span>Hiển thị {{ getShowingRange() }}</span>

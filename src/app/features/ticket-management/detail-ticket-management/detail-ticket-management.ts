@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -23,6 +23,8 @@ import {
   DetailExplanationComponent,
   ExplanationDetail,
 } from './components/detail-explanation.component';
+import { TicketService } from '../../../services/ticket.service';
+import { TicketDetailDto, TicketStatus } from '../../../models/ticket.model';
 
 type TicketType = 'REMOTE_ONSITE' | 'REMOTE_WFH' | 'LEAVE_REQUEST' | 'EXPLANATION';
 
@@ -63,12 +65,16 @@ const TICKET_TITLE_MAP: { [key in TicketType]: string } = {
     DetailLeaveRequestComponent,
     DetailExplanationComponent,
   ],
+  providers: [DatePipe],
   templateUrl: './detail-ticket-management.html',
   styleUrl: './detail-ticket-management.scss',
 })
 export class DetailTicketManagementPage implements OnInit {
+  ticketId = '';
   ticketType: TicketType = 'REMOTE_ONSITE';
   ticketTitle = 'Phiếu Remote - Onsite';
+  ticketDetail: TicketDetailDto | null = null;
+  isLoading = false;
 
   // ============================
   // Popup state
@@ -81,87 +87,175 @@ export class DetailTicketManagementPage implements OnInit {
   failMessage = '';
 
   // ============================
-  // Mock data cho từng loại phiếu
+  // Data for components
   // ============================
   remoteOnsiteData: RemoteOnsiteDetail = {
-    fullName: 'Vũ Ngọc Thùy Anh',
-    createdDate: '05/01/2026',
-    startTime: '08:30 AM',
-    reason: 'Làm đầy tháng cho mèo',
-    workDate: '08/01/2026',
-    location: 'HDBank - Chi nhánh Q1',
+    fullName: '',
+    createdDate: '',
+    startTime: '',
+    reason: '',
+    workDate: '',
+    location: '',
   };
 
   remoteWfhData: RemoteWfhDetail = {
-    fullName: 'Vũ Ngọc Thùy Anh',
-    createdDate: '05/01/2026',
-    startTime: '08:30 AM',
-    reason: 'Làm việc từ nhà do thời tiết xấu',
-    workDate: '08/01/2026',
+    fullName: '',
+    createdDate: '',
+    startTime: '',
+    reason: '',
+    workDate: '',
   };
 
   leaveRequestData: LeaveRequestDetail = {
-    fullName: 'Vũ Ngọc Thùy Anh',
-    createdDate: '05/01/2026',
-    startDate: '08/01/2026',
-    reason: 'Làm đầy tháng cho mèo',
-    totalDays: 8,
-    endDate: '15/01/2026',
+    fullName: '',
+    createdDate: '',
+    startDate: '',
+    reason: '',
+    totalDays: 0,
+    endDate: '',
   };
 
   explanationData: ExplanationDetail = {
-    fullName: 'Vũ Ngọc Thùy Anh',
-    createdDate: '05/01/2026',
-    date: '08/01/2026',
-    reason: 'Đi muộn do kẹt xe trên đường Nguyễn Văn Linh',
+    fullName: '',
+    createdDate: '',
+    date: '',
+    reason: '',
   };
 
   // ============================
   // Approval Steps (timeline)
   // ============================
-  approvalSteps: ApprovalStep[] = [
-    {
-      stepNumber: 1,
-      statusLabel: 'Đã tạo',
-      statusType: 'done',
-      date: '05/01/2026',
-      personName: 'Vũ Ngọc Thùy Anh',
-      description: 'Khởi tạo',
-    },
-    {
-      stepNumber: 2,
-      statusLabel: 'Chờ duyệt',
-      statusType: 'pending',
-      date: null,
-      personName: 'Nguyen Thi Linh hoặc Nguyen Van Tien',
-      description: 'Phê duyệt cấp 1 - Duyệt bởi <strong>Nguyen Thi Linh</strong>',
-    },
-    {
-      stepNumber: 3,
-      statusLabel: 'Chờ duyệt',
-      statusType: 'pending',
-      date: null,
-      personName: 'Nguyen Van B',
-      description: 'Phê duyệt cấp 2',
-    },
-  ];
+  approvalSteps: ApprovalStep[] = [];
 
   constructor(
     private readonly router: Router,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly ticketService: TicketService,
+    private readonly datePipe: DatePipe
   ) {}
 
   ngOnInit(): void {
-    // Read ticketType from query params or route data
     this.route.queryParams.subscribe((params) => {
+      this.ticketId = params['ticketId'] || '';
       const typeParam = params['ticketType'] || '';
+
       if (TICKET_TYPE_MAP[typeParam]) {
         this.ticketType = TICKET_TYPE_MAP[typeParam];
       } else if (Object.values(TICKET_TYPE_MAP).includes(typeParam as TicketType)) {
         this.ticketType = typeParam as TicketType;
       }
       this.ticketTitle = TICKET_TITLE_MAP[this.ticketType];
+
+      if (this.ticketId) {
+        this.loadTicketDetail();
+      }
     });
+  }
+
+  loadTicketDetail(): void {
+    this.isLoading = true;
+    this.ticketService.getTicketDetail(this.ticketId).subscribe({
+      next: (res) => {
+        this.ticketDetail = res.data;
+        this.mapDetailToComponents(res.data);
+        this.generateApprovalSteps(res.data);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading ticket detail:', err);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  mapDetailToComponents(detail: TicketDetailDto): void {
+    const payload = detail.payload || {};
+    const createdDate = this.datePipe.transform(detail.createdAt, 'dd/MM/yyyy') || '';
+    const fullName = `User ${detail.userId}`;
+
+    switch (this.ticketType) {
+      case 'REMOTE_ONSITE':
+        this.remoteOnsiteData = {
+          fullName,
+          createdDate,
+          startTime: payload['startTime'] || '',
+          reason: payload['reason'] || '',
+          workDate: this.datePipe.transform(payload['workDate'], 'dd/MM/yyyy') || '',
+          location: payload['location'] === 'Hanoi' ? 'Hà Nội' : (payload['location'] === 'HCM' ? 'TP. HCM' : payload['location'] || ''),
+        };
+        break;
+      case 'REMOTE_WFH':
+        this.remoteWfhData = {
+          fullName,
+          createdDate,
+          startTime: payload['startTime'] || '08:30 AM',
+          reason: payload['reason'] || '',
+          workDate: this.datePipe.transform(payload['workDate'], 'dd/MM/yyyy') || '',
+        };
+        break;
+      case 'LEAVE_REQUEST':
+        this.leaveRequestData = {
+          fullName,
+          createdDate,
+          startDate: this.datePipe.transform(payload['startDate'], 'dd/MM/yyyy') || '',
+          endDate: this.datePipe.transform(payload['endDate'], 'dd/MM/yyyy') || '',
+          reason: payload['reason'] || '',
+          totalDays: payload['totalDays'] || 0,
+        };
+        break;
+      case 'EXPLANATION':
+        this.explanationData = {
+          fullName,
+          createdDate,
+          date: this.datePipe.transform(payload['date'], 'dd/MM/yyyy') || '',
+          reason: payload['reason'] || '',
+        };
+        break;
+    }
+  }
+
+  generateApprovalSteps(detail: TicketDetailDto): void {
+    const createdDate = this.datePipe.transform(detail.createdAt, 'dd/MM/yyyy') || '';
+
+    this.approvalSteps = [
+      {
+        stepNumber: 1,
+        statusLabel: 'Đã tạo',
+        statusType: 'done',
+        date: createdDate,
+        personName: `User ${detail.userId}`,
+        description: 'Khởi tạo',
+      }
+    ];
+
+    if (detail.status === TicketStatus.PENDING) {
+      this.approvalSteps.push({
+        stepNumber: 2,
+        statusLabel: 'Chờ duyệt',
+        statusType: 'pending',
+        date: null,
+        personName: 'Người quản lý',
+        description: 'Đang chờ phê duyệt',
+      });
+    } else if (detail.status === TicketStatus.APPROVED) {
+      this.approvalSteps.push({
+        stepNumber: 2,
+        statusLabel: 'Đã duyệt',
+        statusType: 'done',
+        date: this.datePipe.transform(detail.updatedAt, 'dd/MM/yyyy'),
+        personName: 'Người quản lý',
+        description: 'Đã phê duyệt',
+      });
+    } else if (detail.status === TicketStatus.REJECTED) {
+      this.approvalSteps.push({
+        stepNumber: 2,
+        statusLabel: 'Từ chối',
+        statusType: 'rejected',
+        date: this.datePipe.transform(detail.updatedAt, 'dd/MM/yyyy'),
+        personName: 'Người quản lý',
+        description: 'Đã từ chối',
+      });
+    }
   }
 
   goToHome(): void {
@@ -188,19 +282,40 @@ export class DetailTicketManagementPage implements OnInit {
   confirmReject(): void {
     if (this.rejectReason.trim().length === 0) return;
 
-    // TODO: integrate with API - send rejectReason
     this.showRejectPopup = false;
     this.failMessage = 'Phiếu đã bị từ chối thành công';
     this.showFailPopup = true;
+
+    if (this.ticketDetail) {
+        this.ticketDetail.status = TicketStatus.REJECTED;
+        this.generateApprovalSteps(this.ticketDetail);
+    }
   }
 
   // ============================
   // Approve flow
   // ============================
   onApprove(): void {
-    // TODO: integrate with API
-    this.successMessage = 'Duyệt phiếu thành công!';
-    this.showSuccessPopup = true;
+    if (!this.ticketId) return;
+
+    this.ticketService.approveTicket(this.ticketId, {
+        idempotencyKey: Math.random().toString(36).substring(7),
+        version: 1
+    }).subscribe({
+        next: () => {
+            this.successMessage = 'Duyệt phiếu thành công!';
+            this.showSuccessPopup = true;
+            if (this.ticketDetail) {
+                this.ticketDetail.status = TicketStatus.APPROVED;
+                this.generateApprovalSteps(this.ticketDetail);
+            }
+        },
+        error: (err) => {
+            console.error('Error approving ticket:', err);
+            this.failMessage = 'Duyệt phiếu thất bại. Vui lòng thử lại.';
+            this.showFailPopup = true;
+        }
+    });
   }
 
   closeSuccessPopup(): void {
