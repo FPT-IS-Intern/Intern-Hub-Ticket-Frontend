@@ -1,19 +1,61 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { NzNotificationService } from 'ng-zorro-antd/notification';
-import { catchError, throwError } from 'rxjs';
+import { Router } from '@angular/router';
+import { catchError, tap, throwError } from 'rxjs';
+
+type ApiEnvelope = {
+  status?: {
+    code?: string | null;
+  } | null;
+};
+
+function isForbiddenPayload(payload: unknown): boolean {
+  let normalizedPayload = payload;
+
+  if (typeof payload === 'string') {
+    try {
+      normalizedPayload = JSON.parse(payload);
+    } catch {
+      return false;
+    }
+  }
+
+  if (!normalizedPayload || typeof normalizedPayload !== 'object') {
+    return false;
+  }
+
+  const envelope = normalizedPayload as ApiEnvelope;
+  return (envelope.status?.code || '').toLowerCase() === 'forbidden';
+}
+
+function hasForbiddenError(error: HttpErrorResponse): boolean {
+  if (error.status === 403) {
+    return true;
+  }
+
+  return isForbiddenPayload(error.error);
+}
 
 export const forbiddenInterceptor: HttpInterceptorFn = (req, next) => {
-  const notification = inject(NzNotificationService);
+  const router = inject(Router);
+
+  const redirectForbidden = () => {
+    if (router.url !== '/forbidden') {
+      router.navigateByUrl('/forbidden');
+    }
+  };
 
   return next(req).pipe(
-    catchError((error) => {
-      if (error.status === 403) {
-        notification.error(
-          'Không có quyền truy cập',
-          'Bạn không có quyền thực hiện hành động này. Vui lòng liên hệ quản trị viên.',
-        );
+    tap((event) => {
+      if (event instanceof HttpResponse && isForbiddenPayload(event.body)) {
+        redirectForbidden();
       }
+    }),
+    catchError((error) => {
+      if (error instanceof HttpErrorResponse && hasForbiddenError(error)) {
+        redirectForbidden();
+      }
+
       return throwError(() => error);
     }),
   );

@@ -26,6 +26,12 @@ export const routes: Routes = [
       ),
   },
 
+  {
+    path: 'forbidden',
+    loadComponent: () =>
+      import('./features/forbidden/forbidden.page').then((m) => m.ForbiddenPage),
+  },
+
   // ==============================================
   // Default Route
   // ==============================================

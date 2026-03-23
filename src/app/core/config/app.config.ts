@@ -1,3 +1,5 @@
+import { environment } from '../../../environment/environment';
+
 export function getFileBaseUrl(): string {
   const shellEnv = (window as any).__env;
 
@@ -5,5 +7,5 @@ export function getFileBaseUrl(): string {
     return shellEnv.storageFileBaseUrl;
   }
 
-  return '';
+  return environment.apiUrl;
 }

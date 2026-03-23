@@ -1,0 +1,65 @@
+.forbidden-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 110px 20px 40px;
+  background-color: #f6eadc;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.error-wrap {
+  width: min(760px, 100%);
+  text-align: center;
+  animation: fade-in 0.45s ease;
+}
+
+.code {
+  margin: 0;
+  font-size: clamp(120px, 21vw, 300px);
+  line-height: 0.9;
+  font-weight: 700;
+  letter-spacing: 8px;
+  color: rgba(237, 177, 112, 0.64);
+  user-select: none;
+}
+
+.message {
+  margin: 24px auto 0;
+  max-width: 700px;
+  color: #423f3b;
+  font-size: clamp(15px, 1.6vw, 31px);
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .forbidden-page {
+    padding-top: 80px;
+    background-size: contain;
+    background-position: top center;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+
+  .error-ghost {
+    border-radius: 18px;
+  }
+}
