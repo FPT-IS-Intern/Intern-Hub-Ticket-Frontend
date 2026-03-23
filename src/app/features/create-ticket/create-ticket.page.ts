@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CreateTicketRequest, TicketTypeDto } from '../../models/ticket.model';
+import { TicketTypeDto, CreateTicketMultipartRequest } from '../../models/ticket.model';
 import { TicketService } from '../../services/ticket.service';
 
 import {
@@ -15,6 +15,9 @@ import { ExplanationFormComponent } from './components/explanation-form.componen
 import { RemoteWfhFormComponent } from './components/remote-wfh-form.component';
 import { RemoteOnsiteFormComponent } from './components/remote-onsite-form.component';
 import { LeaveFormComponent } from './components/leave-form.component';
+
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.pdf', '.docx'];
+const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
 
 @Component({
   selector: 'app-create-ticket',
@@ -37,16 +40,9 @@ export class CreateTicketPage implements OnInit {
   currentForm!: FormGroup;
   isSubmitting = false;
 
-  /** Ticket types loaded from the API */
   ticketTypesList: TicketTypeDto[] = [];
-
-  /** Currently selected ticket type ID (string serialized from Long) */
   selectedTicketTypeId = '';
 
-  /**
-   * Maps typeName from DB to the component switch key used in the template.
-   * Adjust these keys if the DB typeName values differ.
-   */
   private typeNameToComponentKey: Record<string, string> = {
     'Phiếu giải trình': 'EXPLANATION',
     'Phiếu Remote - WFH': 'REMOTE_WFH',
@@ -65,9 +61,6 @@ export class CreateTicketPage implements OnInit {
     this.loadTicketTypes();
   }
 
-  /**
-   * Fetch ticket types from backend and set default selection
-   */
   loadTicketTypes(): void {
     this.ticketService.getTicketTypes().subscribe({
       next: (res) => {
@@ -83,7 +76,6 @@ export class CreateTicketPage implements OnInit {
   }
 
   onTicketTypeChange(): void {
-    console.log('Ticket type changed to:', this.selectedTicketTypeId);
     this.cdr.detectChanges();
   }
 
@@ -96,10 +88,6 @@ export class CreateTicketPage implements OnInit {
     return type ? type.typeName : '';
   }
 
-  /**
-   * Get the component switch key for the currently selected ticket type.
-   * Used by the template @switch to render the correct form component.
-   */
   getSelectedComponentKey(): string {
     const type = this.ticketTypesList.find((t) => t.ticketTypeId === this.selectedTicketTypeId);
     if (!type) return '';
@@ -107,10 +95,34 @@ export class CreateTicketPage implements OnInit {
   }
 
   /**
-   * Build the request body matching the backend API:
-   * { ticketTypeId: number, payload: { ...formData } }
+   * Validate a single file: checks extension and size.
+   * Returns an error message string if invalid, null if valid.
    */
-  buildPayload(): CreateTicketRequest | null {
+  private validateFile(file: File): string | null {
+    const ext = '.' + file.name.split('.').pop()!.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return `File "${file.name}" có định dạng không hợp lệ. Chỉ chấp nhận: ${ALLOWED_EXTENSIONS.join(', ')}`;
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      return `File "${file.name}" vượt quá kích thước tối đa 2MB`;
+    }
+    return null;
+  }
+
+  /**
+   * Extract raw File objects from UploadedFile wrappers emitted by FileUploadDropzoneComponent.
+   */
+  private extractFiles(attachments: any[]): File[] {
+    return attachments
+      .filter((f: any) => f != null)
+      .map((f: any) => f.file || f)
+      .filter((f: any) => f instanceof File);
+  }
+
+  /**
+   * Build the JSON payload for the multipart request.
+   */
+  buildPayload(): { ticketTypeId: number; payload: Record<string, any>; attachments: any[] } | null {
     if (!this.currentForm) {
       return null;
     }
@@ -119,13 +131,15 @@ export class CreateTicketPage implements OnInit {
     const payload: Record<string, any> = { ...rawValue };
     const componentKey = this.getSelectedComponentKey();
 
-    // Handle date range conversion based on ticket type
+    if (componentKey === 'EXPLANATION' && rawValue.date) {
+      payload['date'] = this.formatDate(rawValue.date);
+    }
+
     if (rawValue.dateRange && rawValue.dateRange.length === 2) {
       const startDate = rawValue.dateRange[0];
       const endDate = rawValue.dateRange[1];
 
       if (componentKey === 'LEAVE') {
-        // Backend expects yyyy-MM-dd format with snake_case keys
         payload['start_date'] = this.formatDate(startDate);
         payload['end_date'] = this.formatDate(endDate);
       } else if (componentKey === 'REMOTE_WFH' || componentKey === 'REMOTE_ONSITE') {
@@ -134,30 +148,20 @@ export class CreateTicketPage implements OnInit {
       delete payload['dateRange'];
     }
 
-    // Convert totalDays to snake_case for LEAVE tickets
     if (componentKey === 'LEAVE' && payload['totalDays'] !== undefined) {
       payload['total_days'] = payload['totalDays'];
       delete payload['totalDays'];
     } else if (payload['totalDays'] !== undefined) {
       delete payload['totalDays'];
     }
-    // Extract attachments and convert to evidences for the request
+
     const attachments = payload['attachments'] || [];
     delete payload['attachments'];
-
-    // Build evidences array from uploaded files
-    const evidences = attachments
-      .filter((file: any) => file != null)
-      .map((file: any) => ({
-        evidenceKey: this.parseFileSize(file.size || file.fileSize || 0),
-        fileType: file.type || file.fileType || 'application/octet-stream',
-        fileSize: this.parseFileSize(file.size || file.fileSize || 0),
-      }));
 
     return {
       ticketTypeId: Number(this.selectedTicketTypeId),
       payload,
-      ...(evidences.length > 0 ? { evidences } : {}),
+      attachments,
     };
   }
 
@@ -170,28 +174,45 @@ export class CreateTicketPage implements OnInit {
       return;
     }
 
-    const request = this.buildPayload();
-    if (!request) {
+    const result = this.buildPayload();
+    if (!result) {
       console.error('Could not build request payload');
       return;
     }
 
-    this.isSubmitting = true;
-    console.log('Submitting ticket:', request);
+    const { ticketTypeId, payload, attachments } = result;
+    const validFiles = this.extractFiles(attachments);
 
-    this.ticketService.createTicket(request).subscribe({
+    // Validate file extensions and sizes
+    for (const file of validFiles) {
+      const error = this.validateFile(file);
+      if (error) {
+        this.isSubmitting = false;
+        alert(error);
+        return;
+      }
+    }
+
+    this.isSubmitting = true;
+
+    const request: CreateTicketMultipartRequest = { ticketTypeId, payload };
+    console.log('Submitting ticket (multipart):', request, 'Files:', validFiles);
+
+    this.ticketService.createTicketMultipart(request, validFiles).subscribe({
       next: (res) => {
         this.isSubmitting = false;
         console.log('Ticket created successfully:', res.data);
-        alert(
-          `Tạo phiếu thành công! Mã phiếu: ${res.data.ticketId}, Trạng thái: ${res.data.status}`,
-        );
+        alert(`Tạo phiếu thành công! Mã phiếu: ${res.data.ticketId}, Trạng thái: ${res.data.status}`);
         this.goToHome();
       },
       error: (err) => {
         this.isSubmitting = false;
         console.error('Error creating ticket:', err);
-        const errorMsg = err?.error?.message || 'Đã xảy ra lỗi khi tạo phiếu. Vui lòng thử lại.';
+        const errorMsg =
+          err?.error?.status?.message ||
+          err?.error?.message ||
+          err?.message ||
+          'Đã xảy ra lỗi khi tạo phiếu. Vui lòng thử lại.';
         alert(errorMsg);
       },
     });
@@ -201,9 +222,6 @@ export class CreateTicketPage implements OnInit {
     this.router.navigate(['/homePage']);
   }
 
-  /**
-   * Format a Date object to 'yyyy-MM-dd' string.
-   */
   private formatDate(date: any): string | null {
     if (!date) return null;
     const d = new Date(date);
@@ -211,26 +229,5 @@ export class CreateTicketPage implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-    /**
-     * Parse a file size value to bytes (number).
-     * Handles both raw numbers and formatted strings like "35.78KB", "2MB".
-     */
-  }
-  private parseFileSize(size: any): number {
-    if (typeof size === 'number') return Math.round(size);
-    if (typeof size !== 'string') return 0;
-
-    const match = size.match(/^([\d.]+)\s*(B|KB|MB|GB)?$/i);
-    if (!match) return 0;
-
-    const value = parseFloat(match[1]);
-    const unit = (match[2] || 'B').toUpperCase();
-    const multipliers: Record<string, number> = {
-      B: 1,
-      KB: 1024,
-      MB: 1024 * 1024,
-      GB: 1024 * 1024 * 1024,
-    };
-    return Math.round(value * (multipliers[unit] || 1));
   }
 }

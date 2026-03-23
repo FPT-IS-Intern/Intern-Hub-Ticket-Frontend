@@ -82,8 +82,8 @@ import { PositionService, PositionListResponse } from '../../../services/positio
         <app-file-upload-dropzone
           label="Tải minh chứng"
           maxSize="2MB"
-          acceptFormats=".png, .jpeg, .jpg"
-          helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg"
+          acceptFormats=".png, .jpeg, .jpg, .pdf, .docx"
+          helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
       </div>

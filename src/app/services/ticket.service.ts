@@ -15,6 +15,10 @@ import {
   CreateTicketTypeRequest,
   TicketTypeResponse,
   FilterTicketRequest,
+  PresignedUrlRequest,
+  PresignedUrlResponse,
+  CreateTicketMultipartRequest,
+  CreateTicketResponse,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -104,6 +108,32 @@ export class TicketService {
   }
 
   /**
+   * Create a new ticket with multipart/form-data (files + JSON payload)
+   * POST /ticket
+   * Content-Type: multipart/form-data
+   */
+  createTicketMultipart(
+    request: CreateTicketMultipartRequest,
+    files: File[],
+  ): Observable<ResponseApi<CreateTicketResponse>> {
+    const formData = new FormData();
+
+    // Append JSON request
+    const requestJson = JSON.stringify({
+      ticketTypeId: request.ticketTypeId,
+      payload: request.payload,
+    });
+    formData.append('request', new Blob([requestJson], { type: 'application/json' }));
+
+    // Append each evidence file
+    files.forEach((file) => {
+      formData.append('evidences', file, file.name);
+    });
+
+    return this.http.post<ResponseApi<CreateTicketResponse>>(`${this.baseUrl}`, formData);
+  }
+
+  /**
    * Approve ticket
    * POST /ticket/{ticketId}/approve
    */
@@ -134,5 +164,43 @@ export class TicketService {
    */
   getEvidences(ticketId: string): Observable<ResponseApi<EvidenceDto[]>> {
     return this.http.get<ResponseApi<EvidenceDto[]>>(`${this.baseUrl}/${ticketId}/evidences`);
+  }
+
+  /**
+   * Generate a presigned URL for uploading evidence file
+   * POST /ticket/evidences/presigned-url
+   */
+  generatePresignedUrl(request: PresignedUrlRequest): Observable<ResponseApi<PresignedUrlResponse>> {
+    return this.http.post<ResponseApi<PresignedUrlResponse>>(
+      `${this.baseUrl}/evidences/presigned-url`,
+      request,
+    );
+  }
+
+  /**
+   * Upload a file directly to the presigned URL (MinIO/S3)
+   * Uses fetch instead of HttpClient to avoid interceptors/base URL
+   */
+  uploadFileToPresignedUrl(uploadUrl: string, file: File): Observable<void> {
+    return new Observable<void>((observer) => {
+      fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      })
+        .then((response) => {
+          if (response.ok) {
+            observer.next();
+            observer.complete();
+          } else {
+            observer.error(new Error(`Upload failed with status ${response.status}`));
+          }
+        })
+        .catch((err) => {
+          observer.error(err);
+        });
+    });
   }
 }

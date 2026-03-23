@@ -52,7 +52,8 @@ export interface PaginatedData<T> {
 }
 
 export interface EvidenceRequestItem {
-  evidenceKey: string;
+  tempKey: string;
+  destinationPath: string;
   fileType: string;
   fileSize: number;
 }
@@ -61,6 +62,28 @@ export interface CreateTicketRequest {
   ticketTypeId: number;
   payload: Record<string, any>;
   evidences?: EvidenceRequestItem[];
+}
+
+export interface CreateTicketMultipartRequest {
+  ticketTypeId: number;
+  payload: Record<string, any>;
+}
+
+export interface CreateTicketResponse {
+  ticketId: string;
+  status: TicketStatus;
+}
+
+export interface PresignedUrlRequest {
+  fileName: string;
+  destinationPath: string;
+  contentType: string;
+  fileSize: number;
+}
+
+export interface PresignedUrlResponse {
+  uploadUrl: string;
+  tempKey: string;
 }
 
 export interface TicketResponse {
