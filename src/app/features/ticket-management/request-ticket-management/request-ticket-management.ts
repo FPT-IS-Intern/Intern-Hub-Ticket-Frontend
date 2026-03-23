@@ -20,7 +20,7 @@ import {
   TableHeaderComponent,
 } from '@goat-bravos/intern-hub-layout';
 import { TicketService } from '../../../services/ticket.service';
-import { TicketDto, TicketStatus, TicketTypeDto } from '../../../models/ticket.model';
+import { FilterTicketRequest, TicketDto, TicketStatus, TicketTypeDto } from '../../../models/ticket.model';
 import { forkJoin } from 'rxjs';
 
 interface RequestTicketTableRow extends TicketDto {
@@ -109,7 +109,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.isLoading = true;
     forkJoin({
       types: this.ticketService.getTicketTypes(),
-      tickets: this.ticketService.getAllTickets(this.currentPage, this.pageSize),
+      tickets: this.ticketService.getAllTickets(this.currentPage, this.pageSize, this.buildFilter()),
     }).subscribe({
       next: (res) => {
         this.ticketTypes = res.types.data;
@@ -126,7 +126,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   loadTickets(): void {
     this.isLoading = true;
-    this.ticketService.getAllTickets(this.currentPage, this.pageSize).subscribe({
+    this.ticketService.getAllTickets(this.currentPage, this.pageSize, this.buildFilter()).subscribe({
       next: (res) => {
         this.processTicketsResponse(res.data);
         this.isLoading = false;
@@ -176,6 +176,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     return this.tableRows.filter((row) => row.selected).length;
   }
 
+  get hasPendingRows(): boolean {
+    return this.tableRows.some((row) => row.status === TicketStatus.PENDING);
+  }
+
   get totalPages(): number {
     return this.totalPagesCount;
   }
@@ -216,8 +220,6 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   onSearchChange(value: string): void {
     this.searchKeyword = value;
-    // For real app, might want to debounce and call API with filter
-    // Current API doesn't seem to have search/filter params in getAll
   }
 
   onSearch(): void {
@@ -250,7 +252,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   onHeaderCheckboxChange(event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.isHeaderChecked = checked;
-    this.tableRows = this.tableRows.map((row) => ({ ...row, selected: checked }));
+    this.tableRows = this.tableRows.map((row) => ({
+      ...row,
+      selected: row.status === TicketStatus.PENDING ? checked : false,
+    }));
   }
 
   onRowCheckboxChange(ticketId: string, event: Event): void {
@@ -398,5 +403,19 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   private syncHeaderCheckboxState(): void {
     this.isHeaderChecked =
       this.tableRows.length > 0 && this.tableRows.every((row) => row.selected);
+  }
+
+  private buildFilter(): FilterTicketRequest {
+    const filter: FilterTicketRequest = {};
+    if (this.searchKeyword?.trim()) {
+      filter.nameOrEmail = this.searchKeyword.trim();
+    }
+    if (this.selectedTicketType) {
+      filter.typeName = this.selectedTicketType;
+    }
+    if (this.selectedStatus) {
+      filter.status = this.selectedStatus;
+    }
+    return filter;
   }
 }

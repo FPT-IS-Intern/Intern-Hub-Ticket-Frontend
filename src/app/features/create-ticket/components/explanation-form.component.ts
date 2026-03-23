@@ -1,12 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/intern-hub-layout';
 
 @Component({
   selector: 'app-explanation-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePickerComponent, FileUploadDropzoneComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerComponent, FileUploadDropzoneComponent],
   template: `
     <form [formGroup]="form" class="ticket-form" style="gap: 16px">
       <!-- Date -->
@@ -14,7 +14,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
         <label>Thời gian <span class="required">*</span></label>
         <app-date-picker
           [disabledDate]="disabledPastDate"
-          formControlName="date"
+          [(ngModel)]="selectedDateValue"
+          [ngModelOptions]="{standalone: true}"
+          (dateChange)="onDateChange($event)"
           style="width: 100%;"
           height="40px">
         </app-date-picker>
@@ -49,6 +51,7 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
 export class ExplanationFormComponent implements OnInit {
   @Output() formChange = new EventEmitter<FormGroup>();
   form!: FormGroup;
+  selectedDateValue: Date | null = null;
 
   constructor(private fb: FormBuilder) {}
 
@@ -64,6 +67,11 @@ export class ExplanationFormComponent implements OnInit {
     });
 
     this.formChange.emit(this.form);
+  }
+
+  onDateChange(date: Date | null) {
+    this.selectedDateValue = date;
+    this.form.get('date')?.setValue(date);
   }
 
   onFilesChange(files: any[]) {

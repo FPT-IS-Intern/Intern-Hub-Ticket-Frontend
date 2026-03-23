@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } from '@goat-bravos/intern-hub-layout';
@@ -8,7 +8,7 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
 @Component({
   selector: 'app-leave-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent],
   template: `
     <form [formGroup]="form" class="ticket-form">
       <!-- Date Range and Total Days -->
@@ -18,18 +18,25 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           <div class="date-range-picker">
             <app-date-picker
               [disabledDate]="disabledPastDate"
+              [(ngModel)]="startDateValue"
+              [ngModelOptions]="{standalone: true}"
               (dateChange)="onStartDateChange($event)"
               style="width: 100%;"
               height="40px">
             </app-date-picker>
             <span>&rarr;</span>
             <app-date-picker
-              [disabledDate]="disabledPastDate"
+              [disabledDate]="disabledEndDate"
+              [(ngModel)]="endDateValue"
+              [ngModelOptions]="{standalone: true}"
               (dateChange)="onEndDateChange($event)"
               style="width: 100%;"
               height="40px">
             </app-date-picker>
           </div>
+          @if (dateError) {
+            <div class="error-message">{{ dateError }}</div>
+          }
         </div>
 
         <div class="form-group" style="display: flex; flex-direction: column;">
@@ -76,6 +83,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
 export class LeaveFormComponent implements OnInit, OnDestroy {
   @Output() formChange = new EventEmitter<FormGroup>();
   form!: FormGroup;
+  dateError: string | null = null;
+  startDateValue: Date | null = null;
+  endDateValue: Date | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {}
@@ -92,15 +102,21 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
     this.form.get('dateRange')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((dates: any[]) => {
+        this.dateError = null;
         if (dates && dates.length === 2 && dates[0] && dates[1]) {
           const start = new Date(dates[0]);
           const end = new Date(dates[1]);
           start.setHours(0, 0, 0, 0);
           end.setHours(0, 0, 0, 0);
 
-          const diffTime = Math.abs(end.getTime() - start.getTime());
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-          this.form.get('totalDays')?.setValue(diffDays);
+          if (end < start) {
+            this.dateError = 'Ngày kết thúc phải sau ngày bắt đầu';
+            this.form.get('totalDays')?.setValue(0);
+          } else {
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            this.form.get('totalDays')?.setValue(diffDays);
+          }
         } else {
           this.form.get('totalDays')?.setValue(0);
         }
@@ -119,11 +135,21 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
   }
 
   onStartDateChange(date: Date | null) {
+    this.startDateValue = date;
     const currentRange = this.form.get('dateRange')?.value || [];
-    this.form.get('dateRange')?.setValue([date, currentRange[1]]);
+    const endDate = currentRange[1];
+
+    // If end date exists and is before the new start date, reset end date
+    if (date && endDate && new Date(endDate) < new Date(date)) {
+      this.endDateValue = null;
+      this.form.get('dateRange')?.setValue([date, null]);
+    } else {
+      this.form.get('dateRange')?.setValue([date, endDate]);
+    }
   }
 
   onEndDateChange(date: Date | null) {
+    this.endDateValue = date;
     const currentRange = this.form.get('dateRange')?.value || [];
     this.form.get('dateRange')?.setValue([currentRange[0], date]);
   }
@@ -136,5 +162,19 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return current < today;
+  };
+
+  disabledEndDate = (current: Date): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (current < today) return true;
+
+    // Disable dates before start date
+    if (this.startDateValue) {
+      const start = new Date(this.startDateValue);
+      start.setHours(0, 0, 0, 0);
+      return current < start;
+    }
+    return false;
   };
 }

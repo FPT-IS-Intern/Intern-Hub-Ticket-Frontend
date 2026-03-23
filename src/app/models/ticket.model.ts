@@ -40,6 +40,9 @@ export interface TicketDto {
 
 export interface TicketDetailDto extends TicketDto {
   payload: Record<string, any>;
+  requiredApprovals: number;
+  currentApprovalLevel: number;
+  approverId: string | null;
 }
 
 export interface PaginatedData<T> {
@@ -69,6 +72,12 @@ export interface ApproveTicketRequest {
   comment?: string;
   idempotencyKey: string;
   version: number;
+}
+
+export interface FilterTicketRequest {
+  nameOrEmail?: string;
+  typeName?: string;
+  status?: string;
 }
 
 export interface UploadEvidenceRequest {

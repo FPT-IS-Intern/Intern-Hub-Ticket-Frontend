@@ -164,6 +164,7 @@
           <input
             type="checkbox"
             [checked]="isHeaderChecked"
+            [disabled]="!hasPendingRows"
             (change)="onHeaderCheckboxChange($event)"
             aria-label="select-all"
           />
@@ -234,6 +235,7 @@
       <input
         type="checkbox"
         [checked]="row.selected"
+        [disabled]="row.status !== 'PENDING'"
         (change)="onRowCheckboxChange(row.id, $event)"
         aria-label="select-row"
       />

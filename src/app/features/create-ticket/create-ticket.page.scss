@@ -197,3 +197,10 @@ textarea.form-control {
     font-weight: 500;
   }
 }
+
+.error-message {
+  color: var(--utility-600);
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: 500;
+}

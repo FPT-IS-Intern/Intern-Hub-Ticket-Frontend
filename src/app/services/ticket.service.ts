@@ -14,6 +14,7 @@ import {
   ApproveTicketRequest,
   CreateTicketTypeRequest,
   TicketTypeResponse,
+  FilterTicketRequest,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -48,12 +49,31 @@ export class TicketService {
   }
 
   /**
-   * List all tickets (paginated)
+   * List all tickets (paginated + filter)
    * GET /ticket/all
    */
-  getAllTickets(page: number = 0, size: number = 20): Observable<ResponseApi<PaginatedData<TicketDto>>> {
+  getAllTickets(
+    page: number = 0,
+    size: number = 20,
+    filter?: FilterTicketRequest
+  ): Observable<ResponseApi<PaginatedData<TicketDto>>> {
+    let params: { [key: string]: string } = {
+      page: page.toString(),
+      size: size.toString(),
+    };
+
+    if (filter?.nameOrEmail) {
+      params['nameOrEmail'] = filter.nameOrEmail;
+    }
+    if (filter?.typeName) {
+      params['typeName'] = filter.typeName;
+    }
+    if (filter?.status) {
+      params['status'] = filter.status;
+    }
+
     return this.http.get<ResponseApi<PaginatedData<TicketDto>>>(`${this.baseUrl}/all`, {
-      params: { page: page.toString(), size: size.toString() },
+      params,
     });
   }
 
