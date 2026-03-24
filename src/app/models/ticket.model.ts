@@ -34,8 +34,8 @@ export interface TicketDto {
   status: TicketStatus;
   createdAt: number;
   updatedAt: number;
-  createdBy: number;
-  updatedBy: number;
+  createdBy: string;
+  updatedBy: string;
 }
 
 export interface TicketDetailDto extends TicketDto {
@@ -58,14 +58,21 @@ export interface EvidenceRequestItem {
   fileSize: number;
 }
 
+/**
+ * CreateTicketRequest: For non-multipart submission (JSON only)
+ * Matches backend CreateTicketRequest DTO
+ */
 export interface CreateTicketRequest {
-  ticketTypeId: number;
+  ticketTypeId: string;
   payload: Record<string, any>;
-  evidences?: EvidenceRequestItem[];
 }
 
+/**
+ * CreateTicketMultipartRequest: For multipart/form-data submission with file uploads
+ * The evidences files are passed separately to the service method
+ */
 export interface CreateTicketMultipartRequest {
-  ticketTypeId: number;
+  ticketTypeId: string;
   payload: Record<string, any>;
 }
 
@@ -119,8 +126,8 @@ export interface EvidenceDto {
   status: EvidenceStatus;
   createdAt: number;
   updatedAt: number;
-  createdBy: number;
-  updatedBy: number;
+  createdBy: string;
+  updatedBy: string;
 }
 
 export interface ResponseApiStatus {

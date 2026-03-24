@@ -32,8 +32,7 @@ export class TicketService {
 
   /**
    * List active ticket types
-   * GET
-   * /ticket/ticket-types/all
+   * GET /ticket/ticket-types/all
    */
   getTicketTypes(): Observable<ResponseApi<TicketTypeDto[]>> {
     return this.http.get<ResponseApi<TicketTypeDto[]>>(`${this.baseUrl}/ticket-types/all`);
@@ -94,14 +93,16 @@ export class TicketService {
   /**
    * Get ticket detail
    * GET /ticket/{ticketId}
+   * @param ticketId - The ticket ID (Long in backend)
    */
   getTicketDetail(ticketId: string): Observable<ResponseApi<TicketDetailDto>> {
     return this.http.get<ResponseApi<TicketDetailDto>>(`${this.baseUrl}/${ticketId}`);
   }
 
   /**
-   * Create a new ticket
+   * Create a new ticket (JSON only, no files)
    * POST /ticket
+   * Content-Type: application/json
    */
   createTicket(request: CreateTicketRequest): Observable<ResponseApi<TicketResponse>> {
     return this.http.post<ResponseApi<TicketResponse>>(`${this.baseUrl}`, request);
@@ -111,22 +112,29 @@ export class TicketService {
    * Create a new ticket with multipart/form-data (files + JSON payload)
    * POST /ticket
    * Content-Type: multipart/form-data
+   *
+   * Backend expects:
+   * - @RequestPart("request"): CreateTicketRequest (JSON)
+   * - @RequestPart(value = "evidences", required = false): MultipartFile[] (files)
+   *
+   * @param request - CreateTicketMultipartRequest containing ticketTypeId and payload
+   * @param evidences - Array of File objects for evidence attachments
    */
   createTicketMultipart(
     request: CreateTicketMultipartRequest,
-    files: File[],
+    evidences: File[],
   ): Observable<ResponseApi<CreateTicketResponse>> {
     const formData = new FormData();
 
-    // Append JSON request
+    // Append JSON request as "request" part (matches @RequestPart("request"))
     const requestJson = JSON.stringify({
       ticketTypeId: request.ticketTypeId,
       payload: request.payload,
     });
     formData.append('request', new Blob([requestJson], { type: 'application/json' }));
 
-    // Append each evidence file
-    files.forEach((file) => {
+    // Append each evidence file as "evidences" part (matches @RequestPart(value = "evidences"))
+    evidences.forEach((file) => {
       formData.append('evidences', file, file.name);
     });
 
@@ -136,6 +144,7 @@ export class TicketService {
   /**
    * Approve ticket
    * POST /ticket/{ticketId}/approve
+   * @param ticketId - The ticket ID to approve (Long in backend)
    */
   approveTicket(
     ticketId: string,
@@ -147,6 +156,7 @@ export class TicketService {
   /**
    * Upload evidence for a ticket
    * POST /ticket/{ticketId}/evidences
+   * @param ticketId - The ticket ID (Long in backend)
    */
   uploadEvidence(
     ticketId: string,
@@ -161,6 +171,7 @@ export class TicketService {
   /**
    * List evidences for a ticket
    * GET /ticket/{ticketId}/evidences
+   * @param ticketId - The ticket ID (Long in backend)
    */
   getEvidences(ticketId: string): Observable<ResponseApi<EvidenceDto[]>> {
     return this.http.get<ResponseApi<EvidenceDto[]>>(`${this.baseUrl}/${ticketId}/evidences`);

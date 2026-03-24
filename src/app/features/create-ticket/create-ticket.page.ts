@@ -41,7 +41,7 @@ export class CreateTicketPage implements OnInit {
   isSubmitting = false;
 
   ticketTypesList: TicketTypeDto[] = [];
-  selectedTicketTypeId = '';
+  selectedTicketTypeId: string | null = null;
 
   private typeNameToComponentKey: Record<string, string> = {
     'Phiếu giải trình': 'EXPLANATION',
@@ -121,8 +121,9 @@ export class CreateTicketPage implements OnInit {
 
   /**
    * Build the JSON payload for the multipart request.
+   * Returns the ticketTypeId, payload, and extracted files separately.
    */
-  buildPayload(): { ticketTypeId: number; payload: Record<string, any>; attachments: any[] } | null {
+  buildPayload(): { ticketTypeId: string; payload: Record<string, any>; evidences: File[] } | null {
     if (!this.currentForm) {
       return null;
     }
@@ -155,13 +156,14 @@ export class CreateTicketPage implements OnInit {
       delete payload['totalDays'];
     }
 
-    const attachments = payload['attachments'] || [];
+    // Extract files from attachments field
+    const evidences = this.extractFiles(rawValue['attachments'] || []);
     delete payload['attachments'];
 
     return {
-      ticketTypeId: Number(this.selectedTicketTypeId),
+      ticketTypeId: this.selectedTicketTypeId!,
       payload,
-      attachments,
+      evidences,
     };
   }
 
@@ -180,11 +182,10 @@ export class CreateTicketPage implements OnInit {
       return;
     }
 
-    const { ticketTypeId, payload, attachments } = result;
-    const validFiles = this.extractFiles(attachments);
+    const { ticketTypeId, payload, evidences } = result;
 
     // Validate file extensions and sizes
-    for (const file of validFiles) {
+    for (const file of evidences) {
       const error = this.validateFile(file);
       if (error) {
         this.isSubmitting = false;
@@ -195,10 +196,12 @@ export class CreateTicketPage implements OnInit {
 
     this.isSubmitting = true;
 
+    // Build request matching backend CreateTicketRequest DTO
+    // Backend expects: @RequestPart("request") CreateTicketRequest + @RequestPart("evidences") MultipartFile[]
     const request: CreateTicketMultipartRequest = { ticketTypeId, payload };
-    console.log('Submitting ticket (multipart):', request, 'Files:', validFiles);
+    console.log('Submitting ticket (multipart):', request, 'Evidences:', evidences);
 
-    this.ticketService.createTicketMultipart(request, validFiles).subscribe({
+    this.ticketService.createTicketMultipart(request, evidences).subscribe({
       next: (res) => {
         this.isSubmitting = false;
         console.log('Ticket created successfully:', res.data);
