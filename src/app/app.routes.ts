@@ -1,15 +1,16 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  // ==============================================
-  // Public Route Pages
-  // ==============================================
-  // ==============================================
-  // App Route Pages
-  // ==============================================
+  {
+    path: '',
+    redirectTo: 'create-ticket',
+    pathMatch: 'full',
+  },
+
   {
     path: 'create-ticket',
-    loadComponent: () => import('./features/create-ticket/create-ticket.page').then((m) => m.CreateTicketPage),
+    loadComponent: () =>
+      import('./features/create-ticket/create-ticket.page').then((m) => m.CreateTicketPage),
   },
   {
     path: 'request-ticket-management',
@@ -25,18 +26,15 @@ export const routes: Routes = [
         (m) => m.DetailTicketManagementPage
       ),
   },
-
+  
   {
     path: 'forbidden',
     loadComponent: () =>
       import('./features/forbidden/forbidden.page').then((m) => m.ForbiddenPage),
   },
 
-  // ==============================================
-  // Default Route
-  // ==============================================
   {
     path: '**',
-    redirectTo: '',
+    redirectTo: 'create-ticket',
   },
 ];
