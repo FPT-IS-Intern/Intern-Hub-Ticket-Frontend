@@ -205,7 +205,9 @@ export class CreateTicketPage implements OnInit {
       next: (res) => {
         this.isSubmitting = false;
         console.log('Ticket created successfully:', res.data);
-        alert(`Tạo phiếu thành công! Mã phiếu: ${res.data.ticketId}, Trạng thái: ${res.data.status}`);
+        alert(
+          `Tạo phiếu thành công! Mã phiếu: ${res.data.ticketId}, Trạng thái: ${res.data.status}`,
+        );
         this.goToHome();
       },
       error: (err) => {
