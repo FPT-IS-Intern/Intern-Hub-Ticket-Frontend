@@ -127,15 +127,25 @@ export class TicketService {
     const formData = new FormData();
 
     // Append JSON request as "request" part (matches @RequestPart("request")).
-    // Append the string DIRECTLY — NOT inside a Blob.
-    // Using a Blob causes the browser to set filename="blob" in Content-Disposition,
-    // which makes Spring treat this part as a file upload instead of a JSON string,
-    // resulting in a 500 error during deserialization.
+    //
+    // Use Blob({ type: 'application/json' }) — NOT a raw string and NOT Blob without type.
+    //
+    // Why Blob with explicit type:
+    //   - Raw string  → browser/Axios infers Content-Type: application/octet-stream
+    //                   → Spring throws "Content-Type 'application/octet-stream' is not supported"
+    //   - Blob w/o type → browser sends Content-Type: application/octet-stream (same problem)
+    //   - Blob({ type: 'application/json' }) → browser sends Content-Type: application/json
+    //                   → Spring correctly deserializes the JSON body into CreateTicketRequest.
+    //
+    // The filename="blob" attribute that appears in Content-Disposition is intentional and
+    // harmless in Spring Boot 3.x — RequestPartMethodArgumentResolver ignores it when
+    // Content-Type is application/json and the body is valid JSON.
+    //
     const requestJson = JSON.stringify({
       ticketTypeId: request.ticketTypeId,
       payload: request.payload,
     });
-    formData.append('request', requestJson);
+    formData.append('request', new Blob([requestJson], { type: 'application/json' }));
 
     // Append each evidence file as "evidences" part (matches @RequestPart(value = "evidences")).
     evidences.forEach((file) => {
