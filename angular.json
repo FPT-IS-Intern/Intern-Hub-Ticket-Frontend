@@ -36,8 +36,8 @@
             "target": "intern-hub-ticket-frontend:serve-original:development",
             "rebuildDelay": 500,
             "dev": true,
-            "cacheExternalArtifacts": false,
-            "port": 4205,
+            "cacheExternalArtifacts": true,
+            "port": 4221,
             "proxyConfig": "proxy.conf.json"
           }
         },
