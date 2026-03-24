@@ -126,14 +126,18 @@ export class TicketService {
   ): Observable<ResponseApi<CreateTicketResponse>> {
     const formData = new FormData();
 
-    // Append JSON request as "request" part (matches @RequestPart("request"))
+    // Append JSON request as "request" part (matches @RequestPart("request")).
+    // Append the string DIRECTLY — NOT inside a Blob.
+    // Using a Blob causes the browser to set filename="blob" in Content-Disposition,
+    // which makes Spring treat this part as a file upload instead of a JSON string,
+    // resulting in a 500 error during deserialization.
     const requestJson = JSON.stringify({
       ticketTypeId: request.ticketTypeId,
       payload: request.payload,
     });
-    formData.append('request', new Blob([requestJson], { type: 'application/json' }));
+    formData.append('request', requestJson);
 
-    // Append each evidence file as "evidences" part (matches @RequestPart(value = "evidences"))
+    // Append each evidence file as "evidences" part (matches @RequestPart(value = "evidences")).
     evidences.forEach((file) => {
       formData.append('evidences', file, file.name);
     });
