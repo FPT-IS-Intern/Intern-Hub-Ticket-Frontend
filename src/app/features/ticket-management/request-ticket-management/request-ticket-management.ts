@@ -29,7 +29,6 @@ interface RequestTicketTableRow extends TicketDto {
   typeName: string;
   fullName: string; // From API it's userId, need to map or just show ID for now
   department: string; // Not in TicketDto, mock it
-  days: number; // In payload usually
 }
 
 @Component({
@@ -54,6 +53,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   @ViewChild('sttTemplate') sttTemplate!: TemplateRef<any>;
   @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
   @ViewChild('detailTemplate') detailTemplate!: TemplateRef<any>;
+  @ViewChild('ticketTypeTemplate') ticketTypeTemplate!: TemplateRef<any>;
   @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
   @ViewChild('approverTemplate') approverTemplate!: TemplateRef<any>;
 
@@ -62,8 +62,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     { header: 'STT', key: 'stt', width: '50px' },
     { header: 'Họ và tên TTS', key: 'fullName', width: '200px' },
     { header: 'Phòng ban', key: 'department', width: '150px' },
-    { header: 'Loại phiếu', key: 'ticketType', width: '300px' },
-    { header: 'Số ngày', key: 'days', width: '70' },
+    { header: 'Loại phiếu', key: 'ticketType', width: '220px' },
     { header: 'Chi tiết', key: 'detail', width: '107' },
     { header: 'Trạng thái', key: 'status', width: '107' },
     { header: 'Người duyệt', key: 'approver', width: '205' },
@@ -151,10 +150,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
         ...ticket,
         stt: this.currentPage * this.pageSize + index + 1,
         selected: false,
-        typeName: type ? type.typeName : 'Unknown',
+        typeName: type ? type.typeName : '—',
         fullName: `User ${ticket.userId}`, // Mock name since it's not in TicketDto
         department: 'Phòng Banking', // Mock department
-        days: 0, // Need to get from payload if we have detail, but for list we mock
       } as RequestTicketTableRow;
     });
   }
@@ -164,10 +162,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       select: this.selectTemplate,
       stt: this.sttTemplate,
       fullName: this.nameTemplate,
+      ticketType: this.ticketTypeTemplate,
       detail: this.detailTemplate,
       status: this.statusTemplate,
       approver: this.approverTemplate,
-      ticketType: this.detailTemplate, // Use detail template for type to show typeName
     };
     this.cdr.detectChanges();
   }
@@ -298,9 +296,18 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  onViewDetail(row: RequestTicketTableRow): void {
-    this.router.navigate(['/detail-ticket-management'], {
-      queryParams: { ticketId: row.ticketId, ticketType: row.typeName },
+  onViewDetail(row: RequestTicketTableRow, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const ticketId = row.ticketId != null && row.ticketId !== '' ? String(row.ticketId) : '';
+    if (!ticketId) {
+      return;
+    }
+    void this.router.navigate(['/detail-ticket-management'], {
+      queryParams: {
+        ticketId,
+        ticketType: row.typeName || '',
+      },
     });
   }
 

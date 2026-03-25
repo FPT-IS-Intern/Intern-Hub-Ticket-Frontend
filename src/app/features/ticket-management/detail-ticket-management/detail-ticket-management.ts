@@ -22,6 +22,7 @@ import {
 } from './components/detail-explanation.component';
 import { TicketService } from '../../../services/ticket.service';
 import { TicketDetailDto, TicketStatus } from '../../../models/ticket.model';
+import { forkJoin } from 'rxjs';
 
 type TicketType = 'REMOTE_ONSITE' | 'REMOTE_WFH' | 'LEAVE_REQUEST' | 'EXPLANATION';
 
@@ -40,6 +41,7 @@ const TICKET_TYPE_MAP: { [key: string]: TicketType } = {
   'Phiếu Remote - WFH': 'REMOTE_WFH',
   'Phiếu nghỉ phép': 'LEAVE_REQUEST',
   'Phiếu giải trình': 'EXPLANATION',
+  'Phiếu đăng tin tức': 'EXPLANATION',
 };
 
 const TICKET_TITLE_MAP: { [key in TicketType]: string } = {
@@ -151,11 +153,26 @@ export class DetailTicketManagementPage implements OnInit {
 
   loadTicketDetail(): void {
     this.isLoading = true;
-    this.ticketService.getTicketDetail(this.ticketId).subscribe({
-      next: (res) => {
-        this.ticketDetail = res.data;
-        this.mapDetailToComponents(res.data);
-        this.generateApprovalSteps(res.data);
+    forkJoin({
+      detail: this.ticketService.getTicketDetail(this.ticketId),
+      types: this.ticketService.getTicketTypes(),
+    }).subscribe({
+      next: ({ detail: res, types: typesRes }) => {
+        const data = res.data;
+        this.ticketDetail = data;
+
+        const matchedType = typesRes.data.find((t) => t.ticketTypeId === data.ticketTypeId);
+        if (matchedType) {
+          this.ticketTitle = matchedType.typeName;
+          if (TICKET_TYPE_MAP[matchedType.typeName]) {
+            this.ticketType = TICKET_TYPE_MAP[matchedType.typeName];
+          } else {
+            this.ticketType = 'EXPLANATION';
+          }
+        }
+
+        this.mapDetailToComponents(data);
+        this.generateApprovalSteps(data);
         this.isLoading = false;
       },
       error: (err) => {

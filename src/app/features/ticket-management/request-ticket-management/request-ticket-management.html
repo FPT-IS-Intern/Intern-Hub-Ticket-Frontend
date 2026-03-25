@@ -137,8 +137,8 @@
           <tr
             app-table-header
             [columns]="columns"
-            textColor="var(--neutral-color-700)"
-            backgroundColor="var(--neutral-color-10)"
+            textColor="var(--neutral-color-10)"
+            backgroundColor="var(--brand-500)"
             fontSize="14px"
           ></tr>
         </thead>
@@ -253,9 +253,13 @@
     </div>
   </ng-template>
 
+  <ng-template #ticketTypeTemplate let-row="row">
+    <div class="ticket-type-cell">{{ row.typeName }}</div>
+  </ng-template>
+
   <ng-template #detailTemplate let-row="row">
     <div class="cell-center">
-      <button class="detail-btn" type="button" (click)="onViewDetail(row)">
+      <button class="detail-btn" type="button" (click)="onViewDetail(row, $event)">
         <app-icon
           icon="dsi dsi-eye-line"
           colorIcon="var(--brand-600)"
