@@ -36,6 +36,7 @@ interface RequestTicketTableRow {
   email: string;
   department: string;
   typeName: string;
+  ticketTypeId: string;
   status: TicketStatus;
   createdAt: number;
   updatedAt: number;
@@ -57,8 +58,7 @@ interface RequestTicketTableRow {
     TableHeaderComponent,
     TableBodyComponent,
     LabelButtonComponent,
-    PopUpConfirmComponent,
-    DatePickerComponent,
+    PopUpConfirmComponent
   ],
   templateUrl: './request-ticket-management.html',
   styleUrl: './request-ticket-management.scss',
@@ -195,6 +195,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       email: ticket.email || '-',
       department: '—',
       typeName: ticket.typeName || '—',
+      ticketTypeId: ticket.ticketTypeId || '',
       status: ticket.status,
       createdAt: ticket.createdAt,
       updatedAt: ticket.updatedAt,
@@ -356,14 +357,12 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     event?.preventDefault();
     event?.stopPropagation();
     const ticketId = row.ticketId != null && row.ticketId !== '' ? String(row.ticketId) : '';
+    const ticketTypeId = row.ticketTypeId || '';
     if (!ticketId) {
       return;
     }
     void this.router.navigate(['/detail-ticket-management'], {
-      queryParams: {
-        ticketId,
-        ticketType: row.typeName || '',
-      },
+      queryParams: { ticketId, ticketTypeId },
     });
   }
 

@@ -3,7 +3,6 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonContainerComponent, IconComponent } from '@goat-bravos/intern-hub-layout';
-
 import {
   DetailRemoteOnsiteComponent,
   RemoteOnsiteDetail,
@@ -21,10 +20,17 @@ import {
   ExplanationDetail,
 } from './components/detail-explanation.component';
 import { TicketService } from '../../../services/ticket.service';
-import { TicketDetailDto, TicketStatus } from '../../../models/ticket.model';
+import {
+  TicketDetailDto,
+  TicketStatus,
+  TicketTypeCode,
+  TICKET_TYPE_ID_TO_CODE,
+  TICKET_TYPE_CODE_TO_NAME,
+  registerTicketTypeIds,
+} from '../../../models/ticket.model';
 import { forkJoin } from 'rxjs';
 
-type TicketType = 'REMOTE_ONSITE' | 'REMOTE_WFH' | 'LEAVE_REQUEST' | 'EXPLANATION';
+type TicketType = TicketTypeCode;
 
 interface ApprovalStep {
   stepNumber: number;
@@ -36,20 +42,7 @@ interface ApprovalStep {
 }
 
 // Maps ticketType from request-ticket-management to internal type
-const TICKET_TYPE_MAP: { [key: string]: TicketType } = {
-  'Phiếu Remote - Onsite': 'REMOTE_ONSITE',
-  'Phiếu Remote - WFH': 'REMOTE_WFH',
-  'Phiếu nghỉ phép': 'LEAVE_REQUEST',
-  'Phiếu giải trình': 'EXPLANATION',
-  'Phiếu đăng tin tức': 'EXPLANATION',
-};
-
-const TICKET_TITLE_MAP: { [key in TicketType]: string } = {
-  REMOTE_ONSITE: 'Phiếu Remote - Onsite',
-  REMOTE_WFH: 'Phiếu Remote - WFH',
-  LEAVE_REQUEST: 'Phiếu nghỉ phép',
-  EXPLANATION: 'Phiếu giải trình',
-};
+// (Replaced by TICKET_TYPE_ID_TO_CODE from ticket.model.ts — no longer hardcoded here)
 
 @Component({
   selector: 'app-detail-ticket-management-page',
@@ -70,7 +63,7 @@ const TICKET_TITLE_MAP: { [key in TicketType]: string } = {
 })
 export class DetailTicketManagementPage implements OnInit {
   ticketId = '';
-  ticketType: TicketType = 'REMOTE_ONSITE';
+  ticketType: TicketType = TicketTypeCode.REMOTE_ONSITE;
   ticketTitle = 'Phiếu Remote - Onsite';
   ticketDetail: TicketDetailDto | null = null;
   isLoading = false;
@@ -136,14 +129,14 @@ export class DetailTicketManagementPage implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.ticketId = params['ticketId'] || '';
-      const typeParam = params['ticketType'] || '';
+      const ticketTypeId = params['ticketTypeId'] || '';
 
-      if (TICKET_TYPE_MAP[typeParam]) {
-        this.ticketType = TICKET_TYPE_MAP[typeParam];
-      } else if (Object.values(TICKET_TYPE_MAP).includes(typeParam as TicketType)) {
-        this.ticketType = typeParam as TicketType;
+      if (ticketTypeId && TICKET_TYPE_ID_TO_CODE[ticketTypeId]) {
+        this.ticketType = TICKET_TYPE_ID_TO_CODE[ticketTypeId];
+      } else {
+        this.ticketType = TicketTypeCode.REMOTE_ONSITE;
       }
-      this.ticketTitle = TICKET_TITLE_MAP[this.ticketType];
+      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiếu Remote - Onsite';
 
       if (this.ticketId) {
         this.loadTicketDetail();
@@ -158,17 +151,18 @@ export class DetailTicketManagementPage implements OnInit {
       types: this.ticketService.getTicketTypes(),
     }).subscribe({
       next: ({ detail: res, types: typesRes }) => {
+        registerTicketTypeIds(typesRes.data);
+
         const data = res.data;
         this.ticketDetail = data;
 
         const matchedType = typesRes.data.find((t) => t.ticketTypeId === data.ticketTypeId);
         if (matchedType) {
           this.ticketTitle = matchedType.typeName;
-          if (TICKET_TYPE_MAP[matchedType.typeName]) {
-            this.ticketType = TICKET_TYPE_MAP[matchedType.typeName];
-          } else {
-            this.ticketType = 'EXPLANATION';
-          }
+          const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
+          this.ticketType = code ?? TicketTypeCode.EXPLANATION;
+        } else {
+          this.ticketType = TicketTypeCode.EXPLANATION;
         }
 
         this.mapDetailToComponents(data);
@@ -188,7 +182,7 @@ export class DetailTicketManagementPage implements OnInit {
     const fullName = `User ${detail.userId}`;
 
     switch (this.ticketType) {
-      case 'REMOTE_ONSITE':
+      case TicketTypeCode.REMOTE_ONSITE:
         this.remoteOnsiteData = {
           fullName,
           createdDate,
@@ -203,7 +197,7 @@ export class DetailTicketManagementPage implements OnInit {
                 : payload['location'] || '',
         };
         break;
-      case 'REMOTE_WFH':
+      case TicketTypeCode.REMOTE_WFH:
         this.remoteWfhData = {
           fullName,
           createdDate,
@@ -212,7 +206,7 @@ export class DetailTicketManagementPage implements OnInit {
           workDate: this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') || '',
         };
         break;
-      case 'LEAVE_REQUEST':
+      case TicketTypeCode.LEAVE_REQUEST:
         this.leaveRequestData = {
           fullName,
           createdDate,
@@ -222,7 +216,7 @@ export class DetailTicketManagementPage implements OnInit {
           totalDays: payload['totalDays'] || payload['total_days'] || 0,
         };
         break;
-      case 'EXPLANATION':
+      case TicketTypeCode.EXPLANATION:
         this.explanationData = {
           fullName,
           createdDate,

@@ -6,6 +6,47 @@ export enum TicketStatus {
   CANCELLED = 'CANCELLED',
 }
 
+/**
+ * Internal ticket type codes used in routing and UI components.
+ * These are NOT backend values — they are derived from ticketTypeId at runtime.
+ */
+export enum TicketTypeCode {
+  REMOTE_ONSITE = 'REMOTE_ONSITE',
+  REMOTE_WFH = 'REMOTE_WFH',
+  LEAVE_REQUEST = 'LEAVE_REQUEST',
+  EXPLANATION = 'EXPLANATION',
+}
+
+export const TICKET_TYPE_ID_TO_CODE: Record<string, TicketTypeCode> = {};
+
+/**
+ * Populate TICKET_TYPE_ID_TO_CODE at startup from the types list returned by the API.
+ * Call registerTicketTypeIds(types) once after the first getTicketTypes() call.
+ */
+export function registerTicketTypeIds(types: TicketTypeDto[]): void {
+  for (const t of types) {
+    const code = TICKET_TYPE_NAME_MAP[t.typeName];
+    if (code) {
+      TICKET_TYPE_ID_TO_CODE[t.ticketTypeId] = code;
+    }
+  }
+}
+
+export const TICKET_TYPE_NAME_MAP: Record<string, TicketTypeCode> = {
+  'Phiếu Remote - Onsite': TicketTypeCode.REMOTE_ONSITE,
+  'Phiếu Remote - WFH': TicketTypeCode.REMOTE_WFH,
+  'Phiếu nghỉ phép': TicketTypeCode.LEAVE_REQUEST,
+  'Phiếu giải trình': TicketTypeCode.EXPLANATION,
+  'Phiếu đăng tin tức': TicketTypeCode.EXPLANATION,
+};
+
+export const TICKET_TYPE_CODE_TO_NAME: Record<TicketTypeCode, string> = {
+  [TicketTypeCode.REMOTE_ONSITE]: 'Phiếu Remote - Onsite',
+  [TicketTypeCode.REMOTE_WFH]: 'Phiếu Remote - WFH',
+  [TicketTypeCode.LEAVE_REQUEST]: 'Phiếu nghỉ phép',
+  [TicketTypeCode.EXPLANATION]: 'Phiếu giải trình',
+};
+
 export enum EvidenceStatus {
   UPLOADED = 'UPLOADED',
   DELETED = 'DELETED',
