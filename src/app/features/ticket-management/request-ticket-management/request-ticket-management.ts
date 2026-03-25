@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   ButtonContainerComponent,
   ColumnConfig,
@@ -58,7 +58,7 @@ interface RequestTicketTableRow {
     TableHeaderComponent,
     TableBodyComponent,
     LabelButtonComponent,
-    PopUpConfirmComponent
+    PopUpConfirmComponent,
   ],
   templateUrl: './request-ticket-management.html',
   styleUrl: './request-ticket-management.scss',
@@ -134,8 +134,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   constructor(
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly cdr: ChangeDetectorRef,
-    private readonly ticketService: TicketService
+    private readonly ticketService: TicketService,
   ) {}
 
   ngOnInit(): void {
@@ -146,7 +147,11 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.isLoading = true;
     forkJoin({
       types: this.ticketService.getTicketTypes(),
-      tickets: this.ticketService.getAllTicketsForManagement(this.currentPage, this.pageSize, this.buildFilter()),
+      tickets: this.ticketService.getAllTicketsForManagement(
+        this.currentPage,
+        this.pageSize,
+        this.buildFilter(),
+      ),
     }).subscribe({
       next: (res) => {
         this.ticketTypes = res.types.data;
@@ -163,17 +168,19 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   loadTickets(): void {
     this.isLoading = true;
-    this.ticketService.getAllTicketsForManagement(this.currentPage, this.pageSize, this.buildFilter()).subscribe({
-      next: (res) => {
-        this.processTicketsResponse(res.data);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading tickets:', err);
-        this.isLoading = false;
-      },
-    });
+    this.ticketService
+      .getAllTicketsForManagement(this.currentPage, this.pageSize, this.buildFilter())
+      .subscribe({
+        next: (res) => {
+          this.processTicketsResponse(res.data);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error loading tickets:', err);
+          this.isLoading = false;
+        },
+      });
   }
 
   processTicketsResponse(data: any): void {
@@ -242,9 +249,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   get confirmButtonColor(): string {
-    return this.bulkAction === 'approve'
-      ? 'var(--theme-green-600)'
-      : 'var(--utility-600)';
+    return this.bulkAction === 'approve' ? 'var(--theme-green-600)' : 'var(--utility-600)';
   }
 
   onSearchChange(value: string): void {
@@ -316,7 +321,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   onRowCheckboxChange(ticketId: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
     this.tableRows = this.tableRows.map((row) =>
-      row.ticketId === ticketId ? { ...row, selected: checked } : row
+      row.ticketId === ticketId ? { ...row, selected: checked } : row,
     );
     this.syncHeaderCheckboxState();
   }
@@ -336,7 +341,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   confirmBulkAction(): void {
     // API doesn't have bulk approve, would need to call individually or wait for new API
     // For now we just mock success for the UI
-    const targetStatus = this.bulkAction === 'approve' ? TicketStatus.APPROVED : TicketStatus.REJECTED;
+    const targetStatus =
+      this.bulkAction === 'approve' ? TicketStatus.APPROVED : TicketStatus.REJECTED;
 
     // In real app:
     // const selectedTickets = this.tableRows.filter(r => r.selected);
@@ -361,8 +367,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     if (!ticketId) {
       return;
     }
-    void this.router.navigate(['/detail-ticket-management'], {
+    void this.router.navigate(['/ticket/detail-ticket-management'], {
       queryParams: { ticketId, ticketTypeId },
+      relativeTo: this.route,
     });
   }
 
@@ -472,8 +479,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   private syncHeaderCheckboxState(): void {
-    this.isHeaderChecked =
-      this.tableRows.length > 0 && this.tableRows.every((row) => row.selected);
+    this.isHeaderChecked = this.tableRows.length > 0 && this.tableRows.every((row) => row.selected);
   }
 
   private buildFilter(): FilterTicketRequest {

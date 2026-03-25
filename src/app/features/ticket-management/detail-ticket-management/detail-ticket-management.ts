@@ -188,7 +188,9 @@ export class DetailTicketManagementPage implements OnInit {
           createdDate,
           startTime: payload['startTime'] || payload['start_time'] || '',
           reason: payload['reason'] || '',
-          workDate: this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') || '',
+          workDate:
+            this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') ||
+            '',
           location:
             payload['location'] === 'Hanoi'
               ? 'Hà Nội'
@@ -203,15 +205,20 @@ export class DetailTicketManagementPage implements OnInit {
           createdDate,
           startTime: payload['startTime'] || payload['start_time'] || '08:30 AM',
           reason: payload['reason'] || '',
-          workDate: this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') || '',
+          workDate:
+            this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') ||
+            '',
         };
         break;
       case TicketTypeCode.LEAVE_REQUEST:
         this.leaveRequestData = {
           fullName,
           createdDate,
-          startDate: this.datePipe.transform(payload['startDate'] || payload['start_date'], 'dd/MM/yyyy') || '',
-          endDate: this.datePipe.transform(payload['endDate'] || payload['end_date'], 'dd/MM/yyyy') || '',
+          startDate:
+            this.datePipe.transform(payload['startDate'] || payload['start_date'], 'dd/MM/yyyy') ||
+            '',
+          endDate:
+            this.datePipe.transform(payload['endDate'] || payload['end_date'], 'dd/MM/yyyy') || '',
           reason: payload['reason'] || '',
           totalDays: payload['totalDays'] || payload['total_days'] || 0,
         };
@@ -248,7 +255,9 @@ export class DetailTicketManagementPage implements OnInit {
     // Steps 2..N+1: One step per approval level
     for (let level = 1; level <= requiredApprovals; level++) {
       const stepNumber = level + 1;
-      const approverName = detail.approverId ? `User ${detail.approverId}` : `Người duyệt cấp ${level}`;
+      const approverName = detail.approverId
+        ? `User ${detail.approverId}`
+        : `Người duyệt cấp ${level}`;
 
       if (detail.status === TicketStatus.APPROVED) {
         // All levels are approved
@@ -342,7 +351,9 @@ export class DetailTicketManagementPage implements OnInit {
   }
 
   goToRequestManagement(): void {
-    this.router.navigate(['/request-ticket-management']);
+    this.router.navigate(['/ticket/request-ticket-management'], {
+      relativeTo: this.route,
+    });
   }
 
   // ============================
