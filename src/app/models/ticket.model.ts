@@ -85,6 +85,7 @@ export interface TicketDetailDto extends TicketDto {
   requiredApprovals: number;
   currentApprovalLevel: number;
   approverId: string | null;
+  version: number;
 }
 
 /**
@@ -103,6 +104,7 @@ export interface TicketManagementDto {
   updatedAt: number;
   createdBy: string;
   updatedBy: string;
+  version: number;
 }
 
 export interface PaginatedData<T> {

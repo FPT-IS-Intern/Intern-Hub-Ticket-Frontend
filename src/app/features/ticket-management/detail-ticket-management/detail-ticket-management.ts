@@ -386,12 +386,12 @@ export class DetailTicketManagementPage implements OnInit {
   // Approve flow
   // ============================
   onApprove(): void {
-    if (!this.ticketId) return;
+    if (!this.ticketId || !this.ticketDetail) return;
 
     this.ticketService
       .approveTicket(this.ticketId, {
         idempotencyKey: Math.random().toString(36).substring(7),
-        version: 1,
+        version: this.ticketDetail.version,
       })
       .subscribe({
         next: () => {
