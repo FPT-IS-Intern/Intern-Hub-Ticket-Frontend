@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import {
   ButtonContainerComponent,
   ColumnConfig,
+  DatePickerComponent,
   IconComponent,
   InputTextComponent,
   LabelButtonComponent,
@@ -20,15 +21,28 @@ import {
   TableHeaderComponent,
 } from '@goat-bravos/intern-hub-layout';
 import { TicketService } from '../../../services/ticket.service';
-import { FilterTicketRequest, TicketDto, TicketStatus, TicketTypeDto } from '../../../models/ticket.model';
+import {
+  FilterTicketRequest,
+  TicketManagementDto,
+  TicketStatus,
+  TicketTypeDto,
+} from '../../../models/ticket.model';
 import { forkJoin } from 'rxjs';
 
-interface RequestTicketTableRow extends TicketDto {
+interface RequestTicketTableRow {
+  ticketId: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  department: string;
+  typeName: string;
+  status: TicketStatus;
+  createdAt: number;
+  updatedAt: number;
   stt: number;
   selected: boolean;
-  typeName: string;
-  fullName: string; // From API it's userId, need to map or just show ID for now
-  department: string; // Not in TicketDto, mock it
+  createdBy: string;
+  updatedBy: string;
 }
 
 @Component({
@@ -44,6 +58,7 @@ interface RequestTicketTableRow extends TicketDto {
     TableBodyComponent,
     LabelButtonComponent,
     PopUpConfirmComponent,
+    DatePickerComponent,
   ],
   templateUrl: './request-ticket-management.html',
   styleUrl: './request-ticket-management.scss',
@@ -70,12 +85,14 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   columnTemplates: { [key: string]: TemplateRef<any> } = {};
 
+  // Filter state
   searchKeyword = '';
   selectedTicketType = '';
   selectedStatus: '' | TicketStatus = '';
-  isHeaderChecked = false;
-  showBulkConfirm = false;
-  bulkAction: 'approve' | 'reject' = 'approve';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
+  selectedSortBy: 'createdAt' | 'updatedAt' | 'status' = 'createdAt';
+  selectedSortDirection: 'asc' | 'desc' = 'desc';
 
   // Pagination
   currentPage = 0; // API uses 0-based
@@ -83,12 +100,33 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   totalItems = 0;
   totalPagesCount = 0;
 
+  // Stat counts (from current filtered result)
+  totalRequests = 0;
+  approvedRequests = 0;
+  pendingRequests = 0;
+  rejectedRequests = 0;
+
   tableRows: RequestTicketTableRow[] = [];
   ticketTypes: TicketTypeDto[] = [];
   isLoading = false;
+  showBulkConfirm = false;
+  bulkAction: 'approve' | 'reject' = 'approve';
+  isHeaderChecked = false;
+
+  readonly sortByOptions = [
+    { label: 'Ngày tạo', value: 'createdAt' },
+    { label: 'Ngày cập nhật', value: 'updatedAt' },
+    { label: 'Trạng thái', value: 'status' },
+  ];
+
+  readonly sortDirectionOptions = [
+    { label: 'Giảm dần', value: 'desc' },
+    { label: 'Tăng dần', value: 'asc' },
+  ];
 
   readonly filterStatusOptions = [
     { label: 'Đã duyệt', value: TicketStatus.APPROVED },
+    { label: 'Đang xem xét', value: TicketStatus.REVIEWING },
     { label: 'Chưa duyệt', value: TicketStatus.PENDING },
     { label: 'Từ chối', value: TicketStatus.REJECTED },
     { label: 'Đã hủy', value: TicketStatus.CANCELLED },
@@ -108,7 +146,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.isLoading = true;
     forkJoin({
       types: this.ticketService.getTicketTypes(),
-      tickets: this.ticketService.getAllTickets(this.currentPage, this.pageSize, this.buildFilter()),
+      tickets: this.ticketService.getAllTicketsForManagement(this.currentPage, this.pageSize, this.buildFilter()),
     }).subscribe({
       next: (res) => {
         this.ticketTypes = res.types.data;
@@ -125,7 +163,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   loadTickets(): void {
     this.isLoading = true;
-    this.ticketService.getAllTickets(this.currentPage, this.pageSize, this.buildFilter()).subscribe({
+    this.ticketService.getAllTicketsForManagement(this.currentPage, this.pageSize, this.buildFilter()).subscribe({
       next: (res) => {
         this.processTicketsResponse(res.data);
         this.isLoading = false;
@@ -142,19 +180,29 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     if (!data) return;
     this.totalItems = data.totalItems || 0;
     this.totalPagesCount = data.totalPages || 0;
-    const items = data.items || [];
+    const items: TicketManagementDto[] = data.items || [];
 
-    this.tableRows = items.map((ticket: TicketDto, index: number) => {
-      const type = this.ticketTypes.find((t) => t.ticketTypeId === ticket.ticketTypeId);
-      return {
-        ...ticket,
-        stt: this.currentPage * this.pageSize + index + 1,
-        selected: false,
-        typeName: type ? type.typeName : '—',
-        fullName: `User ${ticket.userId}`, // Mock name since it's not in TicketDto
-        department: 'Phòng Banking', // Mock department
-      } as RequestTicketTableRow;
-    });
+    // Calculate stat counts from current page items
+    this.totalRequests = items.length;
+    this.approvedRequests = items.filter((i) => i.status === TicketStatus.APPROVED).length;
+    this.pendingRequests = items.filter((i) => i.status === TicketStatus.PENDING).length;
+    this.rejectedRequests = items.filter((i) => i.status === TicketStatus.REJECTED).length;
+
+    this.tableRows = items.map((ticket, index) => ({
+      ticketId: String(ticket.ticketId),
+      userId: String(ticket.userId),
+      fullName: ticket.fullName || `User ${ticket.userId}`,
+      email: ticket.email || '-',
+      department: '—',
+      typeName: ticket.typeName || '—',
+      status: ticket.status,
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+      stt: this.currentPage * this.pageSize + index + 1,
+      selected: false,
+      createdBy: String(ticket.createdBy),
+      updatedBy: String(ticket.updatedBy),
+    }));
   }
 
   ngAfterViewInit(): void {
@@ -180,24 +228,6 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   get totalPages(): number {
     return this.totalPagesCount;
-  }
-
-  get totalRequests(): number {
-    return this.totalItems;
-  }
-
-  // Note: These summary counts might be inaccurate if only based on current page
-  // Ideally backend provides these. For now, we keep them simple.
-  get approvedRequests(): number {
-    return this.tableRows.filter((row) => row.status === TicketStatus.APPROVED).length;
-  }
-
-  get pendingRequests(): number {
-    return this.tableRows.filter((row) => row.status === TicketStatus.PENDING).length;
-  }
-
-  get rejectedRequests(): number {
-    return this.tableRows.filter((row) => row.status === TicketStatus.REJECTED).length;
   }
 
   get confirmTitle(): string {
@@ -235,10 +265,36 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.loadTickets();
   }
 
+  onStartDateChange(date: Date | null): void {
+    this.startDate = date;
+    this.currentPage = 0;
+    this.loadTickets();
+  }
+
+  onEndDateChange(date: Date | null): void {
+    this.endDate = date;
+    this.currentPage = 0;
+    this.loadTickets();
+  }
+
+  onSortByChange(): void {
+    this.currentPage = 0;
+    this.loadTickets();
+  }
+
+  onSortDirectionChange(): void {
+    this.currentPage = 0;
+    this.loadTickets();
+  }
+
   onRefresh(): void {
     this.searchKeyword = '';
     this.selectedTicketType = '';
     this.selectedStatus = '';
+    this.startDate = null;
+    this.endDate = null;
+    this.selectedSortBy = 'createdAt';
+    this.selectedSortDirection = 'desc';
     this.currentPage = 0;
     this.loadTickets();
   }
@@ -321,6 +377,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     if (status === TicketStatus.CANCELLED) {
       return 'Đã hủy';
     }
+    if (status === TicketStatus.REVIEWING) {
+      return 'Đang xem xét';
+    }
     return 'Chưa duyệt';
   }
 
@@ -332,7 +391,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       return 'var(--utility-50)';
     }
     if (status === TicketStatus.CANCELLED) {
-        return 'var(--neutral-color-200)';
+      return 'var(--neutral-color-200)';
+    }
+    if (status === TicketStatus.REVIEWING) {
+      return 'var(--brand-50)';
     }
     return 'var(--neutral-color-10)';
   }
@@ -345,7 +407,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       return 'var(--utility-600)';
     }
     if (status === TicketStatus.CANCELLED) {
-        return 'var(--neutral-color-600)';
+      return 'var(--neutral-color-600)';
+    }
+    if (status === TicketStatus.REVIEWING) {
+      return 'var(--brand-600)';
     }
     return 'var(--neutral-color-600)';
   }
@@ -354,7 +419,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     if (this.totalItems === 0) return '0';
     const start = this.currentPage * this.pageSize + 1;
     const end = Math.min((this.currentPage + 1) * this.pageSize, this.totalItems);
-    return `${start}-${end}`;
+    return `${start}-${end} / ${this.totalItems}`;
   }
 
   getVisiblePages(): number[] {
@@ -422,6 +487,21 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     }
     if (this.selectedStatus) {
       filter.status = this.selectedStatus;
+    }
+    if (this.startDate) {
+      filter.startDate = this.startDate.getTime();
+    }
+    if (this.endDate) {
+      // Set to end of day in local timezone
+      const end = new Date(this.endDate);
+      end.setHours(23, 59, 59, 999);
+      filter.endDate = end.getTime();
+    }
+    if (this.selectedSortBy) {
+      filter.sortBy = this.selectedSortBy;
+    }
+    if (this.selectedSortDirection) {
+      filter.sortDirection = this.selectedSortDirection;
     }
     return filter;
   }

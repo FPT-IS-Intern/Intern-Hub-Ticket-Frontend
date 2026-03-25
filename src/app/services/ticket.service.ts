@@ -19,6 +19,7 @@ import {
   PresignedUrlResponse,
   CreateTicketMultipartRequest,
   CreateTicketResponse,
+  TicketManagementDto,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -52,6 +53,44 @@ export class TicketService {
   }
 
   /**
+   * List all tickets for management page (admin) with full filter support.
+   * Returns enriched data: fullName, email from HRM; typeName from TicketType.
+   * GET /ticket/management/all
+   */
+  getAllTicketsForManagement(
+    page: number = 0,
+    size: number = 20,
+    filter?: FilterTicketRequest
+  ): Observable<ResponseApi<PaginatedData<TicketManagementDto>>> {
+    let params: { [key: string]: string } = {
+      page: page.toString(),
+      size: size.toString(),
+      sortBy: filter?.sortBy ?? 'createdAt',
+      sortDirection: filter?.sortDirection ?? 'desc',
+    };
+
+    if (filter?.nameOrEmail) {
+      params['nameOrEmail'] = filter.nameOrEmail;
+    }
+    if (filter?.typeName) {
+      params['typeName'] = filter.typeName;
+    }
+    if (filter?.status) {
+      params['status'] = filter.status;
+    }
+    if (filter?.startDate) {
+      params['startDate'] = filter.startDate.toString();
+    }
+    if (filter?.endDate) {
+      params['endDate'] = filter.endDate.toString();
+    }
+
+    return this.http.get<ResponseApi<PaginatedData<TicketManagementDto>>>(`${this.baseUrl}/management/all`, {
+      params,
+    });
+  }
+
+  /**
    * List all tickets (paginated + filter)
    * GET /ticket/all
    */
@@ -73,6 +112,18 @@ export class TicketService {
     }
     if (filter?.status) {
       params['status'] = filter.status;
+    }
+    if (filter?.startDate) {
+      params['startDate'] = filter.startDate.toString();
+    }
+    if (filter?.endDate) {
+      params['endDate'] = filter.endDate.toString();
+    }
+    if (filter?.sortBy) {
+      params['sortBy'] = filter.sortBy;
+    }
+    if (filter?.sortDirection) {
+      params['sortDirection'] = filter.sortDirection;
     }
 
     return this.http.get<ResponseApi<PaginatedData<TicketDto>>>(`${this.baseUrl}/all`, {

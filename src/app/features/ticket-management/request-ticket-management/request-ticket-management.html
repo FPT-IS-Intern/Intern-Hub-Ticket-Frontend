@@ -114,6 +114,50 @@
       <i class="dsi dsi-chevron-down-line select-icon"></i>
     </div>
 
+    <div class="date-range-wrapper">
+      <app-date-picker
+        [(ngModel)]="startDate"
+        placeholder="Từ ngày"
+        (dateChange)="onStartDateChange($event)"
+        height="36px"
+        style="width: 140px;"
+      ></app-date-picker>
+      <span class="date-separator">&rarr;</span>
+      <app-date-picker
+        [(ngModel)]="endDate"
+        placeholder="Đến ngày"
+        (dateChange)="onEndDateChange($event)"
+        height="36px"
+        style="width: 140px;"
+      ></app-date-picker>
+    </div>
+
+    <div class="filter-select-field">
+      <select
+        class="sort-select"
+        [(ngModel)]="selectedSortBy"
+        (change)="onSortByChange()"
+      >
+        @for (opt of sortByOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+      <i class="dsi dsi-chevron-down-line select-icon"></i>
+    </div>
+
+    <div class="filter-select-field">
+      <select
+        class="sort-dir-select"
+        [(ngModel)]="selectedSortDirection"
+        (change)="onSortDirectionChange()"
+      >
+        @for (opt of sortDirectionOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+      <i class="dsi dsi-chevron-down-line select-icon"></i>
+    </div>
+
     <div class="refresh-action-wrapper">
       <app-button-container
         size="sm"
@@ -138,7 +182,7 @@
             app-table-header
             [columns]="columns"
             textColor="var(--neutral-color-10)"
-            backgroundColor="var(--brand-500)"
+            backgroundColor="var(--brand-600)"
             fontSize="14px"
           ></tr>
         </thead>

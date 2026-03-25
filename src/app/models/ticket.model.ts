@@ -1,5 +1,6 @@
 export enum TicketStatus {
   PENDING = 'PENDING',
+  REVIEWING = 'REVIEWING',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
   CANCELLED = 'CANCELLED',
@@ -43,6 +44,24 @@ export interface TicketDetailDto extends TicketDto {
   requiredApprovals: number;
   currentApprovalLevel: number;
   approverId: string | null;
+}
+
+/**
+ * DTO dành cho trang Quản lý phiếu yêu cầu (admin).
+ * Backend trả về đã enrich fullName, email (từ HRM) và typeName (từ TicketType).
+ */
+export interface TicketManagementDto {
+  ticketId: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  ticketTypeId: string;
+  typeName: string;
+  status: TicketStatus;
+  createdAt: number;
+  updatedAt: number;
+  createdBy: string;
+  updatedBy: string;
 }
 
 export interface PaginatedData<T> {
@@ -108,6 +127,17 @@ export interface FilterTicketRequest {
   nameOrEmail?: string;
   typeName?: string;
   status?: string;
+  startDate?: number;   // timestamp ms
+  endDate?: number;     // timestamp ms
+  sortBy?: 'createdAt' | 'updatedAt' | 'status' | 'typeName';
+  sortDirection?: 'asc' | 'desc';
+}
+
+export interface FilterStatsResponse {
+  totalItems: number;
+  approvedItems: number;
+  pendingItems: number;
+  rejectedItems: number;
 }
 
 export interface UploadEvidenceRequest {
