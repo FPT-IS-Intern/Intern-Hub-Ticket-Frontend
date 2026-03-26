@@ -20,6 +20,7 @@ import {
   CreateTicketMultipartRequest,
   CreateTicketResponse,
   TicketManagementDto,
+  StatCardData,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -37,6 +38,14 @@ export class TicketService {
    */
   getTicketTypes(): Observable<ResponseApi<TicketTypeDto[]>> {
     return this.http.get<ResponseApi<TicketTypeDto[]>>(`${this.baseUrl}/ticket-types/all`);
+  }
+
+  /**
+   * Get stat card data (total, approved, pending, rejected)
+   * GET /ticket/stat-card-data
+   */
+  getStatCardData(): Observable<ResponseApi<StatCardData>> {
+    return this.http.get<ResponseApi<StatCardData>>(`${this.baseUrl}/stat-card-data`);
   }
 
   /**

@@ -152,9 +152,11 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
         this.pageSize,
         this.buildFilter(),
       ),
+      statCard: this.ticketService.getStatCardData(),
     }).subscribe({
       next: (res) => {
         this.ticketTypes = res.types.data;
+        this.applyStatCardData(res.statCard.data);
         this.processTicketsResponse(res.tickets.data);
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -164,6 +166,14 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
         this.isLoading = false;
       },
     });
+  }
+
+  applyStatCardData(data: import('../../../models/ticket.model').StatCardData): void {
+    if (!data) return;
+    this.totalRequests = data.totalTicket;
+    this.approvedRequests = data.totalTicketApprove;
+    this.pendingRequests = data.totalTicketPending;
+    this.rejectedRequests = data.totalTicketReject;
   }
 
   loadTickets(): void {
@@ -188,12 +198,6 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.totalItems = data.totalItems || 0;
     this.totalPagesCount = data.totalPages || 0;
     const items: TicketManagementDto[] = data.items || [];
-
-    // Calculate stat counts from current page items
-    this.totalRequests = items.length;
-    this.approvedRequests = items.filter((i) => i.status === TicketStatus.APPROVED).length;
-    this.pendingRequests = items.filter((i) => i.status === TicketStatus.PENDING).length;
-    this.rejectedRequests = items.filter((i) => i.status === TicketStatus.REJECTED).length;
 
     this.tableRows = items.map((ticket, index) => ({
       ticketId: String(ticket.ticketId),

@@ -53,6 +53,13 @@ export enum EvidenceStatus {
   PENDING = 'PENDING',
 }
 
+export interface StatCardData {
+  totalTicket: number;
+  totalTicketApprove: number;
+  totalTicketPending: number;
+  totalTicketReject: number;
+}
+
 export interface TicketTypeDto {
   ticketTypeId: string;
   typeName: string;
