@@ -370,16 +370,31 @@ export class DetailTicketManagementPage implements OnInit {
   }
 
   confirmReject(): void {
-    if (this.rejectReason.trim().length === 0) return;
+    if (this.rejectReason.trim().length === 0 || !this.ticketId || !this.ticketDetail) return;
 
     this.showRejectPopup = false;
-    this.failMessage = 'Phiếu đã bị từ chối thành công';
-    this.showFailPopup = true;
 
-    if (this.ticketDetail) {
-      this.ticketDetail.status = TicketStatus.REJECTED;
-      this.generateApprovalSteps(this.ticketDetail);
-    }
+    this.ticketService
+      .rejectTicket(this.ticketId, {
+        comment: this.rejectReason.trim(),
+        idempotencyKey: Math.random().toString(36).substring(7),
+        version: this.ticketDetail.version,
+      })
+      .subscribe({
+        next: () => {
+          this.successMessage = 'Từ chối phiếu thành công!';
+          this.showSuccessPopup = true;
+          if (this.ticketDetail) {
+            this.ticketDetail.status = TicketStatus.REJECTED;
+            this.generateApprovalSteps(this.ticketDetail);
+          }
+        },
+        error: (err) => {
+          console.error('Error rejecting ticket:', err);
+          this.failMessage = 'Từ chối phiếu thất bại. Vui lòng thử lại.';
+          this.showFailPopup = true;
+        },
+      });
   }
 
   // ============================

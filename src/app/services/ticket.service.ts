@@ -219,6 +219,18 @@ export class TicketService {
   }
 
   /**
+   * Reject ticket
+   * POST /ticket/{ticketId}/reject
+   * @param ticketId - The ticket ID to reject (Long in backend)
+   */
+  rejectTicket(
+    ticketId: string,
+    request: ApproveTicketRequest,
+  ): Observable<ResponseApi<void>> {
+    return this.http.post<ResponseApi<void>>(`${this.baseUrl}/${ticketId}/reject`, request);
+  }
+
+  /**
    * Upload evidence for a ticket
    * POST /ticket/{ticketId}/evidences
    * @param ticketId - The ticket ID (Long in backend)
