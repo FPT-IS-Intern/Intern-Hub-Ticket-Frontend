@@ -4,24 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonContainerComponent, IconComponent } from '@goat-bravos/intern-hub-layout';
 import {
-  DetailRemoteOnsiteComponent,
-  RemoteOnsiteDetail,
-} from './components/detail-remote-onsite.component';
-import {
-  DetailRemoteWfhComponent,
-  RemoteWfhDetail,
-} from './components/detail-remote-wfh.component';
-import {
   DetailLeaveRequestComponent,
   LeaveRequestDetail,
 } from './components/detail-leave-request.component';
-import {
-  DetailExplanationComponent,
-  ExplanationDetail,
-} from './components/detail-explanation.component';
 import { TicketService } from '../../../services/ticket.service';
 import {
   TicketDetailDto,
+  TicketDetailResponse,
+  TicketApprovalInfo,
   TicketStatus,
   TicketTypeCode,
   TICKET_TYPE_ID_TO_CODE,
@@ -32,17 +22,15 @@ import { forkJoin } from 'rxjs';
 
 type TicketType = TicketTypeCode;
 
-interface ApprovalStep {
-  stepNumber: number;
-  statusLabel: string; // e.g. "Đã tạo", "Chờ duyệt"
-  statusType: 'done' | 'pending' | 'rejected';
-  date: string | null; // e.g. "05/01/2026" or "--:--"
-  personName: string; // e.g. "Vũ Ngọc Thùy Anh"
-  description: string; // e.g. "Khởi tạo", "Phê duyệt cấp 1 - Duyệt bởi ..."
+interface ApprovalLevel {
+  level: number;
+  label: string;
+  approverName: string;
+  statusType: 'done' | 'pending' | 'rejected' | 'cancelled';
+  statusLabel: string;
+  date: string | null;
+  description: string;
 }
-
-// Maps ticketType from request-ticket-management to internal type
-// (Replaced by TICKET_TYPE_ID_TO_CODE from ticket.model.ts — no longer hardcoded here)
 
 @Component({
   selector: 'app-detail-ticket-management-page',
@@ -52,10 +40,7 @@ interface ApprovalStep {
     FormsModule,
     IconComponent,
     ButtonContainerComponent,
-    DetailRemoteOnsiteComponent,
-    DetailRemoteWfhComponent,
     DetailLeaveRequestComponent,
-    DetailExplanationComponent,
   ],
   providers: [DatePipe],
   templateUrl: './detail-ticket-management.html',
@@ -63,14 +48,12 @@ interface ApprovalStep {
 })
 export class DetailTicketManagementPage implements OnInit {
   ticketId = '';
-  ticketType: TicketType = TicketTypeCode.REMOTE_ONSITE;
-  ticketTitle = 'Phiếu Remote - Onsite';
+  ticketType: TicketType = TicketTypeCode.LEAVE_REQUEST;
+  ticketTitle = 'Phiếu nghỉ phép';
   ticketDetail: TicketDetailDto | null = null;
+  approvalInfo: TicketApprovalInfo | null = null;
   isLoading = false;
 
-  // ============================
-  // Popup state
-  // ============================
   showRejectPopup = false;
   rejectReason = '';
   showSuccessPopup = false;
@@ -78,46 +61,16 @@ export class DetailTicketManagementPage implements OnInit {
   showFailPopup = false;
   failMessage = '';
 
-  // ============================
-  // Data for components
-  // ============================
-  remoteOnsiteData: RemoteOnsiteDetail = {
-    fullName: '',
-    createdDate: '',
-    startTime: '',
-    reason: '',
-    workDate: '',
-    location: '',
-  };
-
-  remoteWfhData: RemoteWfhDetail = {
-    fullName: '',
-    createdDate: '',
-    startTime: '',
-    reason: '',
-    workDate: '',
-  };
-
   leaveRequestData: LeaveRequestDetail = {
     fullName: '',
     createdDate: '',
     startDate: '',
+    endDate: '',
     reason: '',
     totalDays: 0,
-    endDate: '',
   };
 
-  explanationData: ExplanationDetail = {
-    fullName: '',
-    createdDate: '',
-    date: '',
-    reason: '',
-  };
-
-  // ============================
-  // Approval Steps (timeline)
-  // ============================
-  approvalSteps: ApprovalStep[] = [];
+  approvalLevels: ApprovalLevel[] = [];
 
   constructor(
     private readonly router: Router,
@@ -134,9 +87,9 @@ export class DetailTicketManagementPage implements OnInit {
       if (ticketTypeId && TICKET_TYPE_ID_TO_CODE[ticketTypeId]) {
         this.ticketType = TICKET_TYPE_ID_TO_CODE[ticketTypeId];
       } else {
-        this.ticketType = TicketTypeCode.REMOTE_ONSITE;
+        this.ticketType = TicketTypeCode.LEAVE_REQUEST;
       }
-      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiếu Remote - Onsite';
+      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiếu nghỉ phép';
 
       if (this.ticketId) {
         this.loadTicketDetail();
@@ -153,20 +106,21 @@ export class DetailTicketManagementPage implements OnInit {
       next: ({ detail: res, types: typesRes }) => {
         registerTicketTypeIds(typesRes.data);
 
-        const data = res.data;
-        this.ticketDetail = data;
+        const data: TicketDetailResponse = res.data;
+        this.ticketDetail = data.ticketDetail;
+        this.approvalInfo = data.ticketApprovalInfo;
 
-        const matchedType = typesRes.data.find((t) => t.ticketTypeId === data.ticketTypeId);
+        const matchedType = typesRes.data.find(
+          (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
+        );
         if (matchedType) {
           this.ticketTitle = matchedType.typeName;
           const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
-          this.ticketType = code ?? TicketTypeCode.EXPLANATION;
-        } else {
-          this.ticketType = TicketTypeCode.EXPLANATION;
+          this.ticketType = code ?? TicketTypeCode.LEAVE_REQUEST;
         }
 
-        this.mapDetailToComponents(data);
-        this.generateApprovalSteps(data);
+        this.mapDetailToComponents(data.ticketDetail);
+        this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
         this.isLoading = false;
       },
       error: (err) => {
@@ -176,174 +130,125 @@ export class DetailTicketManagementPage implements OnInit {
     });
   }
 
-  mapDetailToComponents(detail: TicketDetailDto): void {
+  private formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    const ts = Number(dateStr);
+    if (isNaN(ts)) return dateStr;
+    return this.datePipe.transform(ts, 'dd/MM/yyyy') || '';
+  }
+
+  private formatDateTime(dateStr: string | null | undefined): string {
+    if (!dateStr) return '';
+    const ts = Number(dateStr);
+    if (isNaN(ts)) return dateStr;
+    return this.datePipe.transform(ts, 'dd/MM/yyyy HH:mm') || '';
+  }
+
+  private mapDetailToComponents(detail: TicketDetailDto): void {
     const payload = detail.payload || {};
-    const createdDate = this.datePipe.transform(detail.createdAt, 'dd/MM/yyyy') || '';
+    const createdDate = this.formatDateTime(String(detail.createdAt));
     const fullName = `User ${detail.userId}`;
 
     switch (this.ticketType) {
-      case TicketTypeCode.REMOTE_ONSITE:
-        this.remoteOnsiteData = {
-          fullName,
-          createdDate,
-          startTime: payload['startTime'] || payload['start_time'] || '',
-          reason: payload['reason'] || '',
-          workDate:
-            this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') ||
-            '',
-          location:
-            payload['location'] === 'Hanoi'
-              ? 'Hà Nội'
-              : payload['location'] === 'HCM'
-                ? 'TP. HCM'
-                : payload['location'] || '',
-        };
-        break;
-      case TicketTypeCode.REMOTE_WFH:
-        this.remoteWfhData = {
-          fullName,
-          createdDate,
-          startTime: payload['startTime'] || payload['start_time'] || '08:30 AM',
-          reason: payload['reason'] || '',
-          workDate:
-            this.datePipe.transform(payload['workDate'] || payload['work_date'], 'dd/MM/yyyy') ||
-            '',
-        };
-        break;
       case TicketTypeCode.LEAVE_REQUEST:
         this.leaveRequestData = {
           fullName,
           createdDate,
-          startDate:
-            this.datePipe.transform(payload['startDate'] || payload['start_date'], 'dd/MM/yyyy') ||
-            '',
-          endDate:
-            this.datePipe.transform(payload['endDate'] || payload['end_date'], 'dd/MM/yyyy') || '',
+          startDate: payload['start_date'] || payload['startDate'] || '',
+          endDate: payload['end_date'] || payload['endDate'] || '',
           reason: payload['reason'] || '',
-          totalDays: payload['totalDays'] || payload['total_days'] || 0,
+          totalDays: payload['total_days'] || payload['totalDays'] || 0,
+        };
+        break;
+      case TicketTypeCode.REMOTE_ONSITE:
+        this.leaveRequestData = {
+          fullName,
+          createdDate,
+          startDate: payload['work_date'] || payload['workDate'] || '',
+          endDate: payload['start_time'] || payload['startTime'] || '',
+          reason: payload['reason'] || '',
+          totalDays: 0,
+        };
+        break;
+      case TicketTypeCode.REMOTE_WFH:
+        this.leaveRequestData = {
+          fullName,
+          createdDate,
+          startDate: payload['work_date'] || payload['workDate'] || '',
+          endDate: payload['start_time'] || payload['startTime'] || '',
+          reason: payload['reason'] || '',
+          totalDays: 0,
         };
         break;
       case TicketTypeCode.EXPLANATION:
-        this.explanationData = {
+        this.leaveRequestData = {
           fullName,
           createdDate,
-          date: this.datePipe.transform(payload['date'], 'dd/MM/yyyy') || '',
+          startDate: payload['date'] || '',
+          endDate: '',
           reason: payload['reason'] || '',
+          totalDays: 0,
         };
         break;
     }
   }
 
-  generateApprovalSteps(detail: TicketDetailDto): void {
-    const createdDate = this.datePipe.transform(detail.createdAt, 'dd/MM/yyyy') || '';
-    const updatedDate = this.datePipe.transform(detail.updatedAt, 'dd/MM/yyyy') || '';
-    const requiredApprovals = detail.requiredApprovals || 1;
-    const currentApprovalLevel = detail.currentApprovalLevel || 0;
+  private buildApprovalLevels(
+    detail: TicketDetailDto,
+    approvalInfo: TicketApprovalInfo,
+  ): void {
+    this.approvalLevels = [];
+    const status = detail.status;
 
-    this.approvalSteps = [];
+    const level1Status = approvalInfo.statusLevel1;
+    const level2Status = approvalInfo.statusLevel2;
 
-    // Step 1: Always "Đã tạo"
-    this.approvalSteps.push({
-      stepNumber: 1,
-      statusLabel: 'Đã tạo',
-      statusType: 'done',
-      date: createdDate,
-      personName: `User ${detail.userId}`,
-      description: 'Khởi tạo',
+    const getStatusType = (
+      level: 1 | 2,
+      lvStatus: string,
+    ): 'done' | 'pending' | 'rejected' => {
+      if (lvStatus === 'SUCCESS') return 'done';
+      if (lvStatus === 'REJECTED') return 'rejected';
+      return 'pending';
+    };
+
+    const getStatusLabel = (lvStatus: string): string => {
+      if (lvStatus === 'SUCCESS') return 'Đã duyệt';
+      if (lvStatus === 'REJECTED') return 'Từ chối';
+      return 'Chờ duyệt';
+    };
+
+    this.approvalLevels.push({
+      level: 1,
+      label: 'Cấp 1',
+      approverName: approvalInfo.approverIdLevel1
+        ? `User ${approvalInfo.approverIdLevel1}`
+        : 'Người duyệt cấp 1',
+      statusType: getStatusType(1, level1Status),
+      statusLabel: getStatusLabel(level1Status),
+      date: this.formatDate(approvalInfo.approvedAt),
+      description: level1Status === 'SUCCESS'
+        ? 'Phê duyệt cấp 1'
+        : level1Status === 'REJECTED'
+          ? 'Từ chối cấp 1'
+          : 'Chờ phê duyệt cấp 1',
     });
 
-    // Steps 2..N+1: One step per approval level
-    for (let level = 1; level <= requiredApprovals; level++) {
-      const stepNumber = level + 1;
-      const approverName = detail.approverId
-        ? `User ${detail.approverId}`
-        : `Người duyệt cấp ${level}`;
-
-      if (detail.status === TicketStatus.APPROVED) {
-        // All levels are approved
-        this.approvalSteps.push({
-          stepNumber,
-          statusLabel: 'Đã duyệt',
-          statusType: 'done',
-          date: level === requiredApprovals ? updatedDate : null,
-          personName: approverName,
-          description: `Phê duyệt cấp ${level} - <strong>Đã duyệt</strong>`,
-        });
-      } else if (detail.status === TicketStatus.REJECTED) {
-        if (level < currentApprovalLevel) {
-          // Levels before current were approved
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Đã duyệt',
-            statusType: 'done',
-            date: null,
-            personName: approverName,
-            description: `Phê duyệt cấp ${level} - <strong>Đã duyệt</strong>`,
-          });
-        } else if (level === currentApprovalLevel) {
-          // This level rejected
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Từ chối',
-            statusType: 'rejected',
-            date: updatedDate,
-            personName: approverName,
-            description: `Phê duyệt cấp ${level} - <strong>Đã từ chối</strong>`,
-          });
-        } else {
-          // Levels after rejection are skipped
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Bỏ qua',
-            statusType: 'pending',
-            date: null,
-            personName: `Người duyệt cấp ${level}`,
-            description: `Phê duyệt cấp ${level} - Không thực hiện`,
-          });
-        }
-      } else if (detail.status === TicketStatus.PENDING) {
-        if (level < currentApprovalLevel) {
-          // Levels before current were approved
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Đã duyệt',
-            statusType: 'done',
-            date: null,
-            personName: approverName,
-            description: `Phê duyệt cấp ${level} - <strong>Đã duyệt</strong>`,
-          });
-        } else if (level === currentApprovalLevel) {
-          // This level is waiting
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Chờ duyệt',
-            statusType: 'pending',
-            date: null,
-            personName: approverName,
-            description: `Phê duyệt cấp ${level} - Đang chờ phê duyệt`,
-          });
-        } else {
-          // Future levels
-          this.approvalSteps.push({
-            stepNumber,
-            statusLabel: 'Chờ duyệt',
-            statusType: 'pending',
-            date: null,
-            personName: `Người duyệt cấp ${level}`,
-            description: `Phê duyệt cấp ${level} - Chưa đến lượt`,
-          });
-        }
-      } else if (detail.status === TicketStatus.CANCELLED) {
-        this.approvalSteps.push({
-          stepNumber,
-          statusLabel: 'Đã hủy',
-          statusType: 'rejected',
-          date: level === 1 ? updatedDate : null,
-          personName: `Người duyệt cấp ${level}`,
-          description: `Phê duyệt cấp ${level} - Phiếu đã bị hủy`,
-        });
-      }
-    }
+    this.approvalLevels.push({
+      level: 2,
+      label: 'Cấp 2',
+      approverName: approvalInfo.approverIdLevel2
+        ? `User ${approvalInfo.approverIdLevel2}`
+        : 'Người duyệt cấp 2',
+      statusType: getStatusType(2, level2Status),
+      statusLabel: getStatusLabel(level2Status),
+      date: this.formatDate(approvalInfo.approvedAtLevel2),
+      description: level2Status === 'SUCCESS'
+        ? 'Phê duyệt cấp 2'
+        : level2Status === 'REJECTED'
+          ? 'Từ chối cấp 2'
+          : 'Chờ phê duyệt cấp 2',
+    });
   }
 
   goToHome(): void {
@@ -356,9 +261,6 @@ export class DetailTicketManagementPage implements OnInit {
     });
   }
 
-  // ============================
-  // Reject flow
-  // ============================
   openRejectPopup(): void {
     this.rejectReason = '';
     this.showRejectPopup = true;
@@ -384,10 +286,6 @@ export class DetailTicketManagementPage implements OnInit {
         next: () => {
           this.successMessage = 'Từ chối phiếu thành công!';
           this.showSuccessPopup = true;
-          if (this.ticketDetail) {
-            this.ticketDetail.status = TicketStatus.REJECTED;
-            this.generateApprovalSteps(this.ticketDetail);
-          }
         },
         error: (err) => {
           console.error('Error rejecting ticket:', err);
@@ -397,9 +295,6 @@ export class DetailTicketManagementPage implements OnInit {
       });
   }
 
-  // ============================
-  // Approve flow
-  // ============================
   onApprove(): void {
     if (!this.ticketId || !this.ticketDetail) return;
 
@@ -412,10 +307,6 @@ export class DetailTicketManagementPage implements OnInit {
         next: () => {
           this.successMessage = 'Duyệt phiếu thành công!';
           this.showSuccessPopup = true;
-          if (this.ticketDetail) {
-            this.ticketDetail.status = TicketStatus.APPROVED;
-            this.generateApprovalSteps(this.ticketDetail);
-          }
         },
         error: (err) => {
           console.error('Error approving ticket:', err);
@@ -431,5 +322,29 @@ export class DetailTicketManagementPage implements OnInit {
 
   closeFailPopup(): void {
     this.showFailPopup = false;
+  }
+
+  getStatusBadge(status: TicketStatus): { label: string; bg: string; color: string } {
+    if (status === TicketStatus.APPROVED) {
+      return { label: 'Đã duyệt', bg: 'var(--theme-green-50)', color: 'var(--theme-green-700)' };
+    }
+    if (status === TicketStatus.REJECTED) {
+      return { label: 'Từ chối', bg: 'var(--utility-50)', color: 'var(--utility-600)' };
+    }
+    if (status === TicketStatus.CANCELLED) {
+      return { label: 'Đã hủy', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
+    }
+    if (status === TicketStatus.REVIEWING) {
+      return { label: 'Đang xem xét', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
+    }
+    return { label: 'Chưa duyệt', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
+  }
+
+  getApprovalProgress(): number {
+    if (!this.approvalInfo) return 0;
+    let done = 0;
+    if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
+    if (this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
+    return (done / 2) * 100;
   }
 }

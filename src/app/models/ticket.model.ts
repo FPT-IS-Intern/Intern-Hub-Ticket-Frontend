@@ -95,6 +95,23 @@ export interface TicketDetailDto extends TicketDto {
   version: number;
 }
 
+export interface TicketApprovalInfo {
+  ticketId: string;
+  userId: string;
+  approverIdLevel1: string;
+  approverIdLevel2: string;
+  statusLevel1: 'SUCCESS' | 'PENDING' | 'REJECTED';
+  statusLevel2: 'SUCCESS' | 'PENDING' | 'REJECTED';
+  approvedAt: string;
+  approvedAtLevel2: string;
+  createdAt: string;
+}
+
+export interface TicketDetailResponse {
+  ticketApprovalInfo: TicketApprovalInfo;
+  ticketDetail: TicketDetailDto;
+}
+
 /**
  * DTO dành cho trang Quản lý phiếu yêu cầu (admin).
  * Backend trả về đã enrich fullName, email (từ HRM) và typeName (từ TicketType).

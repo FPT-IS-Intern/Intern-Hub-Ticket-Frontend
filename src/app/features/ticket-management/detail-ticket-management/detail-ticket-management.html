@@ -17,85 +17,152 @@
 
   <div class="page-title">Chi tiết phiếu</div>
 
-  <!-- Ticket Info Card -->
-  <div class="info-ticket-card">
-    <div class="title-detail-ticket">{{ ticketTitle }}</div>
-    <div class="detail-info">
-      @switch (ticketType) {
-        @case ('REMOTE_ONSITE') {
-          <app-detail-remote-onsite [data]="remoteOnsiteData"></app-detail-remote-onsite>
-        }
-        @case ('REMOTE_WFH') {
-          <app-detail-remote-wfh [data]="remoteWfhData"></app-detail-remote-wfh>
-        }
-        @case ('LEAVE_REQUEST') {
-          <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
-        }
-        @case ('EXPLANATION') {
-          <app-detail-explanation [data]="explanationData"></app-detail-explanation>
-        }
-      }
+  @if (isLoading) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <span>Đang tải dữ liệu...</span>
     </div>
-  </div>
-
-  <!-- Approval Information Card -->
-  <div class="approval-information">
-    <div class="title-approval-information">Thông tin phê duyệt</div>
-    <div class="approval-timeline">
-      @for (step of approvalSteps; track step.stepNumber; let last = $last) {
-        <div class="timeline-row">
-          <!-- Left column: status label + date -->
-          <div class="timeline-left">
-            <span class="timeline-status-label">{{ step.statusLabel }}</span>
-            <span class="timeline-date">{{ step.date || '--:--' }}</span>
-          </div>
-
-          <!-- Center column: step circle + connector line -->
-          <div class="timeline-center">
-            <div class="timeline-circle" [class.done]="step.statusType === 'done'" [class.pending]="step.statusType === 'pending'" [class.rejected]="step.statusType === 'rejected'">
-              @if (step.statusType === 'done') {
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              } @else {
-                <span class="step-number">{{ step.stepNumber }}</span>
-              }
-            </div>
-            @if (!last) {
-              <div class="timeline-connector"></div>
+  } @else {
+    <div class="detail-layout">
+      <!-- Left Column: Ticket Detail Info -->
+      <div class="detail-left">
+        <div class="detail-card">
+          <div class="card-header">
+            <span class="card-title">{{ ticketTitle }}</span>
+            @if (ticketDetail) {
+              <span
+                class="status-badge"
+                [style.background]="getStatusBadge(ticketDetail.status).bg"
+                [style.color]="getStatusBadge(ticketDetail.status).color"
+              >
+                {{ getStatusBadge(ticketDetail.status).label }}
+              </span>
             }
           </div>
 
-          <!-- Right column: person name + description -->
-          <div class="timeline-right">
-            <span class="timeline-person">{{ step.personName }}</span>
-            <span class="timeline-description" [innerHTML]="step.description"></span>
+          @switch (ticketType) {
+            @case ('LEAVE_REQUEST') {
+              <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
+            }
+            @default {
+              <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Right Column: Approval Timeline -->
+      <div class="detail-right">
+        <div class="detail-card">
+          <div class="card-header">
+            <span class="card-title">Thông tin phê duyệt</span>
+          </div>
+
+          <!-- Approval Progress -->
+          @if (approvalInfo) {
+            <div class="approval-progress-section">
+              <div class="approval-progress-header">
+                <span class="progress-label">Tiến độ phê duyệt</span>
+                <span class="progress-value">{{ getApprovalProgress() | number:'1.0-0' }}%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div
+                  class="progress-bar-fill"
+                  [style.width.%]="getApprovalProgress()"
+                ></div>
+              </div>
+            </div>
+          }
+
+          <!-- Approval Levels Timeline -->
+          <div class="approval-timeline">
+            @for (level of approvalLevels; track level.level; let last = $last) {
+              <div class="timeline-item" [class.last]="last">
+                <div class="timeline-item-left">
+                  <div
+                    class="timeline-icon"
+                    [class.done]="level.statusType === 'done'"
+                    [class.pending]="level.statusType === 'pending'"
+                    [class.rejected]="level.statusType === 'rejected'"
+                  >
+                    @if (level.statusType === 'done') {
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    } @else if (level.statusType === 'rejected') {
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M3 3L11 11M11 3L3 11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    } @else {
+                      <span class="pending-dot">···</span>
+                    }
+                  </div>
+                  @if (!last) {
+                    <div class="timeline-connector"></div>
+                  }
+                </div>
+
+                <div class="timeline-item-content">
+                  <div class="timeline-item-header">
+                    <span class="level-badge">Cấp {{ level.level }}</span>
+                    <span
+                      class="level-status"
+                      [class.done]="level.statusType === 'done'"
+                      [class.pending]="level.statusType === 'pending'"
+                      [class.rejected]="level.statusType === 'rejected'"
+                    >
+                      {{ level.statusLabel }}
+                    </span>
+                  </div>
+                  <div class="timeline-item-body">
+                    <div class="timeline-row">
+                      <span class="timeline-row-label">Người duyệt</span>
+                      <span class="timeline-row-value">{{ level.approverName }}</span>
+                    </div>
+                    <div class="timeline-row">
+                      <span class="timeline-row-label">Thời gian</span>
+                      <span class="timeline-row-value">{{ level.date || '--/--/----' }}</span>
+                    </div>
+                    <div class="timeline-row">
+                      <span class="timeline-row-label">Mô tả</span>
+                      <span class="timeline-row-value">{{ level.description }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         </div>
-      }
+
+        <!-- Action Buttons -->
+        <div class="action-card">
+          <div class="action-buttons">
+            <app-button-container
+              content="Trở về"
+              backgroundColor="var(--neutral-color-10)"
+              color="var(--neutral-color-700)"
+              border="1px solid var(--neutral-color-300)"
+              (buttonClick)="goToRequestManagement()"
+            ></app-button-container>
+            @if (ticketDetail && ticketDetail.status === 'PENDING') {
+              <app-button-container
+                content="Từ chối"
+                backgroundColor="var(--utility-500)"
+                color="white"
+                (buttonClick)="openRejectPopup()"
+              ></app-button-container>
+              <app-button-container
+                content="Duyệt"
+                backgroundColor="var(--theme-green-500)"
+                color="white"
+                (buttonClick)="onApprove()"
+              ></app-button-container>
+            }
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="button-action">
-      <app-button-container
-        content="Trở về"
-        backgroundColor="var(--neutral-color-10)"
-        color="var(--neutral-color-700)"
-        border="1px solid var(--neutral-color-300)"
-        (buttonClick)="goToRequestManagement()"
-      ></app-button-container>
-      <app-button-container
-        content="Từ chối"
-        backgroundColor="var(--utility-500)"
-        color="white"
-        (buttonClick)="openRejectPopup()"
-      ></app-button-container>
-      <app-button-container
-        content="Duyệt"
-        backgroundColor="var(--theme-green-500)"
-        color="white"
-        (buttonClick)="onApprove()"
-      ></app-button-container>
-    </div>
-  </div>
+  }
 </div>
 
 <!-- Reject Confirmation Popup -->
@@ -117,7 +184,13 @@
       </div>
       <div class="popup-actions">
         <button class="popup-btn btn-cancel" (click)="closeRejectPopup()">Quay lại</button>
-        <button class="popup-btn btn-confirm-reject" (click)="confirmReject()" [disabled]="rejectReason.trim().length === 0">Đồng ý</button>
+        <button
+          class="popup-btn btn-confirm-reject"
+          (click)="confirmReject()"
+          [disabled]="rejectReason.trim().length === 0"
+        >
+          Đồng ý
+        </button>
       </div>
     </div>
   </div>
@@ -138,7 +211,7 @@
   </div>
 }
 
-<!-- Failure Popup (for reject success notification) -->
+<!-- Failure Popup -->
 @if (showFailPopup) {
   <div class="popup-overlay" (click)="closeFailPopup()">
     <div class="popup-container fail-popup" (click)="$event.stopPropagation()">

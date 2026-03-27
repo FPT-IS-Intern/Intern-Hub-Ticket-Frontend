@@ -5,9 +5,9 @@ export interface LeaveRequestDetail {
   fullName: string;
   createdDate: string;
   startDate: string;
+  endDate: string;
   reason: string;
   totalDays: number;
-  endDate: string;
 }
 
 @Component({
@@ -26,22 +26,24 @@ export interface LeaveRequestDetail {
           <span class="field-value">{{ data.createdDate }}</span>
         </div>
         <div class="detail-field">
-          <span class="field-label">Ngày bắt đầu</span>
-          <span class="field-value bold">{{ data.startDate }}</span>
+          <span class="field-label">Tổng ngày nghỉ</span>
+          <span class="field-value bold">{{ data.totalDays }} ngày</span>
         </div>
       </div>
       <div class="detail-row">
         <div class="detail-field">
-          <span class="field-label">Lý do</span>
-          <span class="field-value">{{ data.reason }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="field-label">Tổng ngày nghỉ</span>
-          <span class="field-value bold">{{ data.totalDays }}</span>
+          <span class="field-label">Ngày bắt đầu</span>
+          <span class="field-value bold">{{ data.startDate }}</span>
         </div>
         <div class="detail-field">
           <span class="field-label">Ngày kết thúc</span>
-          <span class="field-value">{{ data.endDate }}</span>
+          <span class="field-value bold">{{ data.endDate }}</span>
+        </div>
+      </div>
+      <div class="detail-row full-width">
+        <div class="detail-field">
+          <span class="field-label">Lý do</span>
+          <span class="field-value">{{ data.reason }}</span>
         </div>
       </div>
     </div>
@@ -57,6 +59,10 @@ export interface LeaveRequestDetail {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: 16px;
+
+      &.full-width {
+        grid-template-columns: 1fr;
+      }
     }
     .detail-field {
       display: flex;
@@ -72,6 +78,7 @@ export interface LeaveRequestDetail {
       font-size: 14px;
       color: var(--neutral-color-800);
       font-weight: 400;
+      word-break: break-word;
     }
     .field-value.bold {
       font-weight: 600;
@@ -83,8 +90,8 @@ export class DetailLeaveRequestComponent {
     fullName: '',
     createdDate: '',
     startDate: '',
+    endDate: '',
     reason: '',
     totalDays: 0,
-    endDate: '',
   };
 }

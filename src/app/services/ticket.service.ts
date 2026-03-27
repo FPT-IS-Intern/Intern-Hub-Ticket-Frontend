@@ -11,6 +11,7 @@ import {
   TicketDto,
   PaginatedData,
   TicketDetailDto,
+  TicketDetailResponse,
   ApproveTicketRequest,
   CreateTicketTypeRequest,
   TicketTypeResponse,
@@ -155,8 +156,8 @@ export class TicketService {
    * GET /ticket/{ticketId}
    * @param ticketId - The ticket ID (Long in backend)
    */
-  getTicketDetail(ticketId: string): Observable<ResponseApi<TicketDetailDto>> {
-    return this.http.get<ResponseApi<TicketDetailDto>>(`${this.baseUrl}/${ticketId}`);
+  getTicketDetail(ticketId: string): Observable<ResponseApi<TicketDetailResponse>> {
+    return this.http.get<ResponseApi<TicketDetailResponse>>(`${this.baseUrl}/${ticketId}`);
   }
 
   /**
