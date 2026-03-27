@@ -18,8 +18,8 @@ import {
   TICKET_TYPE_CODE_TO_NAME,
   registerTicketTypeIds,
   EvidenceDto,
+  TicketTypeDto,
 } from '../../../models/ticket.model';
-import { forkJoin } from 'rxjs';
 
 type TicketType = TicketTypeCode;
 
@@ -54,6 +54,7 @@ export class DetailTicketManagementPage implements OnInit {
   ticketDetail: TicketDetailDto | null = null;
   approvalInfo: TicketApprovalInfo | null = null;
   evidences: EvidenceDto[] = [];
+  ticketTypes: TicketTypeDto[] = [];
   isLoading = false;
 
   showRejectPopup = false;
@@ -101,56 +102,85 @@ export class DetailTicketManagementPage implements OnInit {
 
   loadTicketDetail(): void {
     this.isLoading = true;
-    forkJoin({
-      detail: this.ticketService.getTicketDetail(this.ticketId),
-      types: this.ticketService.getTicketTypes(),
-      evidences: this.ticketService.getEvidences(this.ticketId),
-    }).subscribe({
-      next: ({ detail: res, types: typesRes, evidences: evRes }) => {
-        registerTicketTypeIds(typesRes.data);
 
-        const data: TicketDetailResponse = res.data;
-        this.ticketDetail = data.ticketDetail;
-        this.approvalInfo = data.ticketApprovalInfo;
-        this.evidences = evRes.data || [];
+    // Load ticket types first, then detail and evidences in parallel
+    this.ticketService.getTicketTypes().subscribe({
+      next: (typesRes) => {
+        this.ticketTypes = typesRes.data || [];
+        registerTicketTypeIds(this.ticketTypes);
 
-        const matchedType = typesRes.data.find(
-          (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
-        );
-        if (matchedType) {
-          this.ticketTitle = matchedType.typeName;
-          const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
-          this.ticketType = code ?? TicketTypeCode.LEAVE_REQUEST;
-        }
-
-        this.mapDetailToComponents(data.ticketDetail);
-        this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
-        this.isLoading = false;
+        // Load detail and evidences in parallel
+        this.loadDetailAndEvidences();
       },
       error: (err) => {
-        console.error('Error loading ticket detail:', err);
+        console.error('Error loading ticket types:', err);
         this.isLoading = false;
       },
     });
   }
 
-  private formatDate(dateStr: string | null | undefined): string {
-    if (!dateStr) return '';
-    const ts = Number(dateStr);
-    if (isNaN(ts)) return dateStr;
+  private loadDetailAndEvidences(): void {
+    // Load ticket detail
+    this.ticketService.getTicketDetail(this.ticketId).subscribe({
+      next: (res) => {
+        try {
+          const data: TicketDetailResponse = res.data;
+          this.ticketDetail = data.ticketDetail;
+          this.approvalInfo = data.ticketApprovalInfo;
+
+          const matchedType = this.ticketTypes.find(
+            (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
+          );
+          if (matchedType) {
+            this.ticketTitle = matchedType.typeName;
+            const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
+            this.ticketType = code ?? TicketTypeCode.LEAVE_REQUEST;
+          }
+
+          this.mapDetailToComponents(data.ticketDetail);
+          this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
+        } catch (e) {
+          console.error('Error parsing ticket detail:', e);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading ticket detail:', err);
+      },
+    });
+
+    // Load evidences (separate request, won't affect detail loading)
+    this.ticketService.getEvidences(this.ticketId).subscribe({
+      next: (evRes) => {
+        this.evidences = evRes.data || [];
+      },
+      error: (err) => {
+        console.error('Error loading evidences:', err);
+        this.evidences = [];
+      },
+      complete: () => {
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private formatDate(dateStr: string | number | null | undefined): string {
+    if (!dateStr && dateStr !== 0) return '';
+    const ts = typeof dateStr === 'string' ? Number(dateStr) : dateStr;
+    if (isNaN(ts as number)) return String(dateStr);
     return this.datePipe.transform(ts, 'dd/MM/yyyy') || '';
   }
 
-  private formatDateTime(dateStr: string | null | undefined): string {
-    if (!dateStr) return '';
-    const ts = Number(dateStr);
-    if (isNaN(ts)) return dateStr;
+  private formatDateTime(dateStr: string | number | null | undefined): string {
+    if (!dateStr && dateStr !== 0) return '';
+    const ts = typeof dateStr === 'string' ? Number(dateStr) : dateStr;
+    if (isNaN(ts as number)) return String(dateStr);
     return this.datePipe.transform(ts, 'dd/MM/yyyy HH:mm') || '';
   }
 
   private mapDetailToComponents(detail: TicketDetailDto): void {
     const payload = detail.payload || {};
-    const createdDate = this.formatDateTime(String(detail.createdAt));
+    const createdAtVal = detail.createdAt || detail['createdAt'] || '';
+    const createdDate = this.formatDateTime(createdAtVal);
     const fullName = `User ${detail.userId}`;
 
     switch (this.ticketType) {
@@ -202,13 +232,11 @@ export class DetailTicketManagementPage implements OnInit {
     approvalInfo: TicketApprovalInfo,
   ): void {
     this.approvalLevels = [];
-    const status = detail.status;
 
     const level1Status = approvalInfo.statusLevel1;
     const level2Status = approvalInfo.statusLevel2;
 
     const getStatusType = (
-      level: 1 | 2,
       lvStatus: string,
     ): 'done' | 'pending' | 'rejected' => {
       if (lvStatus === 'SUCCESS') return 'done';
@@ -228,7 +256,7 @@ export class DetailTicketManagementPage implements OnInit {
       approverName: approvalInfo.approverIdLevel1
         ? `User ${approvalInfo.approverIdLevel1}`
         : 'Người duyệt cấp 1',
-      statusType: getStatusType(1, level1Status),
+      statusType: getStatusType(level1Status),
       statusLabel: getStatusLabel(level1Status),
       date: this.formatDate(approvalInfo.approvedAt),
       description: level1Status === 'SUCCESS'
@@ -244,7 +272,7 @@ export class DetailTicketManagementPage implements OnInit {
       approverName: approvalInfo.approverIdLevel2
         ? `User ${approvalInfo.approverIdLevel2}`
         : 'Người duyệt cấp 2',
-      statusType: getStatusType(2, level2Status),
+      statusType: getStatusType(level2Status),
       statusLabel: getStatusLabel(level2Status),
       date: this.formatDate(approvalInfo.approvedAtLevel2),
       description: level2Status === 'SUCCESS'
