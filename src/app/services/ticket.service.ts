@@ -257,11 +257,11 @@ export class TicketService {
 
   /**
    * List evidences for a ticket
-   * GET /ticket/{ticketId}/evidences
+   * GET /ticket/evidences/{ticketId}
    * @param ticketId - The ticket ID (Long in backend)
    */
   getEvidences(ticketId: string): Observable<ResponseApi<EvidenceDto[]>> {
-    return this.http.get<ResponseApi<EvidenceDto[]>>(`${this.baseUrl}/${ticketId}/evidences`);
+    return this.http.get<ResponseApi<EvidenceDto[]>>(`${this.baseUrl}/evidences/${ticketId}`);
   }
 
   /**
