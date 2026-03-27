@@ -216,8 +216,7 @@ export interface UploadEvidenceRequest {
 export interface EvidenceDto {
   id: string;
   ticketId: string;
-  evidenceFolder: string;
-  evidenceUrl: string;
+  evidenceKey: string;
   fileType: string;
   fileSize: number;
   status: EvidenceStatus;

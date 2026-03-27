@@ -20,6 +20,8 @@ import {
   EvidenceDto,
   TicketTypeDto,
 } from '../../../models/ticket.model';
+import { forkJoin, EMPTY } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 type TicketType = TicketTypeCode;
 
@@ -75,6 +77,8 @@ export class DetailTicketManagementPage implements OnInit {
 
   approvalLevels: ApprovalLevel[] = [];
 
+  readonly imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp'];
+
   constructor(
     private readonly router: Router,
     private readonly route: ActivatedRoute,
@@ -103,61 +107,56 @@ export class DetailTicketManagementPage implements OnInit {
   loadTicketDetail(): void {
     this.isLoading = true;
 
-    // Load ticket types first, then detail and evidences in parallel
-    this.ticketService.getTicketTypes().subscribe({
-      next: (typesRes) => {
-        this.ticketTypes = typesRes.data || [];
-        registerTicketTypeIds(this.ticketTypes);
+    // Use forkJoin with catchError per stream so one failure doesn't cancel others
+    forkJoin({
+      detail: this.ticketService.getTicketDetail(this.ticketId).pipe(
+        catchError(() => EMPTY),
+      ),
+      types: this.ticketService.getTicketTypes().pipe(
+        catchError(() => EMPTY),
+      ),
+      evidences: this.ticketService.getEvidences(this.ticketId).pipe(
+        catchError(() => EMPTY),
+      ),
+    }).subscribe({
+      next: ({ detail: detailRes, types: typesRes, evidences: evRes }) => {
+        // Handle types (may be empty if errored)
+        if (typesRes) {
+          this.ticketTypes = typesRes.data || [];
+          registerTicketTypeIds(this.ticketTypes);
+        }
 
-        // Load detail and evidences in parallel
-        this.loadDetailAndEvidences();
-      },
-      error: (err) => {
-        console.error('Error loading ticket types:', err);
+        // Handle detail (may be empty if errored)
+        if (detailRes) {
+          try {
+            const data: TicketDetailResponse = detailRes.data;
+            this.ticketDetail = data.ticketDetail;
+            this.approvalInfo = data.ticketApprovalInfo;
+
+            const matchedType = this.ticketTypes.find(
+              (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
+            );
+            if (matchedType) {
+              this.ticketTitle = matchedType.typeName;
+              const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
+              this.ticketType = code ?? TicketTypeCode.LEAVE_REQUEST;
+            }
+
+            this.mapDetailToComponents(data.ticketDetail);
+            this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
+          } catch (e) {
+            console.error('Error parsing ticket detail:', e);
+          }
+        }
+
+        // Handle evidences (may be empty if errored)
+        if (evRes) {
+          this.evidences = evRes.data || [];
+        }
+
         this.isLoading = false;
       },
-    });
-  }
-
-  private loadDetailAndEvidences(): void {
-    // Load ticket detail
-    this.ticketService.getTicketDetail(this.ticketId).subscribe({
-      next: (res) => {
-        try {
-          const data: TicketDetailResponse = res.data;
-          this.ticketDetail = data.ticketDetail;
-          this.approvalInfo = data.ticketApprovalInfo;
-
-          const matchedType = this.ticketTypes.find(
-            (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
-          );
-          if (matchedType) {
-            this.ticketTitle = matchedType.typeName;
-            const code = TICKET_TYPE_ID_TO_CODE[matchedType.ticketTypeId];
-            this.ticketType = code ?? TicketTypeCode.LEAVE_REQUEST;
-          }
-
-          this.mapDetailToComponents(data.ticketDetail);
-          this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
-        } catch (e) {
-          console.error('Error parsing ticket detail:', e);
-        }
-      },
-      error: (err) => {
-        console.error('Error loading ticket detail:', err);
-      },
-    });
-
-    // Load evidences (separate request, won't affect detail loading)
-    this.ticketService.getEvidences(this.ticketId).subscribe({
-      next: (evRes) => {
-        this.evidences = evRes.data || [];
-      },
-      error: (err) => {
-        console.error('Error loading evidences:', err);
-        this.evidences = [];
-      },
-      complete: () => {
+      error: () => {
         this.isLoading = false;
       },
     });
@@ -179,7 +178,7 @@ export class DetailTicketManagementPage implements OnInit {
 
   private mapDetailToComponents(detail: TicketDetailDto): void {
     const payload = detail.payload || {};
-    const createdAtVal = detail.createdAt || detail['createdAt'] || '';
+    const createdAtVal = detail.createdAt || (detail as any)['createdAt'] || '';
     const createdDate = this.formatDateTime(createdAtVal);
     const fullName = `User ${detail.userId}`;
 
@@ -283,6 +282,41 @@ export class DetailTicketManagementPage implements OnInit {
     });
   }
 
+  // ==============================================
+  // Evidence helpers
+  // ==============================================
+  isImageEvidence(evidence: EvidenceDto): boolean {
+    const ext = this.getFileExtension(evidence.evidenceKey);
+    return this.imageExtensions.includes(ext.toLowerCase());
+  }
+
+  getFileExtension(key: string): string {
+    if (!key) return '';
+    const parts = key.split('.');
+    return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  }
+
+  getEvidenceUrl(evidence: EvidenceDto): string {
+    if (!evidence.evidenceKey) return '';
+    // Construct download URL from evidenceKey
+    return `https://internhub-v2.bbtech.io.vn/api/ticket/evidences/download/${evidence.evidenceKey}`;
+  }
+
+  getFileName(key: string): string {
+    if (!key) return '';
+    const parts = key.split('/');
+    return parts[parts.length - 1];
+  }
+
+  formatFileSize(bytes: number): string {
+    if (!bytes || bytes < 1024) return bytes ? bytes + ' B' : '';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  // ==============================================
+  // Navigation
+  // ==============================================
   goToHome(): void {
     this.router.navigate(['/homePage']);
   }
@@ -293,6 +327,9 @@ export class DetailTicketManagementPage implements OnInit {
     });
   }
 
+  // ==============================================
+  // Reject flow
+  // ==============================================
   openRejectPopup(): void {
     this.rejectReason = '';
     this.showRejectPopup = true;
@@ -327,6 +364,9 @@ export class DetailTicketManagementPage implements OnInit {
       });
   }
 
+  // ==============================================
+  // Approve flow
+  // ==============================================
   onApprove(): void {
     if (!this.ticketId || !this.ticketDetail) return;
 
@@ -378,15 +418,5 @@ export class DetailTicketManagementPage implements OnInit {
     if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
     if (this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
     return (done / 2) * 100;
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
-
-  getFileName(url: string): string {
-    return url.substring(url.lastIndexOf('/') + 1);
   }
 }
