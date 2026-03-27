@@ -49,6 +49,52 @@
             }
           }
         </div>
+
+        <!-- Evidence Section -->
+        <div class="evidence-card">
+          <div class="card-header">
+            <span class="card-title">Minh chứng</span>
+            <span class="evidence-count">{{ evidences.length }} tệp</span>
+          </div>
+          @if (evidences.length > 0) {
+            <div class="evidence-list">
+              @for (evidence of evidences; track evidence.id) {
+                <a class="evidence-item" [href]="evidence.evidenceUrl" target="_blank" rel="noopener">
+                  <div class="evidence-icon">
+                    <app-icon
+                      icon="dsi-file-01"
+                      colorIcon="var(--brand-500)"
+                      width="20px"
+                      height="20px"
+                    ></app-icon>
+                  </div>
+                  <div class="evidence-info">
+                    <span class="evidence-name">{{ getFileName(evidence.evidenceUrl) }}</span>
+                    <span class="evidence-size">{{ formatFileSize(evidence.fileSize) }}</span>
+                  </div>
+                  <div class="evidence-download">
+                    <app-icon
+                      icon="dsi-download-01"
+                      colorIcon="var(--neutral-color-500)"
+                      width="16px"
+                      height="16px"
+                    ></app-icon>
+                  </div>
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="evidence-empty">
+              <app-icon
+                icon="dsi-file-01"
+                colorIcon="var(--neutral-color-300)"
+                width="32px"
+                height="32px"
+              ></app-icon>
+              <span>No data</span>
+            </div>
+          }
+        </div>
       </div>
 
       <!-- Right Column: Approval Timeline -->

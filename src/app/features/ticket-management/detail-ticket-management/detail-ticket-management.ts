@@ -17,6 +17,7 @@ import {
   TICKET_TYPE_ID_TO_CODE,
   TICKET_TYPE_CODE_TO_NAME,
   registerTicketTypeIds,
+  EvidenceDto,
 } from '../../../models/ticket.model';
 import { forkJoin } from 'rxjs';
 
@@ -52,6 +53,7 @@ export class DetailTicketManagementPage implements OnInit {
   ticketTitle = 'Phiếu nghỉ phép';
   ticketDetail: TicketDetailDto | null = null;
   approvalInfo: TicketApprovalInfo | null = null;
+  evidences: EvidenceDto[] = [];
   isLoading = false;
 
   showRejectPopup = false;
@@ -102,13 +104,15 @@ export class DetailTicketManagementPage implements OnInit {
     forkJoin({
       detail: this.ticketService.getTicketDetail(this.ticketId),
       types: this.ticketService.getTicketTypes(),
+      evidences: this.ticketService.getEvidences(this.ticketId),
     }).subscribe({
-      next: ({ detail: res, types: typesRes }) => {
+      next: ({ detail: res, types: typesRes, evidences: evRes }) => {
         registerTicketTypeIds(typesRes.data);
 
         const data: TicketDetailResponse = res.data;
         this.ticketDetail = data.ticketDetail;
         this.approvalInfo = data.ticketApprovalInfo;
+        this.evidences = evRes.data || [];
 
         const matchedType = typesRes.data.find(
           (t) => t.ticketTypeId === data.ticketDetail.ticketTypeId,
@@ -346,5 +350,15 @@ export class DetailTicketManagementPage implements OnInit {
     if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
     if (this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
     return (done / 2) * 100;
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+
+  getFileName(url: string): string {
+    return url.substring(url.lastIndexOf('/') + 1);
   }
 }
