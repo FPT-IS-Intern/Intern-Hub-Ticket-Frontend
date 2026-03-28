@@ -78,13 +78,15 @@ export interface TicketTypeResponse {
 
 export interface TicketDto {
   ticketId: string;
-  userId: string;
+  fullName: string;
+  email: string;
   ticketTypeId: string;
   status: TicketStatus;
   createdAt: number;
   updatedAt: number;
   createdBy: string;
   updatedBy: string;
+  approverFullName: string | null;
 }
 
 export interface TicketDetailDto extends TicketDto {
@@ -118,17 +120,15 @@ export interface TicketDetailResponse {
  */
 export interface TicketManagementDto {
   ticketId: string;
-  userId: string;
   fullName: string;
   email: string;
   ticketTypeId: string;
-  typeName: string;
   status: TicketStatus;
   createdAt: number;
   updatedAt: number;
   createdBy: string;
   updatedBy: string;
-  version: number;
+  approverFullName: string | null;
 }
 
 export interface PaginatedData<T> {

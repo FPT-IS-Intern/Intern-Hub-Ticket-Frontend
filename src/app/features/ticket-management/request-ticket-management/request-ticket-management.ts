@@ -31,7 +31,6 @@ import { forkJoin } from 'rxjs';
 
 interface RequestTicketTableRow {
   ticketId: string;
-  userId: string;
   fullName: string;
   email: string;
   department: string;
@@ -44,6 +43,7 @@ interface RequestTicketTableRow {
   selected: boolean;
   createdBy: string;
   updatedBy: string;
+  approverFullName: string | null;
 }
 
 @Component({
@@ -199,22 +199,29 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.totalPagesCount = data.totalPages || 0;
     const items: TicketManagementDto[] = data.items || [];
 
-    this.tableRows = items.map((ticket, index) => ({
-      ticketId: String(ticket.ticketId),
-      userId: String(ticket.userId),
-      fullName: ticket.fullName || `User ${ticket.userId}`,
-      email: ticket.email || '-',
-      department: '—',
-      typeName: ticket.typeName || '—',
-      ticketTypeId: ticket.ticketTypeId || '',
-      status: ticket.status,
-      createdAt: ticket.createdAt,
-      updatedAt: ticket.updatedAt,
-      stt: this.currentPage * this.pageSize + index + 1,
-      selected: false,
-      createdBy: String(ticket.createdBy),
-      updatedBy: String(ticket.updatedBy),
-    }));
+    this.tableRows = items.map((ticket, index) => {
+      // Resolve typeName from ticketTypes list using ticketTypeId
+      const matchedType = this.ticketTypes.find(
+        (t) => String(t.ticketTypeId) === String(ticket.ticketTypeId)
+      );
+
+      return {
+        ticketId: String(ticket.ticketId),
+        fullName: ticket.fullName || '—',
+        email: ticket.email || '-',
+        department: '—',
+        typeName: matchedType?.typeName || '—',
+        ticketTypeId: ticket.ticketTypeId || '',
+        status: ticket.status,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+        stt: this.currentPage * this.pageSize + index + 1,
+        selected: false,
+        createdBy: String(ticket.createdBy),
+        updatedBy: String(ticket.updatedBy),
+        approverFullName: ticket.approverFullName || null,
+      };
+    });
   }
 
   ngAfterViewInit(): void {

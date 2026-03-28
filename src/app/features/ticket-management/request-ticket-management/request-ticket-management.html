@@ -283,8 +283,8 @@
     </div>
   </ng-template>
 
-  <ng-template #approverTemplate let-value>
-    {{ value || '-' }}
+  <ng-template #approverTemplate let-row="row">
+    {{ row.approverFullName || '-' }}
   </ng-template>
 
   @if (showBulkConfirm) {
