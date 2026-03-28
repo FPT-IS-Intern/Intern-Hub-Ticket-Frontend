@@ -90,6 +90,7 @@ export interface TicketDto {
 }
 
 export interface TicketDetailDto extends TicketDto {
+  senderFullName: string;
   payload: Record<string, any>;
   requiredApprovals: number;
   currentApprovalLevel: number;
@@ -100,8 +101,11 @@ export interface TicketDetailDto extends TicketDto {
 export interface TicketApprovalInfo {
   ticketId: string;
   userId: string;
+  senderFullName: string;
   approverIdLevel1: string;
   approverIdLevel2: string;
+  approverFullNameLevel1: string;
+  approverFullNameLevel2: string;
   statusLevel1: 'SUCCESS' | 'PENDING' | 'REJECTED';
   statusLevel2: 'SUCCESS' | 'PENDING' | 'REJECTED';
   approvedAt: string;

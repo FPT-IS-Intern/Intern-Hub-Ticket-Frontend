@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 export interface LeaveRequestDetail {
-  fullName: string;
+  senderFullName: string;
   createdDate: string;
   startDate: string;
   endDate: string;
@@ -19,7 +19,7 @@ export interface LeaveRequestDetail {
       <div class="detail-row">
         <div class="detail-field">
           <span class="field-label">Họ & Tên</span>
-          <span class="field-value bold">{{ data.fullName }}</span>
+          <span class="field-value bold">{{ data.senderFullName }}</span>
         </div>
         <div class="detail-field">
           <span class="field-label">Ngày tạo phiếu</span>
@@ -87,7 +87,7 @@ export interface LeaveRequestDetail {
 })
 export class DetailLeaveRequestComponent {
   @Input() data: LeaveRequestDetail = {
-    fullName: '',
+    senderFullName: '',
     createdDate: '',
     startDate: '',
     endDate: '',

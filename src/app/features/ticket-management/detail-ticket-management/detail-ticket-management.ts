@@ -67,7 +67,7 @@ export class DetailTicketManagementPage implements OnInit {
   failMessage = '';
 
   leaveRequestData: LeaveRequestDetail = {
-    fullName: '',
+    senderFullName: '',
     createdDate: '',
     startDate: '',
     endDate: '',
@@ -180,12 +180,12 @@ export class DetailTicketManagementPage implements OnInit {
     const payload = detail.payload || {};
     const createdAtVal = detail.createdAt || (detail as any)['createdAt'] || '';
     const createdDate = this.formatDateTime(createdAtVal);
-    const fullName = detail.fullName || '—';
+    const fullName = detail.senderFullName || '—';
 
     switch (this.ticketType) {
       case TicketTypeCode.LEAVE_REQUEST:
         this.leaveRequestData = {
-          fullName,
+          senderFullName: fullName,
           createdDate,
           startDate: payload['start_date'] || payload['startDate'] || '',
           endDate: payload['end_date'] || payload['endDate'] || '',
@@ -195,7 +195,7 @@ export class DetailTicketManagementPage implements OnInit {
         break;
       case TicketTypeCode.REMOTE_ONSITE:
         this.leaveRequestData = {
-          fullName,
+          senderFullName: fullName,
           createdDate,
           startDate: payload['work_date'] || payload['workDate'] || '',
           endDate: payload['start_time'] || payload['startTime'] || '',
@@ -205,7 +205,7 @@ export class DetailTicketManagementPage implements OnInit {
         break;
       case TicketTypeCode.REMOTE_WFH:
         this.leaveRequestData = {
-          fullName,
+          senderFullName: fullName,
           createdDate,
           startDate: payload['work_date'] || payload['workDate'] || '',
           endDate: payload['start_time'] || payload['startTime'] || '',
@@ -215,7 +215,7 @@ export class DetailTicketManagementPage implements OnInit {
         break;
       case TicketTypeCode.EXPLANATION:
         this.leaveRequestData = {
-          fullName,
+          senderFullName: fullName,
           createdDate,
           startDate: payload['date'] || '',
           endDate: '',
@@ -252,9 +252,7 @@ export class DetailTicketManagementPage implements OnInit {
     this.approvalLevels.push({
       level: 1,
       label: 'Cấp 1',
-      approverName: approvalInfo.approverIdLevel1
-        ? `User ${approvalInfo.approverIdLevel1}`
-        : 'Người duyệt cấp 1',
+      approverName: approvalInfo.approverFullNameLevel1 || 'Người duyệt cấp 1',
       statusType: getStatusType(level1Status),
       statusLabel: getStatusLabel(level1Status),
       date: this.formatDate(approvalInfo.approvedAt),
@@ -268,9 +266,7 @@ export class DetailTicketManagementPage implements OnInit {
     this.approvalLevels.push({
       level: 2,
       label: 'Cấp 2',
-      approverName: approvalInfo.approverIdLevel2
-        ? `User ${approvalInfo.approverIdLevel2}`
-        : 'Người duyệt cấp 2',
+      approverName: approvalInfo.approverFullNameLevel2 || 'Người duyệt cấp 2',
       statusType: getStatusType(level2Status),
       statusLabel: getStatusLabel(level2Status),
       date: this.formatDate(approvalInfo.approvedAtLevel2),
