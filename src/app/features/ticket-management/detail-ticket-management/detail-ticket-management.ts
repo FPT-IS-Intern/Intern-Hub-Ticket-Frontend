@@ -180,7 +180,7 @@ export class DetailTicketManagementPage implements OnInit {
     const payload = detail.payload || {};
     const createdAtVal = detail.createdAt || (detail as any)['createdAt'] || '';
     const createdDate = this.formatDateTime(createdAtVal);
-    const fullName = `User ${detail.userId}`;
+    const fullName = detail.fullName || '—';
 
     switch (this.ticketType) {
       case TicketTypeCode.LEAVE_REQUEST:
