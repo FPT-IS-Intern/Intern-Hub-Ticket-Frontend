@@ -376,6 +376,7 @@ export class DetailTicketManagementPage implements OnInit {
         next: () => {
           this.successMessage = 'Từ chối phiếu thành công!';
           this.showSuccessPopup = true;
+          this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error rejecting ticket:', err);
@@ -400,6 +401,7 @@ export class DetailTicketManagementPage implements OnInit {
         next: () => {
           this.successMessage = 'Duyệt phiếu thành công!';
           this.showSuccessPopup = true;
+          this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error approving ticket:', err);
