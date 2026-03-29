@@ -7,6 +7,10 @@ import {
   DetailLeaveRequestComponent,
   LeaveRequestDetail,
 } from './components/detail-leave-request.component';
+import {
+  DetailUpdateProfileComponent,
+  UpdateProfileDetail,
+} from './components/detail-update-profile.component';
 import { TicketService } from '../../../services/ticket.service';
 import {
   TicketDetailDto,
@@ -44,6 +48,7 @@ interface ApprovalLevel {
     IconComponent,
     ButtonContainerComponent,
     DetailLeaveRequestComponent,
+    DetailUpdateProfileComponent,
   ],
   providers: [DatePipe],
   templateUrl: './detail-ticket-management.html',
@@ -73,6 +78,13 @@ export class DetailTicketManagementPage implements OnInit {
     endDate: '',
     reason: '',
     totalDays: 0,
+  };
+
+  updateProfileData: UpdateProfileDetail = {
+    senderFullName: '',
+    createdDate: '',
+    oldProfile: {} as any,
+    newProfile: {} as any,
   };
 
   approvalLevels: ApprovalLevel[] = [];
@@ -223,6 +235,14 @@ export class DetailTicketManagementPage implements OnInit {
           totalDays: 0,
         };
         break;
+      case TicketTypeCode.UPDATE_PROFILE:
+        this.updateProfileData = {
+          senderFullName: fullName,
+          createdDate,
+          oldProfile: payload['oldProfile'] || {},
+          newProfile: payload['newProfile'] || {},
+        };
+        break;
     }
   }
 
@@ -232,6 +252,7 @@ export class DetailTicketManagementPage implements OnInit {
   ): void {
     this.approvalLevels = [];
 
+    const requiredApprovals = detail.requiredApprovals || 2;
     const level1Status = approvalInfo.statusLevel1;
     const level2Status = approvalInfo.statusLevel2;
 
@@ -249,6 +270,7 @@ export class DetailTicketManagementPage implements OnInit {
       return 'Chờ duyệt';
     };
 
+    // Always show level 1
     this.approvalLevels.push({
       level: 1,
       label: 'Cấp 1',
@@ -263,19 +285,22 @@ export class DetailTicketManagementPage implements OnInit {
           : 'Chờ phê duyệt cấp 1',
     });
 
-    this.approvalLevels.push({
-      level: 2,
-      label: 'Cấp 2',
-      approverName: approvalInfo.approverFullNameLevel2 || 'Người duyệt cấp 2',
-      statusType: getStatusType(level2Status),
-      statusLabel: getStatusLabel(level2Status),
-      date: this.formatDate(approvalInfo.approvedAtLevel2),
-      description: level2Status === 'SUCCESS'
-        ? 'Phê duyệt cấp 2'
-        : level2Status === 'REJECTED'
-          ? 'Từ chối cấp 2'
-          : 'Chờ phê duyệt cấp 2',
-    });
+    // Only show level 2 if requiredApprovals >= 2
+    if (requiredApprovals >= 2) {
+      this.approvalLevels.push({
+        level: 2,
+        label: 'Cấp 2',
+        approverName: approvalInfo.approverFullNameLevel2 || 'Người duyệt cấp 2',
+        statusType: getStatusType(level2Status),
+        statusLabel: getStatusLabel(level2Status),
+        date: this.formatDate(approvalInfo.approvedAtLevel2),
+        description: level2Status === 'SUCCESS'
+          ? 'Phê duyệt cấp 2'
+          : level2Status === 'REJECTED'
+            ? 'Từ chối cấp 2'
+            : 'Chờ phê duyệt cấp 2',
+      });
+    }
   }
 
   // ==============================================
@@ -409,10 +434,11 @@ export class DetailTicketManagementPage implements OnInit {
   }
 
   getApprovalProgress(): number {
-    if (!this.approvalInfo) return 0;
+    if (!this.approvalInfo || !this.ticketDetail) return 0;
+    const total = this.ticketDetail.requiredApprovals || 2;
     let done = 0;
     if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
-    if (this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
-    return (done / 2) * 100;
+    if (total >= 2 && this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
+    return (done / total) * 100;
   }
 }

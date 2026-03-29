@@ -44,6 +44,9 @@
             @case ('LEAVE_REQUEST') {
               <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
             }
+            @case ('UPDATE_PROFILE') {
+              <app-detail-update-profile [data]="updateProfileData"></app-detail-update-profile>
+            }
             @default {
               <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
             }

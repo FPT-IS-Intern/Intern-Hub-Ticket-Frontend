@@ -26,6 +26,7 @@ export const routes: Routes = [
         (m) => m.DetailTicketManagementPage
       ),
   },
+
   
   {
     path: 'forbidden',

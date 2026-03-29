@@ -15,6 +15,7 @@ export enum TicketTypeCode {
   REMOTE_WFH = 'REMOTE_WFH',
   LEAVE_REQUEST = 'LEAVE_REQUEST',
   EXPLANATION = 'EXPLANATION',
+  UPDATE_PROFILE = 'UPDATE_PROFILE',
 }
 
 export const TICKET_TYPE_ID_TO_CODE: Record<string, TicketTypeCode> = {};
@@ -38,6 +39,7 @@ export const TICKET_TYPE_NAME_MAP: Record<string, TicketTypeCode> = {
   'Phiếu nghỉ phép': TicketTypeCode.LEAVE_REQUEST,
   'Phiếu giải trình': TicketTypeCode.EXPLANATION,
   'Phiếu đăng tin tức': TicketTypeCode.EXPLANATION,
+  'Phiếu Update Profile': TicketTypeCode.UPDATE_PROFILE,
 };
 
 export const TICKET_TYPE_CODE_TO_NAME: Record<TicketTypeCode, string> = {
@@ -45,6 +47,7 @@ export const TICKET_TYPE_CODE_TO_NAME: Record<TicketTypeCode, string> = {
   [TicketTypeCode.REMOTE_WFH]: 'Phiếu Remote - WFH',
   [TicketTypeCode.LEAVE_REQUEST]: 'Phiếu nghỉ phép',
   [TicketTypeCode.EXPLANATION]: 'Phiếu giải trình',
+  [TicketTypeCode.UPDATE_PROFILE]: 'Phiếu Update Profile',
 };
 
 export enum EvidenceStatus {

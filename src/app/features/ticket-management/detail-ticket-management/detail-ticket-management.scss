@@ -131,6 +131,9 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  position: sticky;
+  top: 16px;
+  align-self: start;
 }
 
 // ==============================================
