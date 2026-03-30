@@ -140,13 +140,22 @@ export class CreateTicketPage implements OnInit {
       const startDate = rawValue.dateRange[0];
       const endDate = rawValue.dateRange[1];
 
-      if (componentKey === 'LEAVE') {
+      if (componentKey === 'LEAVE' || componentKey === 'REMOTE_WFH' || componentKey === 'REMOTE_ONSITE') {
         payload['start_date'] = this.formatDate(startDate);
         payload['end_date'] = this.formatDate(endDate);
-      } else if (componentKey === 'REMOTE_WFH' || componentKey === 'REMOTE_ONSITE') {
-        payload['workDate'] = this.formatDate(startDate);
       }
       delete payload['dateRange'];
+    }
+
+    if (componentKey === 'REMOTE_ONSITE') {
+      if (payload['startTime'] !== undefined) {
+        payload['start_time'] = payload['startTime'];
+        delete payload['startTime'];
+      }
+      if (payload['endTime'] !== undefined) {
+        payload['end_time'] = payload['endTime'];
+        delete payload['endTime'];
+      }
     }
 
     if (componentKey === 'LEAVE' && payload['totalDays'] !== undefined) {
