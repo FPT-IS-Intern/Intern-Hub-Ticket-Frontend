@@ -248,14 +248,14 @@
   </ng-template>
 
   <ng-template #nameTemplate let-row="row">
-    <div class="name-email">
+    <div class="name-email" (click)="onViewDetail(row, $event)">
       <div class="name-value">{{ row.fullName }}</div>
       <div class="email-value">{{ row.email }}</div>
     </div>
   </ng-template>
 
   <ng-template #ticketTypeTemplate let-row="row">
-    <div class="ticket-type-cell">{{ row.typeName }}</div>
+    <div class="ticket-type-cell" (click)="onViewDetail(row, $event)">{{ row.typeName }}</div>
   </ng-template>
 
 

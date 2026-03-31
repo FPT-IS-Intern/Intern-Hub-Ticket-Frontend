@@ -368,8 +368,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   onViewDetail(row: RequestTicketTableRow, event?: Event): void {
-    event?.preventDefault();
-    event?.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
     const ticketId = row.ticketId != null && row.ticketId !== '' ? String(row.ticketId) : '';
     const ticketTypeId = row.ticketTypeId || '';
     if (!ticketId) {
@@ -391,7 +393,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     // Don't navigate if clicking on a checkbox or inside an input
     if (
       target.tagName === 'INPUT' ||
-      target.closest('input')
+      target.closest('input') ||
+      target.closest('button') ||
+      target.classList.contains('approve-all-btn')
     ) {
       return;
     }
