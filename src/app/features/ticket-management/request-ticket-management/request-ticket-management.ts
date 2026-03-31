@@ -22,6 +22,8 @@ import {
 } from '@goat-bravos/intern-hub-layout';
 import { TicketService } from '../../../services/ticket.service';
 import {
+  BulkApproveTicketRequest,
+  BulkApproveResponse,
   FilterTicketRequest,
   TicketManagementDto,
   TicketStatus,
@@ -44,6 +46,7 @@ interface RequestTicketTableRow {
   createdBy: string;
   updatedBy: string;
   approverFullName: string | null;
+  version: number;
 }
 
 @Component({
@@ -107,6 +110,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   tableRows: RequestTicketTableRow[] = [];
   ticketTypes: TicketTypeDto[] = [];
   isLoading = false;
+  isBulkApproving = false;
   showBulkConfirm = false;
   bulkAction: 'approve' | 'reject' = 'approve';
   isHeaderChecked = false;
@@ -218,6 +222,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
         createdBy: String(ticket.createdBy),
         updatedBy: String(ticket.updatedBy),
         approverFullName: ticket.approverFullName || null,
+        version: ticket.version ?? 0,
       };
     });
   }
@@ -347,24 +352,56 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   confirmBulkAction(): void {
-    // API doesn't have bulk approve, would need to call individually or wait for new API
-    // For now we just mock success for the UI
-    const targetStatus =
-      this.bulkAction === 'approve' ? TicketStatus.APPROVED : TicketStatus.REJECTED;
+    const selectedRows = this.tableRows.filter((row) => row.selected);
+    if (selectedRows.length === 0 || this.isBulkApproving) return;
 
-    // In real app:
-    // const selectedTickets = this.tableRows.filter(r => r.selected);
-    // const calls = selectedTickets.map(t => this.ticketService.approveTicket(t.ticketId, { idempotencyKey: uuid(), version: t.version }));
-    // forkJoin(calls).subscribe(...)
+    this.isBulkApproving = true;
+    const request: BulkApproveTicketRequest = {
+      idempotencyKey: this.generateIdempotencyKey(),
+      tickets: selectedRows.map((row) => ({
+        ticketId: row.ticketId,
+        version: row.version,
+      })),
+    };
 
-    this.tableRows.forEach((row) => {
-      if (row.selected) {
-        row.status = targetStatus;
-      }
+    this.ticketService.bulkApprove(request).subscribe({
+      next: (res) => {
+        const response: BulkApproveResponse = res.data;
+        this.isBulkApproving = false;
+        this.showBulkConfirm = false;
+        if (response.failedTickets.length === 0) {
+          this.clearSelectionAndReload();
+        } else {
+          const failedIds = new Set(response.failedTickets.map((f) => f.ticketId));
+          this.tableRows = this.tableRows.map((row) =>
+            failedIds.has(row.ticketId) ? row : { ...row, status: TicketStatus.APPROVED, selected: false },
+          );
+          this.isHeaderChecked = false;
+          const successCount = response.successCount;
+          const failCount = response.failedTickets.length;
+          alert(`Duyệt thành công ${successCount} phiếu.\n${failCount} phiếu thất bại:\n${response.failedTickets.map((f) => `#${f.ticketId}: ${f.errorMessage}`).join('\n')}`);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Bulk approve error:', err);
+        this.isBulkApproving = false;
+        this.showBulkConfirm = false;
+        alert('Đã xảy ra lỗi khi duyệt phiếu. Vui lòng thử lại.');
+        this.cdr.detectChanges();
+      },
     });
+  }
 
+  private clearSelectionAndReload(): void {
+    this.tableRows = this.tableRows.map((row) => ({ ...row, selected: false }));
+    this.isHeaderChecked = false;
     this.showBulkConfirm = false;
-    this.cdr.detectChanges();
+    this.loadTickets();
+  }
+
+  private generateIdempotencyKey(): string {
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   onViewDetail(row: RequestTicketTableRow, event?: Event): void {

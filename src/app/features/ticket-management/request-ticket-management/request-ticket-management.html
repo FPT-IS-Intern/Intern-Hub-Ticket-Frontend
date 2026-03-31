@@ -184,7 +184,7 @@
         <div class="pagination-nav">
           <button
             class="approve-all-btn"
-            [disabled]="selectedCount === 0"
+            [disabled]="selectedCount === 0 || isBulkApproving"
             (click)="openBulkConfirm('approve')"
           >
             Duyệt tất cả

@@ -63,6 +63,8 @@ export class DetailTicketManagementPage implements OnInit {
   evidences: EvidenceDto[] = [];
   ticketTypes: TicketTypeDto[] = [];
   isLoading = false;
+  isApproving = false;
+  isRejecting = false;
 
   showRejectPopup = false;
   rejectReason = '';
@@ -361,24 +363,28 @@ export class DetailTicketManagementPage implements OnInit {
   }
 
   confirmReject(): void {
-    if (this.rejectReason.trim().length === 0 || !this.ticketId || !this.ticketDetail) return;
+    if (this.rejectReason.trim().length === 0 || !this.ticketId || !this.ticketDetail || this.isRejecting) return;
 
+    this.isRejecting = true;
     this.showRejectPopup = false;
+    const idempotencyKey = `${this.ticketId}-${Date.now()}-${this.generateRandomSuffix()}`;
 
     this.ticketService
       .rejectTicket(this.ticketId, {
         comment: this.rejectReason.trim(),
-        idempotencyKey: Math.random().toString(36).substring(7),
+        idempotencyKey,
         version: this.ticketDetail.version,
       })
       .subscribe({
         next: () => {
+          this.isRejecting = false;
           this.successMessage = 'Từ chối phiếu thành công!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error rejecting ticket:', err);
+          this.isRejecting = false;
           this.failMessage = 'Từ chối phiếu thất bại. Vui lòng thử lại.';
           this.showFailPopup = true;
         },
@@ -389,25 +395,34 @@ export class DetailTicketManagementPage implements OnInit {
   // Approve flow
   // ==============================================
   onApprove(): void {
-    if (!this.ticketId || !this.ticketDetail) return;
+    if (!this.ticketId || !this.ticketDetail || this.isApproving) return;
+
+    this.isApproving = true;
+    const idempotencyKey = `${this.ticketId}-${Date.now()}-${this.generateRandomSuffix()}`;
 
     this.ticketService
       .approveTicket(this.ticketId, {
-        idempotencyKey: Math.random().toString(36).substring(7),
+        idempotencyKey,
         version: this.ticketDetail.version,
       })
       .subscribe({
         next: () => {
+          this.isApproving = false;
           this.successMessage = 'Duyệt phiếu thành công!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error approving ticket:', err);
+          this.isApproving = false;
           this.failMessage = 'Duyệt phiếu thất bại. Vui lòng thử lại.';
           this.showFailPopup = true;
         },
       });
+  }
+
+  private generateRandomSuffix(): string {
+    return Math.random().toString(36).substring(2, 11);
   }
 
   closeSuccessPopup(): void {

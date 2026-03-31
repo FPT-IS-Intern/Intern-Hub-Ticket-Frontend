@@ -136,6 +136,7 @@ export interface TicketManagementDto {
   createdBy: string;
   updatedBy: string;
   approverFullName: string | null;
+  version: number;
 }
 
 export interface PaginatedData<T> {
@@ -195,6 +196,23 @@ export interface ApproveTicketRequest {
   comment?: string;
   idempotencyKey: string;
   version: number;
+}
+
+export interface TicketApproveItem {
+  ticketId: string;
+  version: number;
+}
+
+export interface BulkApproveTicketRequest {
+  idempotencyKey: string;
+  tickets: TicketApproveItem[];
+  comment?: string;
+}
+
+export interface BulkApproveResponse {
+  totalProcessed: number;
+  successCount: number;
+  failedTickets: { ticketId: string; errorMessage: string }[];
 }
 
 export interface FilterTicketRequest {

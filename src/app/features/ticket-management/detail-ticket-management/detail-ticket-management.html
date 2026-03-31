@@ -137,12 +137,14 @@
         @if (ticketDetail && ticketDetail.status === 'PENDING') {
           <app-button-container
             class="btn-reject"
-            content="Từ chối"
+            [class.is-disabled]="isApproving || isRejecting"
+            [content]="isRejecting ? 'Đang xử lý...' : 'Từ chối'"
             (buttonClick)="openRejectPopup()"
           ></app-button-container>
           <app-button-container
             class="btn-approve"
-            content="Duyệt"
+            [class.is-disabled]="isApproving || isRejecting"
+            [content]="isApproving ? 'Đang duyệt...' : 'Duyệt'"
             (buttonClick)="onApprove()"
           ></app-button-container>
         }
@@ -167,9 +169,9 @@
         <button
           class="popup-btn btn-confirm-reject"
           (click)="confirmReject()"
-          [disabled]="rejectReason.trim().length === 0"
+          [disabled]="rejectReason.trim().length === 0 || isRejecting"
         >
-          Đồng ý
+          {{ isRejecting ? 'Đang xử lý...' : 'Đồng ý' }}
         </button>
       </div>
     </div>

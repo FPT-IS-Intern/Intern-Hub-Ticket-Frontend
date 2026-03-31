@@ -23,6 +23,8 @@ import {
   TicketManagementDto,
   StatCardData,
   UserTicketDto,
+  BulkApproveTicketRequest,
+  BulkApproveResponse,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -239,6 +241,15 @@ export class TicketService {
     request: ApproveTicketRequest,
   ): Observable<ResponseApi<void>> {
     return this.http.post<ResponseApi<void>>(`${this.baseUrl}/${ticketId}/reject`, request);
+  }
+
+  /**
+   * Bulk approve tickets
+   * POST /ticket/bulk-approve
+   * @param request - BulkApproveTicketRequest containing idempotencyKey, tickets list, and optional comment
+   */
+  bulkApprove(request: BulkApproveTicketRequest): Observable<ResponseApi<BulkApproveResponse>> {
+    return this.http.post<ResponseApi<BulkApproveResponse>>(`${this.baseUrl}/bulk-approve`, request);
   }
 
   /**
