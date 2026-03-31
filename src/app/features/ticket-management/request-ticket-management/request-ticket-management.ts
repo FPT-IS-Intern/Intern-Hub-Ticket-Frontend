@@ -67,7 +67,6 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   @ViewChild('selectTemplate') selectTemplate!: TemplateRef<any>;
   @ViewChild('sttTemplate') sttTemplate!: TemplateRef<any>;
   @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
-  @ViewChild('detailTemplate') detailTemplate!: TemplateRef<any>;
   @ViewChild('ticketTypeTemplate') ticketTypeTemplate!: TemplateRef<any>;
   @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
   @ViewChild('approverTemplate') approverTemplate!: TemplateRef<any>;
@@ -75,12 +74,11 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   readonly columns: ColumnConfig[] = [
     { header: '', key: 'select', width: '50px' },
     { header: 'STT', key: 'stt', width: '50px' },
-    { header: 'Họ và tên TTS', key: 'fullName', width: '200px' },
+    { header: 'Họ và tên TTS', key: 'fullName', width: '220px' },
     { header: 'Phòng ban', key: 'department', width: '150px' },
-    { header: 'Loại phiếu', key: 'ticketType', width: '220px' },
-    { header: 'Chi tiết', key: 'detail', width: '107' },
-    { header: 'Trạng thái', key: 'status', width: '107' },
-    { header: 'Người duyệt', key: 'approver', width: '205' },
+    { header: 'Loại phiếu', key: 'ticketType', width: '250px' },
+    { header: 'Trạng thái', key: 'status', width: '120' },
+    { header: 'Người duyệt', key: 'approver', width: '220' },
   ];
 
   columnTemplates: { [key: string]: TemplateRef<any> } = {};
@@ -230,7 +228,6 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       stt: this.sttTemplate,
       fullName: this.nameTemplate,
       ticketType: this.ticketTypeTemplate,
-      detail: this.detailTemplate,
       status: this.statusTemplate,
       approver: this.approverTemplate,
     };
@@ -382,6 +379,36 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       queryParams: { ticketId, ticketTypeId },
       relativeTo: this.route,
     });
+  }
+
+  /**
+   * Handle click on the tbody — use event delegation to find the clicked row index.
+   * Skips navigation if the click target is a checkbox or inside an input.
+   */
+  onTableBodyClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+
+    // Don't navigate if clicking on a checkbox or inside an input
+    if (
+      target.tagName === 'INPUT' ||
+      target.closest('input')
+    ) {
+      return;
+    }
+
+    // Walk up to find the <tr>
+    const tr = target.closest('tr');
+    if (!tr) return;
+
+    // Find the parent <tbody> and get the row index
+    const tbody = tr.closest('tbody');
+    if (!tbody) return;
+
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    const rowIndex = rows.indexOf(tr);
+    if (rowIndex < 0 || rowIndex >= this.tableRows.length) return;
+
+    this.onViewDetail(this.tableRows[rowIndex]);
   }
 
   getStatusLabel(status: TicketStatus): string {

@@ -1,28 +1,256 @@
+.user-ticket-page {
+  padding: 0 24px 24px;
+}
+
 .breadcrumb {
-    margin: 16px 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 14px;
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
 
-    .breadcrumb-home {
-        cursor: pointer;
-    }
+  .breadcrumb-home {
+    cursor: pointer;
+  }
 
-    .breadcrumb-separator {
-        color: var(--neutral-400);
-    }
+  .breadcrumb-separator {
+    color: var(--neutral-color-400);
+  }
 
-    .breadcrumb-current {
-        color: var(--brand-700);
-        font-weight: 500;
-    }
+  .breadcrumb-current {
+    color: var(--brand-700);
+    font-weight: 500;
+  }
 }
 
 .page-title {
-    font-weight: 500;
-    font-size: 24px;
-    line-height: 32px;
-    letter-spacing: -0.5px;
-    color: var(--branch-500);
+  color: var(--brand-700);
+  font-size: 24px;
+  letter-spacing: -0.5px;
+  line-height: 32px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+/* ── Filter bar ── */
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-box-wrapper {
+  width: 420px;
+  height: 36px;
+  border-radius: var(--sem-dimension-radius-component-lg, 12px);
+
+  ::ng-deep .app-input-text .input-form-field {
+    width: 420px;
+    height: 36px;
+  }
+}
+
+.filter-select-field {
+  position: relative;
+
+  select {
+    height: 36px;
+    border: 1px solid var(--neutral-color-300);
+    border-radius: 8px;
+    padding: 0 36px 0 12px;
+    font-size: 14px;
+    color: var(--neutral-color-700);
+    background-color: var(--neutral-color-10);
+    appearance: none;
+    outline: none;
+  }
+
+  .ticket-type-select {
+    width: 261px;
+  }
+
+  .select-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--neutral-color-500);
+    pointer-events: none;
+  }
+}
+
+/* ── Cards grid ── */
+.ticket-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* ── Loading ── */
+.loading-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 16px;
+  color: var(--neutral-color-500);
+  font-size: 14px;
+
+  .loading-icon {
+    font-size: 32px;
+    color: var(--brand-500);
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Empty state ── */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 16px;
+
+  .empty-text {
+    font-size: 14px;
+    color: var(--neutral-color-500);
+  }
+}
+
+/* ── Ticket card ── */
+.ticket-card {
+  border: 2px solid var(--brand-300);
+  border-radius: 12px;
+  background-color: var(--neutral-color-10);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-color-900) 8%, transparent);
+    transform: translateY(-2px);
+  }
+}
+
+/* Card header */
+.card-header {
+  padding: 12px 20px;
+  text-align: center;
+}
+
+.card-type-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--brand-500);
+}
+
+/* Card body */
+.card-body {
+  padding: 0 20px 16px;
+}
+
+.card-field {
+  margin-bottom: 4px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: var(--neutral-color-500);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.field-value {
+  display: block;
+  font-size: 14px;
+  color: var(--neutral-color-800);
+  line-height: 1.5;
+}
+
+.field-value-bold {
+  font-weight: 600;
+}
+
+/* Card footer — approval rows */
+.card-footer {
+  border-top: 1px solid var(--neutral-color-200);
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.approval-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.approval-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.approver-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--neutral-color-800);
+  flex: 1;
+}
+
+.approval-status {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.no-approver {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 0;
+}
+
+.no-approver-text {
+  font-size: 13px;
+  color: var(--neutral-color-400);
+  font-style: italic;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .ticket-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter {
+    flex-wrap: wrap;
+  }
+
+  .search-box-wrapper {
+    width: 100%;
+
+    ::ng-deep .app-input-text .input-form-field {
+      width: 100%;
+    }
+  }
+
+  .filter-select-field .ticket-type-select {
+    width: 100%;
+  }
 }

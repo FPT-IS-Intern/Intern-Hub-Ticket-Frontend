@@ -414,25 +414,13 @@
   padding: 0 var(--sem-dimension-padding-sm);
 }
 
-.detail-btn {
-  border: 1px solid var(--brand-200);
-  background: var(--brand-50);
-  border-radius: 6px;
-  padding: 4px 8px;
+// Clickable rows
+::ng-deep .request-table [app-table-body] tr {
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
+  transition: background-color 0.15s ease;
 
-  app-icon {
-    pointer-events: none;
-  }
-
-  .detail-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--brand-700);
+  &:hover {
+    background-color: var(--neutral-color-50);
   }
 }
 

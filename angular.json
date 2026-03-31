@@ -53,6 +53,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/app/shared/assest",
+                "output": "app/shared/assest"
               }
             ],
             "styles": [

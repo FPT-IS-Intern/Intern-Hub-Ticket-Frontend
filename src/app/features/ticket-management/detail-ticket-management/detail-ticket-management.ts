@@ -335,6 +335,11 @@ export class DetailTicketManagementPage implements OnInit {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
 
+  formatCreatedDate(): string {
+    if (!this.ticketDetail) return '';
+    return this.formatDate(this.ticketDetail.createdAt);
+  }
+
   // ==============================================
   // Navigation
   // ==============================================

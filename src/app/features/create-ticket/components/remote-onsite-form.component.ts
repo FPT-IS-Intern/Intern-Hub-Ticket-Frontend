@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } from '@goat-bravos/intern-hub-layout';
-import { PositionService, PositionListResponse } from '../../../services/position.service';
+import { WorkLocationService } from '../../../services/work-location.service';
 
 @Component({
   selector: 'app-remote-onsite-form',
@@ -59,20 +59,20 @@ import { PositionService, PositionListResponse } from '../../../services/positio
         </div>
       </div>
 
-      <!-- Location (Positions from API) -->
+      <!-- Location (Work Locations from API) -->
       <div class="form-group">
         <app-input-text
           headerInput="Địa điểm"
           [required]="true"
           [readonly]="true"
-          [value]="getSelectedPositionName()"
+          [value]="getSelectedLocationName()"
           placeholder="Chọn địa điểm remote"
           icon="dsi-chevron-down-line"
         ></app-input-text>
         <select formControlName="location" class="form-control hidden-select">
-          <option [ngValue]="null" disabled selected>Nhập địa điểm remote</option>
-          @for (pos of positions; track pos.positionId) {
-            <option [value]="pos.positionId">{{ pos.name }}</option>
+          <option [ngValue]="null" disabled selected>Chọn địa điểm remote</option>
+          @for (loc of locations; track loc) {
+            <option [value]="loc">{{ loc }}</option>
           }
         </select>
       </div>
@@ -94,7 +94,7 @@ import { PositionService, PositionListResponse } from '../../../services/positio
 export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
   @Output() formChange = new EventEmitter<FormGroup>();
   form!: FormGroup;
-  positions: PositionListResponse[] = [];
+  locations: string[] = [];
   dateError: string | null = null;
   startDateValue: Date | null = null;
   endDateValue: Date | null = null;
@@ -102,7 +102,7 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private positionService: PositionService,
+    private workLocationService: WorkLocationService,
   ) {}
 
   ngOnInit(): void {
@@ -114,7 +114,7 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
       attachments: [[]]
     });
 
-    this.loadPositions();
+    this.loadLocations();
 
     // Watch dateRange for validation
     this.form.get('dateRange')?.valueChanges
@@ -135,22 +135,20 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  loadPositions(): void {
-    this.positionService.listAllPositions().subscribe({
+  loadLocations(): void {
+    this.workLocationService.getAllLocations().subscribe({
       next: (res) => {
-        this.positions = res.data || [];
+        this.locations = res.data || [];
       },
       error: (err) => {
-        console.error('Error loading positions:', err);
+        console.error('Error loading work locations:', err);
       },
     });
   }
 
-  getSelectedPositionName(): string {
-    const locationId = this.form.get('location')?.value;
-    if (!locationId) return '';
-    const pos = this.positions.find((p) => p.positionId === Number(locationId));
-    return pos ? pos.name : '';
+  getSelectedLocationName(): string {
+    const location = this.form.get('location')?.value;
+    return location || '';
   }
 
   onStartDateChange(date: Date | null) {
@@ -211,3 +209,4 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
     return false;
   };
 }
+

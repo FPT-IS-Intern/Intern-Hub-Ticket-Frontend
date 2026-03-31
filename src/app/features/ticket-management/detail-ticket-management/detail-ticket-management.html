@@ -23,216 +23,201 @@
       <span>Đang tải dữ liệu...</span>
     </div>
   } @else {
-    <div class="detail-layout">
-      <!-- Left Column: Ticket Detail Info -->
-      <div class="detail-left">
-        <div class="detail-card">
-          <div class="card-header">
-            <span class="card-title">{{ ticketTitle }}</span>
-            @if (ticketDetail) {
-              <span
-                class="status-badge"
-                [style.background]="getStatusBadge(ticketDetail.status).bg"
-                [style.color]="getStatusBadge(ticketDetail.status).color"
-              >
-                {{ getStatusBadge(ticketDetail.status).label }}
-              </span>
-            }
-          </div>
+    <div class="detail-layout-single">
+      <!-- Ticket Type Title -->
+      <div class="ticket-type-title">{{ ticketTitle }}</div>
 
-          @switch (ticketType) {
-            @case ('LEAVE_REQUEST') {
-              <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
-            }
-            @case ('UPDATE_PROFILE') {
-              <app-detail-update-profile [data]="updateProfileData"></app-detail-update-profile>
-            }
-            @default {
-              <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
-            }
+      <!-- Ticket Info Card -->
+      <div class="ticket-info-card">
+        @switch (ticketType) {
+          @case ('LEAVE_REQUEST') {
+            <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
           }
-        </div>
-
-        <!-- Evidence Section -->
-        <div class="evidence-card">
-          <div class="card-header">
-            <span class="card-title">Minh chứng</span>
-            <span class="evidence-count">{{ evidences.length > 0 ? evidences.length + ' tệp' : '' }}</span>
-          </div>
-          @if (evidences.length > 0) {
-            <div class="evidence-list">
-              @for (evidence of evidences; track evidence.id) {
-                @if (isImageEvidence(evidence)) {
-                  <!-- Image evidence -->
-                  <div class="evidence-item evidence-image-item">
-                    <div class="evidence-image-wrapper">
-                      <img
-                        [src]="getEvidenceUrl(evidence)"
-                        [alt]="getFileName(evidence.evidenceKey)"
-                        class="evidence-image"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div class="evidence-image-info">
-                      <span class="evidence-name">{{ getFileName(evidence.evidenceKey) }}</span>
-                      <span class="evidence-size">{{ formatFileSize(evidence.fileSize) }}</span>
-                    </div>
-                  </div>
-                } @else {
-                  <!-- Non-image evidence (link) -->
-                  <a
-                    class="evidence-item evidence-file-item"
-                    [href]="getEvidenceUrl(evidence)"
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    <div class="evidence-icon">
-                      <app-icon
-                        icon="dsi-file-01"
-                        colorIcon="var(--brand-500)"
-                        width="20px"
-                        height="20px"
-                      ></app-icon>
-                    </div>
-                    <div class="evidence-info">
-                      <span class="evidence-name">{{ getFileName(evidence.evidenceKey) }}</span>
-                      <span class="evidence-size">{{ formatFileSize(evidence.fileSize) }}</span>
-                    </div>
-                    <div class="evidence-download">
-                      <app-icon
-                        icon="dsi-download-01"
-                        colorIcon="var(--neutral-color-500)"
-                        width="16px"
-                        height="16px"
-                      ></app-icon>
-                    </div>
-                  </a>
-                }
-              }
-            </div>
-          } @else {
-            <div class="evidence-empty">
-              <app-icon
-                icon="dsi-file-01"
-                colorIcon="var(--neutral-color-300)"
-                width="32px"
-                height="32px"
-              ></app-icon>
-              <span>No data</span>
-            </div>
+          @case ('UPDATE_PROFILE') {
+            <app-detail-update-profile [data]="updateProfileData"></app-detail-update-profile>
           }
-        </div>
+          @default {
+            <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
+          }
+        }
       </div>
 
-      <!-- Right Column: Approval Timeline -->
-      <div class="detail-right">
-        <div class="detail-card">
-          <div class="card-header">
-            <span class="card-title">Thông tin phê duyệt</span>
-          </div>
+      <!-- Approval Timeline Section -->
+      <div class="approval-section-title">Thông tin phê duyệt</div>
+      <div class="approval-divider"></div>
 
-          <!-- Approval Progress -->
-          @if (approvalInfo) {
-            <div class="approval-progress-section">
-              <div class="approval-progress-header">
-                <span class="progress-label">Tiến độ phê duyệt</span>
-                <span class="progress-value">{{ getApprovalProgress() | number:'1.0-0' }}%</span>
+      <div class="approval-timeline-vertical">
+        <!-- Creator row -->
+        @if (approvalInfo) {
+          <div class="timeline-step">
+            <div class="timeline-step-left">
+              <div class="step-status-label step-done-label">Đã tạo</div>
+              <div class="step-date">{{ formatCreatedDate() }}</div>
+            </div>
+            <div class="timeline-step-center">
+              <div class="step-icon step-done">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
               </div>
-              <div class="progress-bar-track">
-                <div
-                  class="progress-bar-fill"
-                  [style.width.%]="getApprovalProgress()"
-                ></div>
+              <div class="step-connector"></div>
+            </div>
+            <div class="timeline-step-right">
+              <div class="step-approver-name">{{ approvalInfo.senderFullName || '—' }}</div>
+              <div class="step-description">Khởi tạo</div>
+            </div>
+          </div>
+        }
+
+        <!-- Level 1 -->
+        @if (approvalLevels.length > 0) {
+          <div class="timeline-step">
+            <div class="timeline-step-left">
+              <div class="step-status-label"
+                [class.step-done-label]="approvalLevels[0].statusType === 'done'"
+                [class.step-pending-label]="approvalLevels[0].statusType === 'pending'"
+                [class.step-rejected-label]="approvalLevels[0].statusType === 'rejected'"
+              >
+                {{ approvalLevels[0].statusLabel }}
+              </div>
+              <div class="step-date">{{ approvalLevels[0].date || '--:--' }}</div>
+            </div>
+            <div class="timeline-step-center">
+              <div class="step-number">2</div>
+              @if (approvalLevels.length > 1) {
+                <div class="step-connector"></div>
+              }
+            </div>
+            <div class="timeline-step-right">
+              <div class="step-approver-name">{{ approvalLevels[0].approverName }}</div>
+              <div class="step-description">
+                Phê duyệt cấp 1
+                @if (approvalLevels[0].statusType === 'done') {
+                  – Duyệt bởi <strong>{{ approvalLevels[0].approverName }}</strong>
+                }
+                @if (approvalLevels[0].statusType === 'rejected') {
+                  – Từ chối bởi <strong>{{ approvalLevels[0].approverName }}</strong>
+                }
               </div>
             </div>
-          }
+          </div>
+        }
 
-          <!-- Approval Levels Timeline -->
-          <div class="approval-timeline">
-            @for (level of approvalLevels; track level.level; let last = $last) {
-              <div class="timeline-item" [class.last]="last">
-                <div class="timeline-item-left">
-                  <div
-                    class="timeline-icon"
-                    [class.done]="level.statusType === 'done'"
-                    [class.pending]="level.statusType === 'pending'"
-                    [class.rejected]="level.statusType === 'rejected'"
-                  >
-                    @if (level.statusType === 'done') {
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M2.5 7L5.5 10L11.5 4" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    } @else if (level.statusType === 'rejected') {
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M3 3L11 11M11 3L3 11" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                      </svg>
-                    } @else {
-                      <span class="pending-dot">···</span>
-                    }
-                  </div>
-                  @if (!last) {
-                    <div class="timeline-connector"></div>
-                  }
-                </div>
-
-                <div class="timeline-item-content">
-                  <div class="timeline-item-header">
-                    <span class="level-badge">Cấp {{ level.level }}</span>
-                    <span
-                      class="level-status"
-                      [class.done]="level.statusType === 'done'"
-                      [class.pending]="level.statusType === 'pending'"
-                      [class.rejected]="level.statusType === 'rejected'"
-                    >
-                      {{ level.statusLabel }}
-                    </span>
-                  </div>
-                  <div class="timeline-item-body">
-                    <div class="timeline-row">
-                      <span class="timeline-row-label">Người duyệt</span>
-                      <span class="timeline-row-value">{{ level.approverName }}</span>
-                    </div>
-                    <div class="timeline-row">
-                      <span class="timeline-row-label">Thời gian</span>
-                      <span class="timeline-row-value">{{ level.date || '--/--/----' }}</span>
-                    </div>
-                    <div class="timeline-row">
-                      <span class="timeline-row-label">Mô tả</span>
-                      <span class="timeline-row-value">{{ level.description }}</span>
-                    </div>
-                  </div>
-                </div>
+        <!-- Level 2 -->
+        @if (approvalLevels.length > 1) {
+          <div class="timeline-step">
+            <div class="timeline-step-left">
+              <div class="step-status-label"
+                [class.step-done-label]="approvalLevels[1].statusType === 'done'"
+                [class.step-pending-label]="approvalLevels[1].statusType === 'pending'"
+                [class.step-rejected-label]="approvalLevels[1].statusType === 'rejected'"
+              >
+                {{ approvalLevels[1].statusLabel }}
               </div>
-            }
+              <div class="step-date">{{ approvalLevels[1].date || '--:--' }}</div>
+            </div>
+            <div class="timeline-step-center">
+              <div class="step-number">3</div>
+            </div>
+            <div class="timeline-step-right">
+              <div class="step-approver-name">{{ approvalLevels[1].approverName }}</div>
+              <div class="step-description">Phê duyệt cấp 2</div>
+            </div>
           </div>
-        </div>
+        }
+      </div>
 
-        <!-- Action Buttons -->
-        <div class="action-card">
-          <div class="action-buttons">
-            <app-button-container
-              content="Trở về"
-              backgroundColor="var(--neutral-color-10)"
-              color="var(--neutral-color-700)"
-              border="1px solid var(--neutral-color-300)"
-              (buttonClick)="goToRequestManagement()"
-            ></app-button-container>
-            @if (ticketDetail && ticketDetail.status === 'PENDING') {
-              <app-button-container
-                content="Từ chối"
-                backgroundColor="var(--utility-500)"
-                color="white"
-                (buttonClick)="openRejectPopup()"
-              ></app-button-container>
-              <app-button-container
-                content="Duyệt"
-                backgroundColor="var(--theme-green-500)"
-                color="white"
-                (buttonClick)="onApprove()"
-              ></app-button-container>
+      <!-- Evidence Section -->
+      <div class="evidence-card">
+        <div class="card-header">
+          <span class="card-title">Minh chứng</span>
+          <span class="evidence-count">{{ evidences.length > 0 ? evidences.length + ' tệp' : '' }}</span>
+        </div>
+        @if (evidences.length > 0) {
+          <div class="evidence-list">
+            @for (evidence of evidences; track evidence.id) {
+              @if (isImageEvidence(evidence)) {
+                <div class="evidence-item evidence-image-item">
+                  <div class="evidence-image-wrapper">
+                    <img
+                      [src]="getEvidenceUrl(evidence)"
+                      [alt]="getFileName(evidence.evidenceKey)"
+                      class="evidence-image"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="evidence-image-info">
+                    <span class="evidence-name">{{ getFileName(evidence.evidenceKey) }}</span>
+                    <span class="evidence-size">{{ formatFileSize(evidence.fileSize) }}</span>
+                  </div>
+                </div>
+              } @else {
+                <a
+                  class="evidence-item evidence-file-item"
+                  [href]="getEvidenceUrl(evidence)"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <div class="evidence-icon">
+                    <app-icon
+                      icon="dsi-file-01"
+                      colorIcon="var(--brand-500)"
+                      width="20px"
+                      height="20px"
+                    ></app-icon>
+                  </div>
+                  <div class="evidence-info">
+                    <span class="evidence-name">{{ getFileName(evidence.evidenceKey) }}</span>
+                    <span class="evidence-size">{{ formatFileSize(evidence.fileSize) }}</span>
+                  </div>
+                  <div class="evidence-download">
+                    <app-icon
+                      icon="dsi-download-01"
+                      colorIcon="var(--neutral-color-500)"
+                      width="16px"
+                      height="16px"
+                    ></app-icon>
+                  </div>
+                </a>
+              }
             }
           </div>
-        </div>
+        } @else {
+          <div class="evidence-empty">
+            <app-icon
+              icon="dsi-file-01"
+              colorIcon="var(--neutral-color-300)"
+              width="32px"
+              height="32px"
+            ></app-icon>
+            <span>No data</span>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons-bar">
+        <app-button-container
+          content="Trở về"
+          backgroundColor="var(--neutral-color-10)"
+          color="var(--neutral-color-700)"
+          border="1px solid var(--neutral-color-300)"
+          (buttonClick)="goToRequestManagement()"
+        ></app-button-container>
+        @if (ticketDetail && ticketDetail.status === 'PENDING') {
+          <app-button-container
+            content="Từ chối"
+            backgroundColor="var(--utility-500)"
+            color="white"
+            (buttonClick)="openRejectPopup()"
+          ></app-button-container>
+          <app-button-container
+            content="Duyệt"
+            backgroundColor="var(--theme-green-500)"
+            color="white"
+            (buttonClick)="onApprove()"
+          ></app-button-container>
+        }
       </div>
     </div>
   }

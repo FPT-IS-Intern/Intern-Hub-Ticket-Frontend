@@ -22,6 +22,7 @@ import {
   CreateTicketResponse,
   TicketManagementDto,
   StatCardData,
+  UserTicketDto,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -300,5 +301,13 @@ export class TicketService {
           observer.error(err);
         });
     });
+  }
+
+  /**
+   * Get tickets for the current user
+   * GET /ticket/me
+   */
+  getMyTickets(): Observable<ResponseApi<UserTicketDto[]>> {
+    return this.http.get<ResponseApi<UserTicketDto[]>>(`${this.baseUrl}/me`);
   }
 }

@@ -43,6 +43,12 @@ export class CreateTicketPage implements OnInit {
   ticketTypesList: TicketTypeDto[] = [];
   selectedTicketTypeId: string | null = null;
 
+  // Popup state
+  showSuccessPopup = false;
+  createdTicketId = '';
+  showErrorPopup = false;
+  errorMessage = '';
+
   private typeNameToComponentKey: Record<string, string> = {
     'Phiếu giải trình': 'EXPLANATION',
     'Phiếu Remote - WFH': 'REMOTE_WFH',
@@ -214,26 +220,37 @@ export class CreateTicketPage implements OnInit {
       next: (res) => {
         this.isSubmitting = false;
         console.log('Ticket created successfully:', res.data);
-        alert(
-          `Tạo phiếu thành công! Mã phiếu: ${res.data.ticketId}, Trạng thái: ${res.data.status}`,
-        );
-        this.goToHome();
+        this.createdTicketId = res.data.ticketId;
+        this.showSuccessPopup = true;
       },
       error: (err) => {
         this.isSubmitting = false;
         console.error('Error creating ticket:', err);
-        const errorMsg =
+        this.errorMessage =
           err?.error?.status?.message ||
           err?.error?.message ||
           err?.message ||
           'Đã xảy ra lỗi khi tạo phiếu. Vui lòng thử lại.';
-        alert(errorMsg);
+        this.showErrorPopup = true;
       },
     });
   }
 
   goToHome() {
     this.router.navigate(['/homePage']);
+  }
+
+  closeSuccessPopup(): void {
+    this.showSuccessPopup = false;
+  }
+
+  confirmSuccessPopup(): void {
+    this.showSuccessPopup = false;
+    this.goToHome();
+  }
+
+  closeErrorPopup(): void {
+    this.showErrorPopup = false;
   }
 
   private formatDate(date: any): string | null {

@@ -80,7 +80,7 @@ export class ExplanationFormComponent implements OnInit {
 
   disabledPastDate = (current: Date): boolean => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return current < today;
+    today.setHours(23, 59, 59, 999);
+    return current > today;
   };
 }

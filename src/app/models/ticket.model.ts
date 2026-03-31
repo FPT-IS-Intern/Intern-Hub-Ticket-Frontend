@@ -252,6 +252,23 @@ export interface ResponseApi<T> {
   metaData: ResponseApiMetaData;
 }
 
+/**
+ * DTO for user's own tickets list (GET /ticket/me).
+ * Includes approval level information for multi-level approval display.
+ */
+export interface UserTicketDto {
+  ticketId: string;
+  typeName: string;
+  senderFullName: string;
+  createdAt: string;         // timestamp ms as string
+  reason: string | null;
+  approverFullNameLevel1: string | null;
+  approverFullNameLevel2: string | null;
+  statusLevel1: 'SUCCESS' | 'PENDING' | 'REJECTED' | null;
+  statusLevel2: 'SUCCESS' | 'PENDING' | 'REJECTED' | null;
+  status: TicketStatus;
+}
+
 // Keep the UI-specific types for forms if needed, but the ones above match API docs
 export interface TicketPayload {
   reason?: string;

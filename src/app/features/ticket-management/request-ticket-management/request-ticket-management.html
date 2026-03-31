@@ -149,6 +149,7 @@
             [columns]="columns"
             [columnTemplates]="columnTemplates"
             fontSize="14px"
+            (click)="onTableBodyClick($event)"
           ></tbody>
         }
       </table>
@@ -257,19 +258,7 @@
     <div class="ticket-type-cell">{{ row.typeName }}</div>
   </ng-template>
 
-  <ng-template #detailTemplate let-row="row">
-    <div class="cell-center">
-      <button class="detail-btn" type="button" (click)="onViewDetail(row, $event)">
-        <app-icon
-          icon="dsi dsi-eye-line"
-          colorIcon="var(--brand-600)"
-          width="18px"
-          height="18px"
-        ></app-icon>
-        <span class="detail-text">Xem</span>
-      </button>
-    </div>
-  </ng-template>
+
 
   <ng-template #statusTemplate let-value>
     <div class="cell-center">
