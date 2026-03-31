@@ -44,20 +44,20 @@
   font-size: 32px;
   font-weight: 600;
   color: #D48806; // Muted gold/orange from mockup
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
 .ticket-type-title {
   font-size: 24px;
   font-weight: 600;
   color: #D48806;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .ticket-info-card {
-  margin-bottom: 32px;
+  margin-bottom: 48px;
   border-top: 1px dashed #D0D5DD;
-  padding-top: 24px;
+  padding-top: 16px;
 }
 
 // ==============================================
@@ -70,12 +70,10 @@
   margin-bottom: 24px;
 }
 
-// Card style for approval info
+// Card style for approval info (Removed background/border as per request)
 .approval-container {
-  border: 1px solid #F2F4F7;
-  border-radius: 12px;
-  padding: 32px;
-  background-color: #fff;
+  padding: 0;
+  background-color: transparent;
   margin-bottom: 32px;
 }
 
@@ -136,6 +134,7 @@
   position: relative;
   width: 32px;
   flex-shrink: 0;
+  margin: 0 8px;
 
   .step-icon {
     width: 32px;

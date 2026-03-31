@@ -23,21 +23,7 @@ export interface LeaveRequestDetail {
         </div>
         <div class="detail-field">
           <span class="field-label">Ngày tạo phiếu</span>
-          <span class="field-value">{{ data.createdDate }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="field-label">Tổng ngày nghỉ</span>
-          <span class="field-value bold">{{ data.totalDays }} ngày</span>
-        </div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-field">
-          <span class="field-label">Ngày bắt đầu</span>
-          <span class="field-value bold">{{ data.startDate }}</span>
-        </div>
-        <div class="detail-field">
-          <span class="field-label">Ngày kết thúc</span>
-          <span class="field-value bold">{{ data.endDate }}</span>
+          <span class="field-value bold">{{ data.createdDate }}</span>
         </div>
       </div>
       <div class="detail-row full-width">

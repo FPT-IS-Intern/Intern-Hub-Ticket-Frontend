@@ -4,7 +4,7 @@
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
         icon="dsi-home-01-line"
-        colorIcon="#D0D5DD"
+        colorIcon="#667085"
         width="18px"
         height="18px"
       ></app-icon>
@@ -94,10 +94,7 @@
             <div class="timeline-step-right">
               <div class="step-approver-name">{{ approvalLevels[0].approverName }}</div>
               <div class="step-description">
-                Phê duyệt cấp 1
-                @if (approvalLevels[0].statusType === 'done') {
-                  - Duyệt bởi <strong>{{ approvalLevels[0].approverName }}</strong>
-                }
+                {{ approvalLevels[0].description }}
               </div>
             </div>
           </div>

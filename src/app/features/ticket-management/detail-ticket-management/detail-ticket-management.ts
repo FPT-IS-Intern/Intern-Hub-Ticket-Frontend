@@ -273,32 +273,26 @@ export class DetailTicketManagementPage implements OnInit {
     // Always show level 1
     this.approvalLevels.push({
       level: 1,
-      label: 'Cấp 1',
-      approverName: approvalInfo.approverFullNameLevel1 || 'Người duyệt cấp 1',
+      label: 'Chờ duyệt',
+      approverName: approvalInfo.approverFullNameLevel1 || 'Nguyen Thi Linh hoặc Nguyen Van Tien',
       statusType: getStatusType(level1Status),
       statusLabel: getStatusLabel(level1Status),
       date: this.formatDate(approvalInfo.approvedAt),
       description: level1Status === 'SUCCESS'
-        ? 'Phê duyệt cấp 1'
-        : level1Status === 'REJECTED'
-          ? 'Từ chối cấp 1'
-          : 'Chờ phê duyệt cấp 1',
+        ? `Phê duyệt cấp 1 - Duyệt bởi ${approvalInfo.approverFullNameLevel1 || 'Nguyen Thi Linh'}`
+        : 'Phê duyệt cấp 1',
     });
 
     // Only show level 2 if requiredApprovals >= 2
     if (requiredApprovals >= 2) {
       this.approvalLevels.push({
         level: 2,
-        label: 'Cấp 2',
-        approverName: approvalInfo.approverFullNameLevel2 || 'Người duyệt cấp 2',
+        label: 'Chờ duyệt',
+        approverName: approvalInfo.approverFullNameLevel2 || 'Nguyen Van B',
         statusType: getStatusType(level2Status),
         statusLabel: getStatusLabel(level2Status),
         date: this.formatDate(approvalInfo.approvedAtLevel2),
-        description: level2Status === 'SUCCESS'
-          ? 'Phê duyệt cấp 2'
-          : level2Status === 'REJECTED'
-            ? 'Từ chối cấp 2'
-            : 'Chờ phê duyệt cấp 2',
+        description: 'Phê duyệt cấp 2',
       });
     }
   }
