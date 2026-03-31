@@ -52,13 +52,13 @@ export interface LeaveRequestDetail {
     .detail-info-grid {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      padding: 20px 24px;
+      gap: 24px;
+      padding: 0;
     }
     .detail-row {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
 
       &.full-width {
         grid-template-columns: 1fr;
@@ -67,16 +67,16 @@ export interface LeaveRequestDetail {
     .detail-field {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 8px;
     }
     .field-label {
-      font-size: 13px;
-      color: var(--neutral-color-500);
+      font-size: 14px;
+      color: #667085;
       font-weight: 400;
     }
     .field-value {
-      font-size: 14px;
-      color: var(--neutral-color-800);
+      font-size: 16px;
+      color: #344054;
       font-weight: 400;
       word-break: break-word;
     }
