@@ -25,11 +25,23 @@ export interface LeaveRequestDetail {
           <span class="field-label">Ngày tạo phiếu</span>
           <span class="field-value bold">{{ data.createdDate }}</span>
         </div>
+        <div class="detail-field">
+          <span class="field-label">Ngày bắt đầu</span>
+          <span class="field-value bold">{{ data.startDate }}</span>
+        </div>
       </div>
-      <div class="detail-row full-width">
+      <div class="detail-row">
         <div class="detail-field">
           <span class="field-label">Lý do</span>
           <span class="field-value">{{ data.reason }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="field-label">Tổng ngày nghỉ</span>
+          <span class="field-value bold">{{ data.totalDays }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="field-label">Ngày kết thúc</span>
+          <span class="field-value bold">{{ data.endDate }}</span>
         </div>
       </div>
     </div>
@@ -43,12 +55,8 @@ export interface LeaveRequestDetail {
     }
     .detail-row {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 32px;
-
-      &.full-width {
-        grid-template-columns: 1fr;
-      }
     }
     .detail-field {
       display: flex;
@@ -57,12 +65,12 @@ export interface LeaveRequestDetail {
     }
     .field-label {
       font-size: 14px;
-      color: #667085;
+      color: var(--neutral-color-500);
       font-weight: 400;
     }
     .field-value {
       font-size: 16px;
-      color: #344054;
+      color: var(--neutral-color-700);
       font-weight: 400;
       word-break: break-word;
     }
