@@ -4,7 +4,7 @@
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
         icon="dsi-home-01-line"
-        colorIcon="#667085"
+        colorIcon="#6B7280"
         width="18px"
         height="18px"
       ></app-icon>
@@ -23,11 +23,10 @@
       <span>Đang tải dữ liệu...</span>
     </div>
   } @else {
-    <!-- Ticket Type Title -->
-    <div class="ticket-type-title">{{ ticketTitle }}</div>
-
     <!-- Ticket Info Card -->
     <div class="ticket-info-card">
+      <h2 class="ticket-card-title">{{ ticketTitle }}</h2>
+      <div class="ticket-card-divider ticket-card-divider--dashed"></div>
       @switch (ticketType) {
         @case ('LEAVE_REQUEST') {
           <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
@@ -41,10 +40,11 @@
       }
     </div>
 
-    <!-- Approval Timeline Section -->
-    <div class="approval-section-title">Thông tin phê duyệt</div>
+    <!-- Approval card: title + timeline + actions -->
+    <div class="approval-card">
+      <h2 class="approval-card-title">Thông tin phê duyệt</h2>
+      <div class="ticket-card-divider ticket-card-divider--solid"></div>
 
-    <div class="approval-container">
       <div class="approval-timeline-vertical">
         <!-- Creator row -->
         @if (approvalInfo) {
@@ -127,27 +127,26 @@
           </div>
         }
       </div>
-    </div>
 
-    <!-- Action Buttons -->
-    <div class="action-buttons-bar">
-      <app-button-container
-        class="btn-back"
-        content="Trở về"
-        (buttonClick)="goToRequestManagement()"
-      ></app-button-container>
-      @if (ticketDetail && ticketDetail.status === 'PENDING') {
+      <div class="action-buttons-bar">
         <app-button-container
-          class="btn-reject"
-          content="Từ chối"
-          (buttonClick)="openRejectPopup()"
+          class="btn-back"
+          content="Trở về"
+          (buttonClick)="goToRequestManagement()"
         ></app-button-container>
-        <app-button-container
-          class="btn-approve"
-          content="Duyệt"
-          (buttonClick)="onApprove()"
-        ></app-button-container>
-      }
+        @if (ticketDetail && ticketDetail.status === 'PENDING') {
+          <app-button-container
+            class="btn-reject"
+            content="Từ chối"
+            (buttonClick)="openRejectPopup()"
+          ></app-button-container>
+          <app-button-container
+            class="btn-approve"
+            content="Duyệt"
+            (buttonClick)="onApprove()"
+          ></app-button-container>
+        }
+      </div>
     </div>
   }
 </div>
@@ -156,7 +155,7 @@
 @if (showRejectPopup) {
   <div class="popup-overlay" (click)="closeRejectPopup()">
     <div class="popup-container" (click)="$event.stopPropagation()">
-      <div class="popup-title" style="font-weight: 600; font-size: 18px;">Lý do từ chối</div>
+      <div class="popup-title popup-title--reject">Lý do từ chối</div>
       <textarea
         class="reject-textarea"
         [(ngModel)]="rejectReason"
@@ -180,7 +179,7 @@
 @if (showSuccessPopup) {
   <div class="popup-overlay" (click)="closeSuccessPopup()">
     <div class="popup-container" (click)="$event.stopPropagation()">
-      <div class="popup-title" style="color: #079455; font-weight: 600;">{{ successMessage }}</div>
+      <div class="popup-title popup-title--success">{{ successMessage }}</div>
       <div class="popup-actions">
         <button class="popup-btn btn-success" (click)="closeSuccessPopup()">Đóng</button>
       </div>

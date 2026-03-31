@@ -1,90 +1,116 @@
+// Phiếu của tôi — micro-frontend: shell transparent; tokens từ dynamic-ds (giống detail-ticket-management)
+
 .user-ticket-page {
-  padding: 0 24px 24px;
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-8);
+  min-height: 0;
+  font-family: var(--font-sans);
+  background-color: transparent;
+  color: var(--text-color);
 }
 
 .breadcrumb {
-  margin: 16px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  font-size: var(--text-sm);
+  color: var(--disable-text);
 
   .breadcrumb-home {
     cursor: pointer;
+    display: flex;
+    align-items: center;
   }
 
   .breadcrumb-separator {
-    color: var(--neutral-color-400);
+    color: var(--neutral-color-300);
+    user-select: none;
   }
 
   .breadcrumb-current {
-    color: var(--brand-700);
-    font-weight: 500;
+    font-weight: var(--font-normal);
+    color: var(--disable-text);
   }
 }
 
 .page-title {
-  color: var(--brand-700);
-  font-size: 24px;
-  letter-spacing: -0.5px;
-  line-height: 32px;
-  font-weight: 500;
-  margin-bottom: 16px;
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--secondary-color);
+  margin: 0 0 var(--spacing-5);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
 }
 
 /* ── Filter bar ── */
 .filter {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
+  align-items: stretch;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
+  flex-wrap: wrap;
 }
 
 .search-box-wrapper {
-  width: 420px;
-  height: 36px;
-  border-radius: var(--sem-dimension-radius-component-lg, 12px);
+  flex: 1;
+  min-width: 280px;
+  max-width: 520px;
+  height: 40px;
 
   ::ng-deep .app-input-text .input-form-field {
-    width: 420px;
-    height: 36px;
+    width: 100% !important;
+    height: 40px !important;
+    border-radius: var(--radius-md) !important;
+    background-color: var(--neutral-color-10) !important;
+    border: 1px solid var(--neutral-color-200) !important;
+    font-size: var(--text-sm) !important;
   }
 }
 
 .filter-select-field {
   position: relative;
+  min-width: 240px;
 
   select {
-    height: 36px;
-    border: 1px solid var(--neutral-color-300);
-    border-radius: 8px;
-    padding: 0 36px 0 12px;
-    font-size: 14px;
+    width: 100%;
+    height: 40px;
+    border: 1px solid var(--neutral-color-200);
+    border-radius: var(--radius-md);
+    padding: 0 var(--spacing-10) 0 var(--spacing-3);
+    font-size: var(--text-sm);
     color: var(--neutral-color-700);
     background-color: var(--neutral-color-10);
     appearance: none;
     outline: none;
+    font-family: var(--font-sans);
+    transition: border-color var(--duration-150) var(--ease-in-out);
+
+    &:focus {
+      border-color: var(--secondary-color);
+    }
   }
 
   .ticket-type-select {
-    width: 261px;
+    min-width: 260px;
   }
 
   .select-icon {
     position: absolute;
-    right: 12px;
+    right: var(--spacing-3);
     top: 50%;
     transform: translateY(-50%);
     color: var(--neutral-color-500);
     pointer-events: none;
+    font-size: var(--text-base);
   }
 }
 
 /* ── Cards grid ── */
 .ticket-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-5);
 }
 
 /* ── Loading ── */
@@ -94,21 +120,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 60px 16px;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
   color: var(--neutral-color-500);
-  font-size: 14px;
+  font-size: var(--text-sm);
 
   .loading-icon {
-    font-size: 32px;
-    color: var(--brand-500);
-    animation: spin 1s linear infinite;
+    font-size: var(--text-4xl);
+    color: var(--secondary-color);
+    animation: ut-spin 0.9s linear infinite;
   }
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+@keyframes ut-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Empty state ── */
@@ -118,88 +149,98 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 60px 16px;
+  gap: var(--spacing-3);
+  padding: var(--spacing-16) var(--spacing-4);
 
   .empty-text {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: var(--neutral-color-500);
   }
 }
 
 /* ── Ticket card ── */
 .ticket-card {
-  border: 2px solid var(--brand-300);
-  border-radius: 12px;
+  border: 1px solid var(--neutral-color-200);
+  border-radius: var(--radius-md);
   background-color: var(--neutral-color-10);
   overflow: hidden;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  box-shadow:
+    0 0 0 1px rgba(var(--secondary-color-rgb), 0.08),
+    0 6px 24px rgba(var(--secondary-color-rgb), 0.14),
+    0 2px 8px rgba(17, 24, 39, 0.04);
+  transition:
+    box-shadow var(--duration-200) var(--ease-in-out),
+    transform var(--duration-150) var(--ease-out);
 
   &:hover {
-    box-shadow: 0 4px 16px color-mix(in srgb, var(--neutral-color-900) 8%, transparent);
+    box-shadow:
+      0 0 0 1px rgba(var(--secondary-color-rgb), 0.14),
+      0 10px 32px rgba(var(--secondary-color-rgb), 0.2),
+      0 4px 12px rgba(17, 24, 39, 0.06);
     transform: translateY(-2px);
   }
 }
 
-/* Card header */
 .card-header {
-  padding: 12px 20px;
+  padding: var(--spacing-3) var(--spacing-5);
   text-align: center;
+  background-color: var(--secondary-50);
+  border-bottom: 1px solid rgba(var(--secondary-color-rgb), 0.12);
 }
 
 .card-type-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--brand-500);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--secondary-color);
+  line-height: var(--leading-snug);
 }
 
-/* Card body */
 .card-body {
-  padding: 0 20px 16px;
+  padding: var(--spacing-4) var(--spacing-5) var(--spacing-3);
 }
 
 .card-field {
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-2);
 }
 
 .field-label {
   display: block;
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--neutral-color-500);
-  font-style: italic;
-  line-height: 1.4;
+  font-weight: var(--font-normal);
+  line-height: var(--leading-normal);
 }
 
 .field-value {
   display: block;
-  font-size: 14px;
-  color: var(--neutral-color-800);
-  line-height: 1.5;
+  font-size: var(--text-sm);
+  color: var(--text-color);
+  line-height: var(--leading-relaxed);
 }
 
 .field-value-bold {
-  font-weight: 600;
+  font-weight: var(--font-bold);
 }
 
-/* Card footer — approval rows */
 .card-footer {
-  border-top: 1px solid var(--neutral-color-200);
-  padding: 12px 20px;
+  margin: 0 var(--spacing-5);
+  padding: var(--spacing-3) 0 var(--spacing-4);
+  border-top: 1px dashed var(--neutral-color-200);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-2);
 }
 
 .approval-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-2_5);
 }
 
 .approval-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -207,15 +248,17 @@
 }
 
 .approver-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--neutral-color-800);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-color);
   flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .approval-status {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   white-space: nowrap;
 }
 
@@ -223,11 +266,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 0;
+  padding: var(--spacing-1) 0;
 }
 
 .no-approver-text {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--neutral-color-400);
   font-style: italic;
 }
@@ -239,18 +282,19 @@
   }
 
   .filter {
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .search-box-wrapper {
-    width: 100%;
-
-    ::ng-deep .app-input-text .input-form-field {
-      width: 100%;
-    }
+    max-width: none;
   }
 
-  .filter-select-field .ticket-type-select {
-    width: 100%;
+  .filter-select-field {
+    min-width: 0;
+
+    .ticket-type-select {
+      min-width: 0;
+    }
   }
 }

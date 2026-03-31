@@ -4,7 +4,7 @@
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
         icon="dsi-home-01-line"
-        colorIcon="var(--brand-600)"
+        colorIcon="var(--disable-text)"
         width="18px"
         height="18px"
       ></app-icon>
@@ -23,7 +23,7 @@
         icon="dsi dsi-search-lg-line"
         [value]="ticketCode"
         [showLabel]="false"
-        border="1px solid var(--neutral-color-300)"
+        border="1px solid var(--neutral-color-200)"
         (valueChange)="onSearchChange($event)"
         (iconClick)="onSearch()"
       >
@@ -65,10 +65,7 @@
       </div>
     } @else {
       @for (ticket of filteredTickets; track ticket.ticketId) {
-        <div
-          class="ticket-card"
-          [style.border-color]="getCardBorderColor(ticket.status)"
-        >
+        <div class="ticket-card">
           <!-- Card Header -->
           <div class="card-header">
             <span class="card-type-name">{{ ticket.typeName }}</span>

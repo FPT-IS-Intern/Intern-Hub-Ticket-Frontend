@@ -1,8 +1,12 @@
+// Detail ticket management — micro-frontend: page shell stays transparent
+// All colors use dynamic-ds CSS variables
+
 .detail-ticket-management-page {
-  padding: 16px 32px;
-  min-height: 100vh;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #F9FAFB;
+  padding: var(--spacing-4) var(--spacing-8) var(--spacing-8);
+  min-height: 0;
+  font-family: var(--font-sans);
+  background-color: transparent;
+  color: var(--text-color);
 }
 
 // ==============================================
@@ -11,10 +15,11 @@
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: var(--neutral-color-500);
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-3);
+  font-size: var(--text-sm);
+  color: var(--disable-text);
 
   .breadcrumb-home {
     cursor: pointer;
@@ -24,132 +29,180 @@
 
   .breadcrumb-separator {
     color: var(--neutral-color-300);
+    user-select: none;
   }
 
   .breadcrumb-link {
     cursor: pointer;
+    color: var(--disable-text);
+
     &:hover {
+      color: var(--text-color);
       text-decoration: underline;
     }
   }
 
   .breadcrumb-current {
-    font-weight: 400;
+    font-weight: var(--font-normal);
+    color: var(--disable-text);
   }
 }
 
 // ==============================================
-// Page Titles
+// Page title
 // ==============================================
 .page-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #D48806; // Muted gold/orange from mockup
-  margin-bottom: 40px;
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  color: var(--secondary-color);
+  margin: 0 0 var(--spacing-5);
+  letter-spacing: var(--tracking-tight);
 }
 
-.ticket-type-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #D48806;
-  margin-bottom: 12px;
+// ==============================================
+// Shared card chrome
+// ==============================================
+.ticket-info-card,
+.approval-card {
+  background-color: var(--neutral-color-10);
+  border: 1px solid var(--neutral-color-200);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
+  box-shadow:
+    0 1px 3px rgba(17, 24, 39, 0.06),
+    0 1px 2px rgba(17, 24, 39, 0.04);
 }
 
 .ticket-info-card {
-  margin-bottom: 48px;
-  border: 1px solid var(--neutral-color-200);
-  border-radius: 12px;
-  padding: 24px;
-  background-color: var(--neutral-color-10);
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+  margin-bottom: var(--spacing-4);
+}
 
+.approval-card {
+  margin-bottom: var(--spacing-2);
+}
+
+.ticket-card-title,
+.approval-card-title {
+  margin: 0 0 var(--spacing-3);
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--secondary-color);
+  line-height: var(--leading-snug);
+}
+
+.ticket-card-divider {
+  margin: 0 0 var(--spacing-5);
+  border: 0;
+  height: 0;
+
+  &--dashed {
+    border-top: 1px dashed var(--neutral-color-200);
+  }
+
+  &--solid {
+    border-top: 1px solid var(--neutral-color-200);
+  }
+}
+
+// Child component overrides inside first card
+.ticket-info-card {
   ::ng-deep app-detail-leave-request {
     .detail-info-grid {
-      border-top: 1px dashed var(--neutral-color-200);
-      padding-top: 24px;
-      margin-top: 12px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .field-label {
+      font-size: var(--text-sm);
+      color: var(--neutral-color-500);
+      font-weight: var(--font-normal);
+    }
+
+    .field-value {
+      font-size: var(--text-base);
+      color: var(--text-color);
+      font-weight: var(--font-normal);
+    }
+
+    .field-value.bold {
+      font-weight: var(--font-bold);
+    }
+  }
+
+  ::ng-deep app-detail-update-profile {
+    .update-profile-container {
+      margin: 0;
+    }
+
+    .profile-header-info {
+      padding: 0 0 var(--spacing-4);
+      border-bottom: 1px solid var(--neutral-color-200);
+      margin-bottom: var(--spacing-4);
     }
   }
 }
 
 // ==============================================
-// Approval Section
-// ==============================================
-.approval-section-title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #D48806;
-  margin-bottom: 24px;
-}
-
-// Card style for approval info
-.approval-container {
-  padding: 24px;
-  background-color: var(--neutral-color-10);
-  border: 1px solid var(--neutral-color-200);
-  border-radius: 12px;
-  margin-bottom: 32px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
-}
-
-// ==============================================
-// Vertical Approval Timeline
+// Approval timeline
 // ==============================================
 .approval-timeline-vertical {
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: var(--spacing-1) 0 var(--spacing-2);
 }
 
 .timeline-step {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
-  min-height: 100px;
+  gap: var(--spacing-5);
+  min-height: 88px;
 
   &:last-child {
     min-height: auto;
+
     .step-connector {
       display: none;
     }
   }
 }
 
-// Left column: status label + date
 .timeline-step-left {
-  width: 100px;
+  width: 108px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
+  padding-top: var(--spacing-0_5);
 
   .step-status-label {
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 4px;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    margin-bottom: var(--spacing-1);
     color: var(--neutral-color-500);
 
     &.step-done-label {
-      color: var(--neutral-color-800);
+      color: var(--neutral-color-700);
     }
   }
 
   .step-date {
-    font-size: 12px;
+    font-size: var(--text-xs);
     color: var(--neutral-color-500);
+    line-height: var(--leading-snug);
   }
 }
 
-// Center column: node + connector
 .timeline-step-center {
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
-  width: 32px;
+  width: 36px;
   flex-shrink: 0;
-  margin: 0 8px;
+  margin: 0 var(--spacing-1);
 
   .step-icon {
     width: 32px;
@@ -159,10 +212,11 @@
     align-items: center;
     justify-content: center;
     z-index: 2;
+    flex-shrink: 0;
 
     &.step-done {
-      background-color: #FEF0C7; // Light gold bg
-      color: #D48806;
+      background-color: var(--secondary-color);
+      color: var(--neutral-color-10);
     }
   }
 
@@ -175,66 +229,73 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
     z-index: 2;
+    flex-shrink: 0;
+    border: 1px solid var(--neutral-color-200);
   }
 
   .step-connector {
     position: absolute;
     top: 32px;
-    bottom: 0;
+    bottom: -8px;
     width: 2px;
-    background-color: var(--neutral-color-100);
+    background-color: var(--neutral-color-200);
     z-index: 1;
   }
 }
 
-// Right column: details
 .timeline-step-right {
-  flex-grow: 1;
-  padding-top: 4px;
+  flex: 1;
+  min-width: 0;
+  padding-top: var(--spacing-0_5);
 
   .step-approver-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--neutral-color-800);
-    margin-bottom: 4px;
+    font-size: var(--text-base);
+    font-weight: var(--font-bold);
+    color: var(--text-color);
+    margin-bottom: var(--spacing-1);
+    line-height: var(--leading-snug);
+    word-break: break-word;
   }
 
   .step-description {
-    font-size: 14px;
+    font-size: var(--text-sm);
     color: var(--neutral-color-500);
+    line-height: var(--leading-relaxed);
 
     strong {
-      color: var(--neutral-color-800);
-      font-weight: 600;
+      color: var(--text-color);
+      font-weight: var(--font-semibold);
     }
   }
 }
 
 // ==============================================
-// Action Buttons
+// Action buttons (inside approval card)
 // ==============================================
 .action-buttons-bar {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 40px;
-  padding-bottom: 40px;
+  flex-wrap: wrap;
+  gap: var(--spacing-2_5);
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-5);
+  border-top: 1px solid var(--neutral-color-200);
 
   ::ng-deep {
     .btn-container {
-      border-radius: 8px !important;
-      font-weight: 500 !important;
-      padding: 10px 24px !important;
-      height: 44px !important;
-      min-width: 100px;
+      border-radius: var(--radius-md) !important;
+      font-weight: var(--font-semibold) !important;
+      font-size: var(--text-sm) !important;
+      padding: 10px var(--spacing-5) !important;
+      height: 40px !important;
+      min-width: 96px;
     }
   }
 }
 
-// Custom button colors for mockup
 .btn-back {
   ::ng-deep .btn-container {
     background-color: var(--neutral-color-10) !important;
@@ -245,7 +306,7 @@
 
 .btn-reject {
   ::ng-deep .btn-container {
-    background-color: var(--utility-600) !important; // Red
+    background-color: var(--utility-color) !important;
     color: var(--neutral-color-10) !important;
     border: none !important;
   }
@@ -253,14 +314,14 @@
 
 .btn-approve {
   ::ng-deep .btn-container {
-    background-color: var(--theme-green-500) !important; // Green
+    background-color: var(--functional-color) !important;
     color: var(--neutral-color-10) !important;
     border: none !important;
   }
 }
 
 // ==============================================
-// Popups (simplified)
+// Popups
 // ==============================================
 .popup-overlay {
   position: fixed;
@@ -268,7 +329,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(17, 24, 39, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,40 +338,70 @@
 
 .popup-container {
   background-color: var(--neutral-color-10);
-  border-radius: 12px;
-  padding: 24px;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-6);
   width: 90%;
   max-width: 400px;
   text-align: center;
+  border: 1px solid var(--neutral-color-200);
+  box-shadow: 0 20px 40px rgba(17, 24, 39, 0.12);
+}
+
+.popup-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--text-color);
+
+  &--reject {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-lg);
+    color: var(--text-color);
+  }
+
+  &--success {
+    color: var(--functional-color);
+    font-weight: var(--font-semibold);
+    font-size: var(--text-lg);
+  }
 }
 
 .reject-textarea {
   width: 100%;
   height: 120px;
-  padding: 12px;
+  padding: var(--spacing-3);
   border: 1px solid var(--neutral-color-300);
-  border-radius: 8px;
-  margin-top: 16px;
-  font-family: inherit;
+      border-radius: var(--radius-md);
+  margin-top: var(--spacing-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-color);
   resize: none;
+  transition: border-color var(--duration-150) var(--ease-in-out);
+
   &:focus {
     outline: none;
-    border-color: var(--brand-500);
+    border-color: var(--secondary-color);
+  }
+
+  &::placeholder {
+    color: var(--neutral-color-500);
   }
 }
 
 .popup-actions {
   display: flex;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
 
   .popup-btn {
     flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: 600;
+    padding: 10px var(--spacing-3);
+      border-radius: var(--radius-md);
+    font-weight: var(--font-semibold);
     cursor: pointer;
     border: none;
+    font-size: var(--text-sm);
+    transition: background-color var(--duration-150) var(--ease-in-out);
   }
 
   .btn-cancel {
@@ -320,44 +411,50 @@
   }
 
   .btn-confirm-reject {
-    background-color: var(--utility-600);
+    background-color: var(--utility-color);
     color: var(--neutral-color-10);
+
     &:disabled {
-      opacity: 0.5;
+      opacity: 0.45;
       cursor: not-allowed;
     }
   }
 
   .btn-success {
-    background-color: var(--theme-green-500);
+    background-color: var(--functional-color);
     color: var(--neutral-color-10);
   }
 }
 
+// ==============================================
+// Loading
+// ==============================================
 .loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  padding: 100px 0;
+  gap: var(--spacing-4);
+  padding: 80px 0;
   color: var(--neutral-color-500);
+  font-size: var(--text-sm);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
   border: 3px solid var(--neutral-color-100);
-  border-top: 3px solid #D48806;
+  border-top: 3px solid var(--secondary-color);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: dtm-spin 0.9s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+@keyframes dtm-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-// Hide evidence card if not needed or style it minimally
 .evidence-card {
-  margin-top: 32px;
+  margin-top: var(--spacing-8);
   display: none;
 }

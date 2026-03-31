@@ -7,11 +7,7 @@ import {
   InputTextComponent,
 } from '@goat-bravos/intern-hub-layout';
 import { TicketService } from '../../services/ticket.service';
-import {
-  UserTicketDto,
-  TicketStatus,
-  TicketTypeDto,
-} from '../../models/ticket.model';
+import { UserTicketDto, TicketTypeDto } from '../../models/ticket.model';
 import { forkJoin } from 'rxjs';
 
 @Component({
@@ -112,22 +108,6 @@ export class UserTicketPage implements OnInit {
   }
 
   /**
-   * Get the border color CSS variable for a card based on its status
-   */
-  getCardBorderColor(status: TicketStatus): string {
-    switch (status) {
-      case TicketStatus.APPROVED:
-        return 'var(--theme-green-300)';
-      case TicketStatus.REJECTED:
-        return 'var(--utility-300)';
-      case TicketStatus.PENDING:
-        return 'var(--brand-300)';
-      default:
-        return 'var(--neutral-color-300)';
-    }
-  }
-
-  /**
    * Get status label text in Vietnamese for approval level
    */
   getApprovalStatusLabel(status: 'SUCCESS' | 'PENDING' | 'REJECTED' | null): string {
@@ -142,8 +122,8 @@ export class UserTicketPage implements OnInit {
    */
   getApprovalStatusColor(status: 'SUCCESS' | 'PENDING' | 'REJECTED' | null): string {
     if (status === 'SUCCESS') return 'var(--theme-green-600)';
-    if (status === 'REJECTED') return 'var(--utility-600)';
-    if (status === 'PENDING') return 'var(--brand-500)';
+    if (status === 'REJECTED') return 'var(--utility-color)';
+    if (status === 'PENDING') return 'var(--secondary-color)';
     return 'var(--neutral-color-500)';
   }
 
@@ -163,7 +143,7 @@ export class UserTicketPage implements OnInit {
   getApprovalIconBg(status: 'SUCCESS' | 'PENDING' | 'REJECTED' | null): string {
     if (status === 'SUCCESS') return 'var(--theme-green-100)';
     if (status === 'REJECTED') return 'var(--utility-100)';
-    if (status === 'PENDING') return 'var(--brand-100)';
+    if (status === 'PENDING') return 'var(--secondary-100)';
     return 'var(--neutral-color-100)';
   }
 
@@ -172,8 +152,8 @@ export class UserTicketPage implements OnInit {
    */
   getApprovalIconColor(status: 'SUCCESS' | 'PENDING' | 'REJECTED' | null): string {
     if (status === 'SUCCESS') return 'var(--theme-green-600)';
-    if (status === 'REJECTED') return 'var(--utility-600)';
-    if (status === 'PENDING') return 'var(--brand-600)';
+    if (status === 'REJECTED') return 'var(--utility-color)';
+    if (status === 'PENDING') return 'var(--secondary-color)';
     return 'var(--neutral-color-500)';
   }
 
