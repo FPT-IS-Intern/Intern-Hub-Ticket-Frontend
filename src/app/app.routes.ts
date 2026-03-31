@@ -16,28 +16,26 @@ export const routes: Routes = [
     path: 'request-ticket-management',
     loadComponent: () =>
       import('./features/ticket-management/request-ticket-management/request-ticket-management').then(
-        (m) => m.RequestTicketManagementPage
+        (m) => m.RequestTicketManagementPage,
       ),
   },
   {
     path: 'detail-ticket-management',
     loadComponent: () =>
       import('./features/ticket-management/detail-ticket-management/detail-ticket-management').then(
-        (m) => m.DetailTicketManagementPage
+        (m) => m.DetailTicketManagementPage,
       ),
   },
 
-  
   {
-    path: 'user-ticket',
+    path: 'my-ticket',
     loadComponent: () =>
       import('./features/user-ticket/user-ticket.page').then((m) => m.UserTicketPage),
   },
 
   {
     path: 'forbidden',
-    loadComponent: () =>
-      import('./features/forbidden/forbidden.page').then((m) => m.ForbiddenPage),
+    loadComponent: () => import('./features/forbidden/forbidden.page').then((m) => m.ForbiddenPage),
   },
 
   {
