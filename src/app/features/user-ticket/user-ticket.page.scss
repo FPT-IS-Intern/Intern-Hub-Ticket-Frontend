@@ -52,22 +52,6 @@
   flex-wrap: wrap;
 }
 
-.search-box-wrapper {
-  flex: 1;
-  min-width: 280px;
-  max-width: 520px;
-  height: 40px;
-
-  ::ng-deep .app-input-text .input-form-field {
-    width: 100% !important;
-    height: 40px !important;
-    border-radius: var(--radius-md) !important;
-    background-color: var(--neutral-color-10) !important;
-    border: 1px solid var(--neutral-color-200) !important;
-    font-size: var(--text-sm) !important;
-  }
-}
-
 .filter-select-field {
   position: relative;
   min-width: 240px;
@@ -93,6 +77,10 @@
 
   .ticket-type-select {
     min-width: 260px;
+  }
+
+  .status-select {
+    min-width: 200px;
   }
 
   .select-icon {
@@ -286,14 +274,14 @@
     align-items: stretch;
   }
 
-  .search-box-wrapper {
-    max-width: none;
-  }
-
   .filter-select-field {
     min-width: 0;
 
     .ticket-type-select {
+      min-width: 0;
+    }
+
+    .status-select {
       min-width: 0;
     }
   }

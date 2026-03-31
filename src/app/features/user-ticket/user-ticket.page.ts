@@ -2,10 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import {
-  IconComponent,
-  InputTextComponent,
-} from '@goat-bravos/intern-hub-layout';
+import { IconComponent } from '@goat-bravos/intern-hub-layout';
 import { TicketService } from '../../services/ticket.service';
 import { UserTicketDto, TicketTypeDto } from '../../models/ticket.model';
 import { forkJoin } from 'rxjs';
@@ -17,7 +14,6 @@ import { forkJoin } from 'rxjs';
     CommonModule,
     FormsModule,
     IconComponent,
-    InputTextComponent,
   ],
   templateUrl: './user-ticket.page.html',
   styleUrl: './user-ticket.page.scss',
@@ -26,9 +22,15 @@ export class UserTicketPage implements OnInit {
   tickets: UserTicketDto[] = [];
   filteredTickets: UserTicketDto[] = [];
   ticketTypes: TicketTypeDto[] = [];
-  ticketCode = '';
   selectedTicketType = '';
+  selectedStatus = '';
   isLoading = false;
+
+  statusOptions = [
+    { value: 'PENDING', label: 'Chờ duyệt' },
+    { value: 'APPROVED', label: 'Đã duyệt' },
+    { value: 'REJECTED', label: 'Từ chối' },
+  ];
 
   constructor(
     private readonly router: Router,
@@ -43,52 +45,40 @@ export class UserTicketPage implements OnInit {
   loadData(): void {
     this.isLoading = true;
     forkJoin({
-      myTickets: this.ticketService.getMyTickets(),
       types: this.ticketService.getTicketTypes(),
     }).subscribe({
       next: (res) => {
-        this.tickets = res.myTickets.data || [];
         this.ticketTypes = res.types.data || [];
-        this.applyFilters();
-        this.isLoading = false;
+        this.loadMyTickets();
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading user tickets:', err);
+        console.error('Error loading ticket types:', err);
         this.isLoading = false;
       },
     });
   }
 
-  applyFilters(): void {
-    let result = [...this.tickets];
-
-    if (this.ticketCode?.trim()) {
-      const keyword = this.ticketCode.trim().toLowerCase();
-      result = result.filter((t) =>
-        t.ticketId.toLowerCase().includes(keyword),
-      );
-    }
-
-    if (this.selectedTicketType) {
-      result = result.filter(
-        (t) => t.typeName === this.selectedTicketType,
-      );
-    }
-
-    this.filteredTickets = result;
+  loadMyTickets(): void {
+    this.isLoading = true;
+    this.ticketService
+      .getMyTickets(this.selectedTicketType || undefined, this.selectedStatus || undefined)
+      .subscribe({
+        next: (res) => {
+          this.tickets = res.data || [];
+          this.filteredTickets = this.tickets;
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error loading my tickets:', err);
+          this.isLoading = false;
+        },
+      });
   }
 
-  onSearchChange(value: string): void {
-    this.ticketCode = value;
-  }
-
-  onSearch(): void {
-    this.applyFilters();
-  }
-
-  onTicketTypeChange(): void {
-    this.applyFilters();
+  onFilterChange(): void {
+    this.loadMyTickets();
   }
 
   goToHome(): void {

@@ -17,29 +17,31 @@
 
   <!-- Filter -->
   <div class="filter">
-    <div class="search-box-wrapper">
-      <app-input-text
-        placeholder="Tìm kiếm mã phiếu"
-        icon="dsi dsi-search-lg-line"
-        [value]="ticketCode"
-        [showLabel]="false"
-        border="1px solid var(--neutral-color-200)"
-        (valueChange)="onSearchChange($event)"
-        (iconClick)="onSearch()"
-      >
-      </app-input-text>
-    </div>
-
     <!-- Ticket Type -->
     <div class="filter-select-field">
       <select
         class="ticket-type-select"
         [(ngModel)]="selectedTicketType"
-        (change)="onTicketTypeChange()"
+        (change)="onFilterChange()"
       >
         <option value="">Chọn loại phiếu yêu cầu</option>
         @for (type of ticketTypes; track type.ticketTypeId) {
           <option [value]="type.typeName">{{ type.typeName }}</option>
+        }
+      </select>
+      <i class="dsi dsi-chevron-down-line select-icon"></i>
+    </div>
+
+    <!-- Status -->
+    <div class="filter-select-field">
+      <select
+        class="status-select"
+        [(ngModel)]="selectedStatus"
+        (change)="onFilterChange()"
+      >
+        <option value="">Chọn trạng thái</option>
+        @for (option of statusOptions; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
         }
       </select>
       <i class="dsi dsi-chevron-down-line select-icon"></i>

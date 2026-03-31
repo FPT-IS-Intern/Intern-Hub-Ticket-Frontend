@@ -305,9 +305,15 @@ export class TicketService {
 
   /**
    * Get tickets for the current user
-   * GET /ticket/me
+   * GET /ticket/me?typeName=...&status=...
    */
-  getMyTickets(): Observable<ResponseApi<UserTicketDto[]>> {
-    return this.http.get<ResponseApi<UserTicketDto[]>>(`${this.baseUrl}/me`);
+  getMyTickets(
+    typeName?: string,
+    status?: string,
+  ): Observable<ResponseApi<UserTicketDto[]>> {
+    const params: { [key: string]: string } = {};
+    if (typeName) params['typeName'] = typeName;
+    if (status) params['status'] = status;
+    return this.http.get<ResponseApi<UserTicketDto[]>>(`${this.baseUrl}/me`, { params });
   }
 }

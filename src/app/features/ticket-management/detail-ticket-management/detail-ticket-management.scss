@@ -53,8 +53,8 @@
 // ==============================================
 .page-title {
   font-size: var(--text-4xl);
-  font-weight: var(--font-bold);
-  color: var(--secondary-color);
+  // font-weight: var(--font-bold);
+  color: var(--brand-500);
   margin: 0 0 var(--spacing-5);
   letter-spacing: var(--tracking-tight);
 }
@@ -85,8 +85,7 @@
 .approval-card-title {
   margin: 0 0 var(--spacing-3);
   font-size: var(--text-xl);
-  font-weight: var(--font-bold);
-  color: var(--secondary-color);
+  color: var(--brand-500);
   line-height: var(--leading-snug);
 }
 
@@ -215,7 +214,7 @@
     flex-shrink: 0;
 
     &.step-done {
-      background-color: var(--secondary-color);
+      background-color: var(--theme-green-500);
       color: var(--neutral-color-10);
     }
   }
@@ -370,7 +369,7 @@
   height: 120px;
   padding: var(--spacing-3);
   border: 1px solid var(--neutral-color-300);
-      border-radius: var(--radius-md);
+  border-radius: var(--radius-md);
   margin-top: var(--spacing-4);
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -396,7 +395,7 @@
   .popup-btn {
     flex: 1;
     padding: 10px var(--spacing-3);
-      border-radius: var(--radius-md);
+    border-radius: var(--radius-md);
     font-weight: var(--font-semibold);
     cursor: pointer;
     border: none;
