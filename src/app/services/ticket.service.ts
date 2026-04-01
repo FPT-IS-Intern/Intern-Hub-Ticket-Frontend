@@ -253,6 +253,16 @@ export class TicketService {
   }
 
   /**
+   * Get approvers by approval level
+   * GET /ticket/approvers?level={level}
+   */
+  getApproversByLevel(level: number): Observable<ResponseApi<string[]>> {
+    return this.http.get<ResponseApi<string[]>>(`${this.baseUrl}/approvers`, {
+      params: { level: level.toString() },
+    });
+  }
+
+  /**
    * Upload evidence for a ticket
    * POST /ticket/{ticketId}/evidences
    * @param ticketId - The ticket ID (Long in backend)

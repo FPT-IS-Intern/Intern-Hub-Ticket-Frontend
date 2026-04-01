@@ -24,8 +24,9 @@ import {
   EvidenceDto,
   TicketTypeDto,
 } from '../../../models/ticket.model';
-import { forkJoin, EMPTY } from 'rxjs';
+import { forkJoin, EMPTY, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { StorageUtil } from '@goat-bravos/shared-lib-client';
 
 type TicketType = TicketTypeCode;
 
@@ -65,6 +66,10 @@ export class DetailTicketManagementPage implements OnInit {
   isLoading = false;
   isApproving = false;
   isRejecting = false;
+  canApproveCurrentTicket = false;
+  private currentUserId = '';
+  private level1ApproverIds = new Set<string>();
+  private level2ApproverIds = new Set<string>();
 
   showRejectPopup = false;
   rejectReason = '';
@@ -101,6 +106,9 @@ export class DetailTicketManagementPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.currentUserId = StorageUtil.getUserId() ?? '';
+    this.loadApproverPermissions();
+
     this.route.queryParams.subscribe((params) => {
       this.ticketId = params['ticketId'] || '';
       const ticketTypeId = params['ticketTypeId'] || '';
@@ -158,6 +166,7 @@ export class DetailTicketManagementPage implements OnInit {
 
             this.mapDetailToComponents(data.ticketDetail);
             this.buildApprovalLevels(data.ticketDetail, data.ticketApprovalInfo);
+            this.updateApprovalPermission();
           } catch (e) {
             console.error('Error parsing ticket detail:', e);
           }
@@ -366,6 +375,7 @@ export class DetailTicketManagementPage implements OnInit {
   // Reject flow
   // ==============================================
   openRejectPopup(): void {
+    if (!this.canApproveCurrentTicket) return;
     this.rejectReason = '';
     this.showRejectPopup = true;
   }
@@ -376,7 +386,13 @@ export class DetailTicketManagementPage implements OnInit {
   }
 
   confirmReject(): void {
-    if (this.rejectReason.trim().length === 0 || !this.ticketId || !this.ticketDetail || this.isRejecting) return;
+    if (
+      this.rejectReason.trim().length === 0 ||
+      !this.ticketId ||
+      !this.ticketDetail ||
+      this.isRejecting ||
+      !this.canApproveCurrentTicket
+    ) return;
 
     this.isRejecting = true;
     this.showRejectPopup = false;
@@ -408,7 +424,7 @@ export class DetailTicketManagementPage implements OnInit {
   // Approve flow
   // ==============================================
   onApprove(): void {
-    if (!this.ticketId || !this.ticketDetail || this.isApproving) return;
+    if (!this.ticketId || !this.ticketDetail || this.isApproving || !this.canApproveCurrentTicket) return;
 
     this.isApproving = true;
     const idempotencyKey = `${this.ticketId}-${Date.now()}-${this.generateRandomSuffix()}`;
@@ -469,5 +485,52 @@ export class DetailTicketManagementPage implements OnInit {
     if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
     if (total >= 2 && this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
     return (done / total) * 100;
+  }
+
+  get canShowApprovalActions(): boolean {
+    if (!this.ticketDetail) return false;
+    const isPendingOrReviewing =
+      this.ticketDetail.status === TicketStatus.PENDING ||
+      this.ticketDetail.status === TicketStatus.REVIEWING;
+    return isPendingOrReviewing && this.canApproveCurrentTicket;
+  }
+
+  private loadApproverPermissions(): void {
+    forkJoin({
+      level1: this.ticketService.getApproversByLevel(1).pipe(catchError(() => of(null))),
+      level2: this.ticketService.getApproversByLevel(2).pipe(catchError(() => of(null))),
+    }).subscribe({
+      next: ({ level1, level2 }) => {
+        this.level1ApproverIds = new Set(this.normalizeApproverIds(level1?.data));
+        this.level2ApproverIds = new Set(this.normalizeApproverIds(level2?.data));
+        this.updateApprovalPermission();
+      },
+      error: (err) => {
+        console.error('Error loading approver permissions:', err);
+        this.level1ApproverIds.clear();
+        this.level2ApproverIds.clear();
+        this.updateApprovalPermission();
+      },
+    });
+  }
+
+  private updateApprovalPermission(): void {
+    if (!this.ticketDetail || !this.currentUserId) {
+      this.canApproveCurrentTicket = false;
+      return;
+    }
+
+    const currentLevel = Math.max(1, Number(this.ticketDetail.currentApprovalLevel || 1));
+    const isLevel1Approver = this.level1ApproverIds.has(this.currentUserId);
+    const isLevel2Approver = this.level2ApproverIds.has(this.currentUserId);
+
+    this.canApproveCurrentTicket = currentLevel <= 1
+      ? (isLevel1Approver || isLevel2Approver)
+      : isLevel2Approver;
+  }
+
+  private normalizeApproverIds(ids: string[] | null | undefined): string[] {
+    if (!Array.isArray(ids)) return [];
+    return ids.map((id) => String(id)).filter((id) => id.trim().length > 0);
   }
 }

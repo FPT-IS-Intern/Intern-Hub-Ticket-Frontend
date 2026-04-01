@@ -156,7 +156,7 @@
           content="Trở về"
           (buttonClick)="goToRequestManagement()"
         ></app-button-container>
-        @if (ticketDetail && ticketDetail.status === 'PENDING') {
+        @if (canShowApprovalActions) {
           <app-button-container
             class="btn-reject"
             [class.is-disabled]="isApproving || isRejecting"

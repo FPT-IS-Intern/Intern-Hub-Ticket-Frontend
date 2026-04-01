@@ -30,6 +30,9 @@ import {
   TicketTypeDto,
 } from '../../../models/ticket.model';
 import { forkJoin } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { StorageUtil } from '@goat-bravos/shared-lib-client';
 
 interface RequestTicketTableRow {
   ticketId: string;
@@ -114,6 +117,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   showBulkConfirm = false;
   bulkAction: 'approve' | 'reject' = 'approve';
   isHeaderChecked = false;
+  private currentUserId = '';
+  private level1ApproverIds = new Set<string>();
+  private level2ApproverIds = new Set<string>();
 
   readonly sortByOptions = [
     { label: 'Ngày tạo', value: 'createdAt' },
@@ -142,6 +148,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   ) {}
 
   ngOnInit(): void {
+    this.currentUserId = StorageUtil.getUserId() ?? '';
+    this.loadApproverPermissions();
     this.loadInitialData();
   }
 
@@ -225,6 +233,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
         version: ticket.version ?? 0,
       };
     });
+    this.syncSelectionWithPermission();
   }
 
   ngAfterViewInit(): void {
@@ -243,8 +252,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     return this.tableRows.filter((row) => row.selected).length;
   }
 
-  get hasPendingRows(): boolean {
-    return this.tableRows.some((row) => row.status === TicketStatus.PENDING);
+  get hasApprovableRows(): boolean {
+    return this.tableRows.some((row) => this.canApproveRow(row));
   }
 
   get totalPages(): number {
@@ -327,12 +336,17 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
     this.isHeaderChecked = checked;
     this.tableRows = this.tableRows.map((row) => ({
       ...row,
-      selected: row.status === TicketStatus.PENDING ? checked : false,
+      selected: this.canApproveRow(row) ? checked : false,
     }));
   }
 
   onRowCheckboxChange(ticketId: string, event: Event): void {
     const checked = (event.target as HTMLInputElement).checked;
+    const targetRow = this.tableRows.find((row) => row.ticketId === ticketId);
+    if (!targetRow || !this.canApproveRow(targetRow)) {
+      this.syncHeaderCheckboxState();
+      return;
+    }
     this.tableRows = this.tableRows.map((row) =>
       row.ticketId === ticketId ? { ...row, selected: checked } : row,
     );
@@ -352,7 +366,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   confirmBulkAction(): void {
-    const selectedRows = this.tableRows.filter((row) => row.selected);
+    const selectedRows = this.tableRows.filter((row) => row.selected && this.canApproveRow(row));
     if (selectedRows.length === 0 || this.isBulkApproving) return;
 
     this.isBulkApproving = true;
@@ -558,7 +572,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   private syncHeaderCheckboxState(): void {
-    this.isHeaderChecked = this.tableRows.length > 0 && this.tableRows.every((row) => row.selected);
+    const approvableRows = this.tableRows.filter((row) => this.canApproveRow(row));
+    this.isHeaderChecked = approvableRows.length > 0 && approvableRows.every((row) => row.selected);
   }
 
   private buildFilter(): FilterTicketRequest {
@@ -588,5 +603,56 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       filter.sortDirection = this.selectedSortDirection;
     }
     return filter;
+  }
+
+  canApproveRow(row: RequestTicketTableRow): boolean {
+    if (!this.currentUserId) return false;
+
+    if (row.status !== TicketStatus.PENDING && row.status !== TicketStatus.REVIEWING) {
+      return false;
+    }
+
+    const isLevel1Approver = this.level1ApproverIds.has(this.currentUserId);
+    const isLevel2Approver = this.level2ApproverIds.has(this.currentUserId);
+    const currentApprovalLevel = row.status === TicketStatus.PENDING ? 1 : 2;
+
+    return currentApprovalLevel <= 1
+      ? (isLevel1Approver || isLevel2Approver)
+      : isLevel2Approver;
+  }
+
+  private loadApproverPermissions(): void {
+    forkJoin({
+      level1: this.ticketService.getApproversByLevel(1).pipe(
+        map((res) => this.normalizeApproverIds(res.data)),
+        catchError(() => of([])),
+      ),
+      level2: this.ticketService.getApproversByLevel(2).pipe(
+        map((res) => this.normalizeApproverIds(res.data)),
+        catchError(() => of([])),
+      ),
+    }).subscribe({
+      next: ({ level1, level2 }) => {
+        this.level1ApproverIds = new Set(level1);
+        this.level2ApproverIds = new Set(level2);
+        this.syncSelectionWithPermission();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading approver permissions:', err);
+      },
+    });
+  }
+
+  private syncSelectionWithPermission(): void {
+    this.tableRows = this.tableRows.map((row) =>
+      this.canApproveRow(row) ? row : { ...row, selected: false },
+    );
+    this.syncHeaderCheckboxState();
+  }
+
+  private normalizeApproverIds(ids: string[] | null | undefined): string[] {
+    if (!Array.isArray(ids)) return [];
+    return ids.map((id) => String(id)).filter((id) => id.trim().length > 0);
   }
 }
