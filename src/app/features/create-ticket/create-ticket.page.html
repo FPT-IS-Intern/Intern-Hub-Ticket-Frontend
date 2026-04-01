@@ -20,7 +20,7 @@
     </div>
     <div class="header-right">
       <app-button-container class="cancel-button" content="Huỷ" (buttonClick)="goToHome()" border="1px solid var(--gray-300)" backgroundColor="white" color="var(--gray-700)"> </app-button-container>
-      <app-button-container class="send-button" [content]="isSubmitting ? 'Đang gửi...' : 'Gửi'" (buttonClick)="onSubmit()" backgroundColor="var(--brand-600)" color="white"> </app-button-container>
+      <app-button-container class="send-button" [class.send-button-disabled]="isSubmitDisabled()" [content]="isSubmitting ? 'Đang gửi...' : 'Gửi'" (buttonClick)="onSubmit()" backgroundColor="var(--brand-600)" color="white"> </app-button-container>
     </div>
   </div>
 
@@ -34,7 +34,7 @@
       icon="dsi-chevron-down-line"
     ></app-input-text>
     <select [(ngModel)]="selectedTicketTypeId" (change)="onTicketTypeChange()" class="form-control hidden-select">
-      @for (type of ticketTypesList; track type.ticketTypeId) {
+      @for (type of getVisibleTicketTypes(); track type.ticketTypeId) {
         <option [value]="type.ticketTypeId">
           {{ type.typeName }}
         </option>

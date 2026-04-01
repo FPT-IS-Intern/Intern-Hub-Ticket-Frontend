@@ -1,9 +1,38 @@
 import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/intern-hub-layout';
+
+const completeDateRangeValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const dates = control.value;
+  if (!Array.isArray(dates) || dates.length !== 2 || !dates[0] || !dates[1]) {
+    return { incompleteDateRange: true };
+  }
+  return null;
+};
+
+const requiredAttachmentValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const files = control.value;
+  if (!Array.isArray(files) || files.length === 0) {
+    return { required: true };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-remote-wfh-form',
@@ -36,6 +65,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
         @if (dateError) {
           <div class="error-message">{{ dateError }}</div>
         }
+        @if (showControlError('dateRange') && !dateError) {
+          <div class="error-message">Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc</div>
+        }
       </div>
 
       <!-- Reason -->
@@ -48,6 +80,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
           maxlength="255"
         ></textarea>
         <div class="char-count">{{ form.get('reason')?.value?.length || 0 }}/255</div>
+        @if (showControlError('reason')) {
+          <div class="error-message">Vui lòng nhập lí do</div>
+        }
       </div>
 
       <!-- Attachments -->
@@ -59,6 +94,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
+        @if (showControlError('attachments')) {
+          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
+        }
       </div>
     </form>
   `,
@@ -76,9 +114,9 @@ export class RemoteWfhFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      dateRange: [[], Validators.required],
+      dateRange: [[], [completeDateRangeValidator]],
       reason: [null, Validators.required],
-      attachments: [[]]
+      attachments: [[], [requiredAttachmentValidator]]
     });
 
     // Watch dateRange for validation
@@ -112,12 +150,16 @@ export class RemoteWfhFormComponent implements OnInit, OnDestroy {
     } else {
       this.form.get('dateRange')?.setValue([date, endDate]);
     }
+    this.form.get('dateRange')?.markAsDirty();
+    this.form.get('dateRange')?.markAsTouched();
   }
 
   onEndDateChange(date: Date | null) {
     this.endDateValue = date;
     const currentRange = this.form.get('dateRange')?.value || [];
     this.form.get('dateRange')?.setValue([currentRange[0], date]);
+    this.form.get('dateRange')?.markAsDirty();
+    this.form.get('dateRange')?.markAsTouched();
   }
 
   validateDateRange(dates: any[]): void {
@@ -136,6 +178,17 @@ export class RemoteWfhFormComponent implements OnInit, OnDestroy {
 
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
+    this.form.get('attachments')?.markAsDirty();
+    this.form.get('attachments')?.markAsTouched();
+  }
+
+  showControlError(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || control.dirty);
   }
 
   disabledPastDate = (current: Date): boolean => {

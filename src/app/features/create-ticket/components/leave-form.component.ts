@@ -1,9 +1,38 @@
 import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } from '@goat-bravos/intern-hub-layout';
+
+const completeDateRangeValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const dates = control.value;
+  if (!Array.isArray(dates) || dates.length !== 2 || !dates[0] || !dates[1]) {
+    return { incompleteDateRange: true };
+  }
+  return null;
+};
+
+const requiredAttachmentValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const files = control.value;
+  if (!Array.isArray(files) || files.length === 0) {
+    return { required: true };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-leave-form',
@@ -37,18 +66,26 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           @if (dateError) {
             <div class="error-message">{{ dateError }}</div>
           }
+          @if (showControlError('dateRange') && !dateError) {
+            <div class="error-message">Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc</div>
+          }
         </div>
 
         <div class="form-group" style="display: flex; flex-direction: column;">
           <label>Tổng ngày nghỉ<span class="required">*</span></label>
           <app-input-text
-            formControlName="totalDays"
+            [value]="(form.get('totalDays')?.value ?? 0).toString()"
             typeInput="number"
             [readonly]="true"
           ></app-input-text>
-          @if (form.get('totalDays')?.value >= 7) {
-            <div class="info-message" style="color: var(--brand-600); font-size: 12px; margin-top: 4px;">
-              Vì tổng ngày nghỉ của bạn lớn hơn 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ duyệt cuối
+          @if (form.get('totalDays')?.value > 0 && form.get('totalDays')?.value < 5) {
+            <div class="leave-info-message">
+              Vì tổng ngày nghỉ của bạn ít hơn 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ xem
+            </div>
+          }
+          @if (form.get('totalDays')?.value >= 5) {
+            <div class="leave-info-message">
+              Vì tổng ngày nghỉ của bạn lớn hơn hoặc bằng 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ duyệt cuối
             </div>
           }
         </div>
@@ -64,6 +101,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           maxlength="255"
         ></textarea>
         <div class="char-count">{{ form.get('reason')?.value?.length || 0 }}/255</div>
+        @if (showControlError('reason')) {
+          <div class="error-message">Vui lòng nhập lí do</div>
+        }
       </div>
 
       <!-- Attachments -->
@@ -75,10 +115,23 @@ import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } 
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
+        @if (showControlError('attachments')) {
+          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
+        }
       </div>
     </form>
   `,
-  styleUrls: ['../create-ticket.page.scss']
+  styleUrls: ['../create-ticket.page.scss'],
+  styles: [
+    `
+      .leave-info-message {
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--neutral-color-200);
+        line-height: 1.4;
+      }
+    `,
+  ]
 })
 export class LeaveFormComponent implements OnInit, OnDestroy {
   @Output() formChange = new EventEmitter<FormGroup>();
@@ -92,34 +145,17 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      dateRange: [[null, null], Validators.required],
-      totalDays: [{ value: 0, disabled: false }],
+      dateRange: [[null, null], [completeDateRangeValidator]],
+      totalDays: [{ value: 0, disabled: true }],
       reason: [null, Validators.required],
-      attachments: [[]]
+      attachments: [[], [requiredAttachmentValidator]]
     });
 
     // Calculate total days when date range changes
     this.form.get('dateRange')?.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe((dates: any[]) => {
-        this.dateError = null;
-        if (dates && dates.length === 2 && dates[0] && dates[1]) {
-          const start = new Date(dates[0]);
-          const end = new Date(dates[1]);
-          start.setHours(0, 0, 0, 0);
-          end.setHours(0, 0, 0, 0);
-
-          if (end < start) {
-            this.dateError = 'Ngày kết thúc phải sau ngày bắt đầu';
-            this.form.get('totalDays')?.setValue(0);
-          } else {
-            const diffTime = Math.abs(end.getTime() - start.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-            this.form.get('totalDays')?.setValue(diffDays);
-          }
-        } else {
-          this.form.get('totalDays')?.setValue(0);
-        }
+        this.calculateTotalDays(dates);
       });
 
     this.form.valueChanges.subscribe(() => {
@@ -146,16 +182,57 @@ export class LeaveFormComponent implements OnInit, OnDestroy {
     } else {
       this.form.get('dateRange')?.setValue([date, endDate]);
     }
+    this.form.get('dateRange')?.markAsDirty();
+    this.form.get('dateRange')?.markAsTouched();
+    this.calculateTotalDays(this.form.get('dateRange')?.value || []);
   }
 
   onEndDateChange(date: Date | null) {
     this.endDateValue = date;
     const currentRange = this.form.get('dateRange')?.value || [];
     this.form.get('dateRange')?.setValue([currentRange[0], date]);
+    this.form.get('dateRange')?.markAsDirty();
+    this.form.get('dateRange')?.markAsTouched();
+    this.calculateTotalDays(this.form.get('dateRange')?.value || []);
   }
 
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
+    this.form.get('attachments')?.markAsDirty();
+    this.form.get('attachments')?.markAsTouched();
+  }
+
+  showControlError(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  private calculateTotalDays(dates: any[]): void {
+    this.dateError = null;
+
+    if (dates && dates.length === 2 && dates[0] && dates[1]) {
+      const start = new Date(dates[0]);
+      const end = new Date(dates[1]);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+
+      if (end < start) {
+        this.dateError = 'Ngày kết thúc phải sau ngày bắt đầu';
+        this.form.get('totalDays')?.setValue(0, { emitEvent: false });
+        return;
+      }
+
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      this.form.get('totalDays')?.setValue(diffDays, { emitEvent: false });
+      return;
+    }
+
+    this.form.get('totalDays')?.setValue(0, { emitEvent: false });
   }
 
   disabledPastDate = (current: Date): boolean => {

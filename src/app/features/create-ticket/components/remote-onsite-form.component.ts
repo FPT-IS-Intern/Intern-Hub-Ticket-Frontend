@@ -1,10 +1,39 @@
 import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } from '@goat-bravos/intern-hub-layout';
 import { WorkLocationService } from '../../../services/work-location.service';
+
+const completeDateRangeValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const dates = control.value;
+  if (!Array.isArray(dates) || dates.length !== 2 || !dates[0] || !dates[1]) {
+    return { incompleteDateRange: true };
+  }
+  return null;
+};
+
+const requiredAttachmentValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const files = control.value;
+  if (!Array.isArray(files) || files.length === 0) {
+    return { required: true };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-remote-onsite-form',
@@ -12,69 +41,84 @@ import { WorkLocationService } from '../../../services/work-location.service';
   imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent],
   template: `
     <form [formGroup]="form" class="ticket-form">
-      <!-- Date Range -->
-      <div class="form-group full-width">
-        <label>Ngày làm <span class="required">*</span></label>
-        <div class="date-range-picker">
-          <app-date-picker
-            [disabledDate]="disabledPastDate"
-            [(ngModel)]="startDateValue"
-            [ngModelOptions]="{standalone: true}"
-            (dateChange)="onStartDateChange($event)"
-            style="width: 100%;"
-            height="40px">
-          </app-date-picker>
-          <span>&rarr;</span>
-          <app-date-picker
-            [disabledDate]="disabledEndDate"
-            [(ngModel)]="endDateValue"
-            [ngModelOptions]="{standalone: true}"
-            (dateChange)="onEndDateChange($event)"
-            style="width: 100%;"
-            height="40px">
-          </app-date-picker>
+      <div class="onsite-grid">
+        <!-- Date Range -->
+        <div class="form-group">
+          <label>Ngày làm <span class="required">*</span></label>
+          <div class="date-range-picker">
+            <app-date-picker
+              [disabledDate]="disabledPastDate"
+              [(ngModel)]="startDateValue"
+              [ngModelOptions]="{standalone: true}"
+              (dateChange)="onStartDateChange($event)"
+              style="width: 100%;"
+              height="40px">
+            </app-date-picker>
+            <span>&rarr;</span>
+            <app-date-picker
+              [disabledDate]="disabledEndDate"
+              [(ngModel)]="endDateValue"
+              [ngModelOptions]="{standalone: true}"
+              (dateChange)="onEndDateChange($event)"
+              style="width: 100%;"
+              height="40px">
+            </app-date-picker>
+          </div>
+          @if (dateError) {
+            <div class="error-message">{{ dateError }}</div>
+          }
+          @if (showControlError('dateRange') && !dateError) {
+            <div class="error-message">Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc</div>
+          }
         </div>
-        @if (dateError) {
-          <div class="error-message">{{ dateError }}</div>
-        }
-      </div>
 
-      <!-- Start Time and End Time -->
-      <div class="form-row">
         <div class="form-group">
           <app-input-text
             headerInput="Giờ làm"
             [required]="true"
-            typeInput="time"
-            formControlName="startTime"
+            typeInput="text"
+            placeholder="VD: 08:30 AM"
+            [value]="form.get('startTime')?.value || ''"
+            (valueChange)="onTimeInputChange('startTime', $event)"
           ></app-input-text>
+          @if (showControlError('startTime')) {
+            <div class="error-message">{{ getControlErrorMessage('startTime') }}</div>
+          }
         </div>
+
         <div class="form-group">
           <app-input-text
             headerInput="Giờ tan"
             [required]="true"
-            typeInput="time"
-            formControlName="endTime"
+            typeInput="text"
+            placeholder="VD: 05:30 PM"
+            [value]="form.get('endTime')?.value || ''"
+            (valueChange)="onTimeInputChange('endTime', $event)"
           ></app-input-text>
-        </div>
-      </div>
-
-      <!-- Location (Work Locations from API) -->
-      <div class="form-group">
-        <app-input-text
-          headerInput="Địa điểm"
-          [required]="true"
-          [readonly]="true"
-          [value]="getSelectedLocationName()"
-          placeholder="Chọn địa điểm remote"
-          icon="dsi-chevron-down-line"
-        ></app-input-text>
-        <select formControlName="location" class="form-control hidden-select">
-          <option [ngValue]="null" disabled selected>Chọn địa điểm remote</option>
-          @for (loc of locations; track loc) {
-            <option [value]="loc">{{ loc }}</option>
+          @if (showControlError('endTime')) {
+            <div class="error-message">{{ getControlErrorMessage('endTime') }}</div>
           }
-        </select>
+        </div>
+
+        <div class="form-group">
+          <app-input-text
+            headerInput="Địa điểm"
+            [required]="true"
+            [readonly]="true"
+            [value]="getSelectedLocationName()"
+            placeholder="Nhập địa điểm remote"
+            icon="dsi-chevron-down-line"
+          ></app-input-text>
+          <select formControlName="location" class="form-control hidden-select">
+            <option [ngValue]="null" disabled selected>Nhập địa điểm remote</option>
+            @for (loc of locations; track loc) {
+              <option [value]="loc">{{ loc }}</option>
+            }
+          </select>
+          @if (showControlError('location')) {
+            <div class="error-message">Vui lòng chọn địa điểm</div>
+          }
+        </div>
       </div>
 
       <!-- Attachments -->
@@ -86,10 +130,29 @@ import { WorkLocationService } from '../../../services/work-location.service';
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
+        @if (showControlError('attachments')) {
+          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
+        }
       </div>
     </form>
   `,
-  styleUrls: ['../create-ticket.page.scss']
+  styleUrls: ['../create-ticket.page.scss'],
+  styles: [
+    `
+      .onsite-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+        align-items: start;
+      }
+
+      @media (max-width: 900px) {
+        .onsite-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    `,
+  ]
 })
 export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
   @Output() formChange = new EventEmitter<FormGroup>();
@@ -107,11 +170,11 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.form = this.fb.group({
-      dateRange: [[], Validators.required],
+      dateRange: [[], [completeDateRangeValidator]],
       startTime: [null, Validators.required],
       endTime: [null, Validators.required],
       location: [null, Validators.required],
-      attachments: [[]]
+      attachments: [[], [requiredAttachmentValidator]]
     });
 
     this.loadLocations();
@@ -121,6 +184,20 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((dates: any[]) => {
         this.validateDateRange(dates);
+      });
+
+    this.form.get('startTime')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.normalizeTimeControlValue('startTime', value);
+        this.validateTimeRange();
+      });
+
+    this.form.get('endTime')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((value) => {
+        this.normalizeTimeControlValue('endTime', value);
+        this.validateTimeRange();
       });
 
     this.form.valueChanges.subscribe(() => {
@@ -187,6 +264,146 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
 
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
+    this.form.get('attachments')?.markAsTouched();
+  }
+
+  onTimeInputChange(controlName: 'startTime' | 'endTime', value: string): void {
+    const normalized = this.normalizeMeridiemLabel(value);
+    const control = this.form.get(controlName);
+    control?.setValue(normalized);
+    control?.markAsDirty();
+    control?.markAsTouched();
+  }
+
+  showControlError(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  getControlErrorMessage(controlName: 'startTime' | 'endTime'): string {
+    const control = this.form.get(controlName);
+    const errors = control?.errors || {};
+
+    if (errors['required']) {
+      return controlName === 'startTime' ? 'Vui lòng chọn giờ làm' : 'Vui lòng chọn giờ tan';
+    }
+
+    if (errors['invalidTime']) {
+      return 'Định dạng giờ chưa hợp lệ, vui lòng dùng AM/PM';
+    }
+
+    if (errors['endBeforeStart']) {
+      return 'Giờ tan làm không được trước giờ vào làm';
+    }
+
+    return 'Dữ liệu chưa hợp lệ';
+  }
+
+  private validateTimeRange(): void {
+    const startControl = this.form.get('startTime');
+    const endControl = this.form.get('endTime');
+    const startTime = startControl?.value;
+    const endTime = endControl?.value;
+
+    const startMinutes = startTime ? this.parseTimeToMinutes(startTime) : null;
+    const endMinutes = endTime ? this.parseTimeToMinutes(endTime) : null;
+
+    this.setControlCustomError('startTime', 'invalidTime', !!startTime && startMinutes === null);
+    this.setControlCustomError('endTime', 'invalidTime', !!endTime && endMinutes === null);
+
+    if (!startTime || !endTime || startMinutes === null || endMinutes === null) {
+      this.setControlCustomError('endTime', 'endBeforeStart', false);
+      return;
+    }
+
+    this.setControlCustomError('endTime', 'endBeforeStart', endMinutes < startMinutes);
+  }
+
+  private normalizeTimeControlValue(controlName: 'startTime' | 'endTime', value: string | null): void {
+    if (!value) {
+      return;
+    }
+
+    const normalized = this.normalizeMeridiemLabel(value);
+
+    if (normalized !== value) {
+      this.form.get(controlName)?.setValue(normalized, { emitEvent: false });
+    }
+  }
+
+  private normalizeMeridiemLabel(value: string): string {
+    return value
+      .trim()
+      .replace(/\s*:\s*(SA|CH|AM|PM)$/i, ' $1')
+      .replace(/\s+SA$/i, ' AM')
+      .replace(/\s+CH$/i, ' PM')
+      .replace(/\s+/g, ' ')
+      .toUpperCase();
+  }
+
+  private setControlCustomError(
+    controlName: 'startTime' | 'endTime',
+    key: 'invalidTime' | 'endBeforeStart',
+    enabled: boolean,
+  ): void {
+    const control = this.form.get(controlName);
+    if (!control) return;
+
+    const currentErrors = { ...(control.errors || {}) };
+
+    if (enabled) {
+      currentErrors[key] = true;
+      control.setErrors(currentErrors);
+      return;
+    }
+
+    if (currentErrors[key]) {
+      delete currentErrors[key];
+    }
+
+    control.setErrors(Object.keys(currentErrors).length > 0 ? currentErrors : null);
+  }
+
+  private parseTimeToMinutes(timeValue: string): number | null {
+    if (!timeValue) {
+      return null;
+    }
+
+    const normalized = timeValue.trim();
+    const match = normalized.match(/^(\d{1,2}):(\d{2})(?:\s*:?\s*(SA|CH|AM|PM))?$/i);
+    if (!match) {
+      return null;
+    }
+
+    let hour = Number(match[1]);
+    const minute = Number(match[2]);
+    const meridiem = match[3]?.toUpperCase();
+
+    if (Number.isNaN(hour) || Number.isNaN(minute) || minute < 0 || minute > 59) {
+      return null;
+    }
+
+    if (meridiem) {
+      if (hour < 1 || hour > 12) {
+        return null;
+      }
+
+      const isPm = meridiem === 'CH' || meridiem === 'PM';
+      if (isPm && hour !== 12) {
+        hour += 12;
+      }
+      if (!isPm && hour === 12) {
+        hour = 0;
+      }
+    } else if (hour < 0 || hour > 23) {
+      return null;
+    }
+
+    return hour * 60 + minute;
   }
 
   disabledPastDate = (current: Date): boolean => {

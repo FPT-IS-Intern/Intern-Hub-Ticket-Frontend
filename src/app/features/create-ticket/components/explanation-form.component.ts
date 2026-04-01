@@ -1,7 +1,26 @@
 import { Component, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+  FormsModule,
+} from '@angular/forms';
 import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/intern-hub-layout';
+
+const requiredAttachmentValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const files = control.value;
+  if (!Array.isArray(files) || files.length === 0) {
+    return { required: true };
+  }
+  return null;
+};
 
 @Component({
   selector: 'app-explanation-form',
@@ -20,6 +39,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
           style="width: 100%;"
           height="40px">
         </app-date-picker>
+        @if (showControlError('date')) {
+          <div class="error-message">Vui lòng chọn thời gian</div>
+        }
       </div>
 
       <!-- Reason -->
@@ -32,6 +54,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
           maxlength="255"
         ></textarea>
         <div class="char-count">{{ form.get('reason')?.value?.length || 0 }}/255</div>
+        @if (showControlError('reason')) {
+          <div class="error-message">Vui lòng nhập lí do</div>
+        }
       </div>
 
       <!-- Attachments -->
@@ -43,6 +68,9 @@ import { DatePickerComponent, FileUploadDropzoneComponent } from '@goat-bravos/i
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
+        @if (showControlError('attachments')) {
+          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
+        }
       </div>
     </form>
   `,
@@ -59,7 +87,7 @@ export class ExplanationFormComponent implements OnInit {
     this.form = this.fb.group({
       date: [null, Validators.required],
       reason: [null, Validators.required],
-      attachments: [[]]
+      attachments: [[], [requiredAttachmentValidator]]
     });
 
     this.form.valueChanges.subscribe(() => {
@@ -72,10 +100,23 @@ export class ExplanationFormComponent implements OnInit {
   onDateChange(date: Date | null) {
     this.selectedDateValue = date;
     this.form.get('date')?.setValue(date);
+    this.form.get('date')?.markAsDirty();
+    this.form.get('date')?.markAsTouched();
   }
 
   onFilesChange(files: any[]) {
     this.form.get('attachments')?.setValue(files);
+    this.form.get('attachments')?.markAsDirty();
+    this.form.get('attachments')?.markAsTouched();
+  }
+
+  showControlError(controlName: string): boolean {
+    const control = this.form.get(controlName);
+    if (!control) {
+      return false;
+    }
+
+    return control.invalid && (control.touched || control.dirty);
   }
 
   disabledPastDate = (current: Date): boolean => {

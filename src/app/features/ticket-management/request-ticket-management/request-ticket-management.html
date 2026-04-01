@@ -237,7 +237,7 @@
         type="checkbox"
         [checked]="row.selected"
         [disabled]="row.status !== 'PENDING'"
-        (change)="onRowCheckboxChange(row.id, $event)"
+        (change)="onRowCheckboxChange(row.ticketId, $event)"
         aria-label="select-row"
       />
     </div>

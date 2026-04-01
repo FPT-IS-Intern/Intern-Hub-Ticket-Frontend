@@ -42,6 +42,7 @@ export class CreateTicketPage implements OnInit {
 
   ticketTypesList: TicketTypeDto[] = [];
   selectedTicketTypeId: string | null = null;
+  private readonly hiddenTicketTypeNames = new Set(['Phiếu đăng tin tức', 'Phiếu Update Profile']);
 
   // Popup state
   showSuccessPopup = false;
@@ -71,8 +72,11 @@ export class CreateTicketPage implements OnInit {
     this.ticketService.getTicketTypes().subscribe({
       next: (res) => {
         this.ticketTypesList = res.data;
-        if (this.ticketTypesList.length > 0) {
-          this.selectedTicketTypeId = this.ticketTypesList[0].ticketTypeId;
+        const firstVisibleType = this.getVisibleTicketTypes()[0];
+        if (firstVisibleType) {
+          this.selectedTicketTypeId = firstVisibleType.ticketTypeId;
+        } else {
+          this.selectedTicketTypeId = null;
         }
       },
       error: (err) => {
@@ -81,12 +85,20 @@ export class CreateTicketPage implements OnInit {
     });
   }
 
+  getVisibleTicketTypes(): TicketTypeDto[] {
+    return this.ticketTypesList.filter((type) => !this.hiddenTicketTypeNames.has(type.typeName));
+  }
+
   onTicketTypeChange(): void {
     this.cdr.detectChanges();
   }
 
   onFormChange(form: FormGroup): void {
     this.currentForm = form;
+  }
+
+  isSubmitDisabled(): boolean {
+    return this.isSubmitting || !this.currentForm;
   }
 
   getTicketTypeLabel(): string {
@@ -183,7 +195,10 @@ export class CreateTicketPage implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.isSubmitting) return;
+    if (this.isSubmitDisabled()) {
+      this.currentForm?.markAllAsTouched();
+      return;
+    }
 
     if (!this.currentForm || this.currentForm.invalid) {
       this.currentForm?.markAllAsTouched();

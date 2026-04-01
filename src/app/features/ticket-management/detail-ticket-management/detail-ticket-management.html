@@ -4,7 +4,7 @@
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
         icon="dsi-home-01-line"
-        colorIcon="#6B7280"
+        colorIcon="var(--neutral-color-500)"
         width="18px"
         height="18px"
       ></app-icon>
@@ -72,16 +72,27 @@
         @if (approvalLevels.length > 0) {
           <div class="timeline-step">
             <div class="timeline-step-left">
-              <div class="step-status-label" [class.step-done-label]="approvalLevels[0].statusType === 'done'">
+              <div
+                class="step-status-label"
+                [class.step-done-label]="approvalLevels[0].statusType === 'APPROVED'"
+                [class.step-rejected-label]="approvalLevels[0].statusType === 'REJECTED'"
+              >
                 {{ approvalLevels[0].statusLabel }}
               </div>
               <div class="step-date">{{ approvalLevels[0].date || '--:--' }}</div>
             </div>
             <div class="timeline-step-center">
-              @if (approvalLevels[0].statusType === 'done') {
+              @if (approvalLevels[0].statusType === 'APPROVED') {
                 <div class="step-icon step-done">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              } @else if (approvalLevels[0].statusType === 'REJECTED') {
+                <div class="step-icon step-rejected">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M4 4L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10 4L4 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   </svg>
                 </div>
               } @else {
@@ -104,16 +115,27 @@
         @if (approvalLevels.length > 1) {
           <div class="timeline-step">
             <div class="timeline-step-left">
-              <div class="step-status-label" [class.step-done-label]="approvalLevels[1].statusType === 'done'">
+              <div
+                class="step-status-label"
+                [class.step-done-label]="approvalLevels[1].statusType === 'APPROVED'"
+                [class.step-rejected-label]="approvalLevels[1].statusType === 'REJECTED'"
+              >
                 {{ approvalLevels[1].statusLabel }}
               </div>
               <div class="step-date">{{ approvalLevels[1].date || '--:--' }}</div>
             </div>
             <div class="timeline-step-center">
-              @if (approvalLevels[1].statusType === 'done') {
+              @if (approvalLevels[1].statusType === 'APPROVED') {
                 <div class="step-icon step-done">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <path d="M2.5 7L5.5 10L11.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+              } @else if (approvalLevels[1].statusType === 'REJECTED') {
+                <div class="step-icon step-rejected">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M4 4L10 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M10 4L4 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                   </svg>
                 </div>
               } @else {

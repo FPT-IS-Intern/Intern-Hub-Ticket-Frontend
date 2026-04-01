@@ -33,7 +33,7 @@ interface ApprovalLevel {
   level: number;
   label: string;
   approverName: string;
-  statusType: 'done' | 'pending' | 'rejected' | 'cancelled';
+  statusType: 'APPROVED' | 'PENDING' | 'REJECTED' | 'CANCELLED';
   statusLabel: string;
   date: string | null;
   description: string;
@@ -259,16 +259,29 @@ export class DetailTicketManagementPage implements OnInit {
     const level2Status = approvalInfo.statusLevel2;
 
     const getStatusType = (
-      lvStatus: string,
-    ): 'done' | 'pending' | 'rejected' => {
-      if (lvStatus === 'SUCCESS') return 'done';
-      if (lvStatus === 'REJECTED') return 'rejected';
-      return 'pending';
+      lvStatus: string | null | undefined,
+    ): ApprovalLevel['statusType'] => {
+      const normalized = (lvStatus || '').toUpperCase();
+
+      if (normalized === 'SUCCESS' || normalized === 'APPROVE' || normalized === 'APPROVED') {
+        return 'APPROVED';
+      }
+      if (normalized === 'REJECT' || normalized === 'REJECTED') {
+        return 'REJECTED';
+      }
+      if (normalized === 'CANCEL' || normalized === 'CANCELLED') {
+        return 'CANCELLED';
+      }
+      return 'PENDING';
     };
 
-    const getStatusLabel = (lvStatus: string): string => {
-      if (lvStatus === 'SUCCESS') return 'Đã duyệt';
-      if (lvStatus === 'REJECTED') return 'Từ chối';
+    const getStatusLabel = (lvStatus: string | null | undefined): string => {
+      const normalized = (lvStatus || '').toUpperCase();
+
+      if (normalized === 'SUCCESS' || normalized === 'APPROVE' || normalized === 'APPROVED') {
+        return 'Đã duyệt';
+      }
+      if (normalized === 'REJECT' || normalized === 'REJECTED') return 'Từ chối';
       return 'Chờ duyệt';
     };
 

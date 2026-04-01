@@ -65,6 +65,15 @@
   }
 }
 
+.send-button-disabled {
+  pointer-events: none;
+
+  ::ng-deep .button-container {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .ticket-form {
   display: flex;
   flex-direction: column;
