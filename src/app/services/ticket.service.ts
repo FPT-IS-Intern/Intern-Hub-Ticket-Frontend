@@ -25,6 +25,7 @@ import {
   UserTicketDto,
   BulkApproveTicketRequest,
   BulkApproveResponse,
+  ApproverPermissionDto,
 } from '../models/ticket.model';
 import { environment } from '../../environment/environment';
 
@@ -256,10 +257,18 @@ export class TicketService {
    * Get approvers by approval level
    * GET /ticket/approvers?level={level}
    */
-  getApproversByLevel(level: number): Observable<ResponseApi<string[]>> {
-    return this.http.get<ResponseApi<string[]>>(`${this.baseUrl}/approvers`, {
+  getApproversByLevel(level: number): Observable<ResponseApi<{ approverIds?: string[] } | string[]>> {
+    return this.http.get<ResponseApi<{ approverIds?: string[] } | string[]>>(`${this.baseUrl}/approvers`, {
       params: { level: level.toString() },
     });
+  }
+
+  /**
+   * Get approval permission of current user
+   * GET /ticket/approvers/me
+   */
+  getMyApproverPermission(): Observable<ResponseApi<ApproverPermissionDto>> {
+    return this.http.get<ResponseApi<ApproverPermissionDto>>(`${this.baseUrl}/approvers/me`);
   }
 
   /**

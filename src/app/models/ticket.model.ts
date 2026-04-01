@@ -215,6 +215,13 @@ export interface BulkApproveResponse {
   failedTickets: { ticketId: string; errorMessage: string }[];
 }
 
+export interface ApproverPermissionDto {
+  approverId: string;
+  maxApprovalLevel: number;
+  canApproveLevel1: boolean;
+  canApproveLevel2: boolean;
+}
+
 export interface FilterTicketRequest {
   nameOrEmail?: string;
   typeName?: string;
