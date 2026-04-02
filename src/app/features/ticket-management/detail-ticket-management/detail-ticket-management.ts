@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -57,7 +57,7 @@ interface ApprovalLevel {
 export class DetailTicketManagementPage implements OnInit {
   ticketId = '';
   ticketType: TicketType = TicketTypeCode.LEAVE_REQUEST;
-  ticketTitle = 'Phiếu nghỉ phép';
+  ticketTitle = 'Phiáº¿u nghá»‰ phÃ©p';
   ticketDetail: TicketDetailDto | null = null;
   approvalInfo: TicketApprovalInfo | null = null;
   evidences: EvidenceDto[] = [];
@@ -116,7 +116,7 @@ export class DetailTicketManagementPage implements OnInit {
       } else {
         this.ticketType = TicketTypeCode.LEAVE_REQUEST;
       }
-      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiếu nghỉ phép';
+      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiáº¿u nghá»‰ phÃ©p';
 
       if (this.ticketId) {
         this.loadTicketDetail();
@@ -201,7 +201,7 @@ export class DetailTicketManagementPage implements OnInit {
     const payload = detail.payload || {};
     const createdAtVal = detail.createdAt || (detail as any)['createdAt'] || '';
     const createdDate = this.formatDateTime(createdAtVal);
-    const fullName = detail.senderFullName || '—';
+    const fullName = detail.senderFullName || 'â€”';
 
     switch (this.ticketType) {
       case TicketTypeCode.LEAVE_REQUEST:
@@ -264,6 +264,10 @@ export class DetailTicketManagementPage implements OnInit {
     const requiredApprovals = Math.min(2, Math.max(1, Number(detail.requiredApprovals || 1)));
     const level1Status = approvalInfo.statusLevel1;
     const level2Status = approvalInfo.statusLevel2;
+    const isTicketRejected = detail.status === TicketStatus.REJECTED;
+    const rejectionLevel = isTicketRejected
+      ? (Number(detail.currentApprovalLevel || 1) <= 1 ? 1 : 2)
+      : null;
 
     const getStatusType = (
       lvStatus: string | null | undefined,
@@ -292,29 +296,34 @@ export class DetailTicketManagementPage implements OnInit {
       return 'Chờ duyệt';
     };
 
-    // Always show level 1
+    const level1DisplayStatus = rejectionLevel === 1 ? 'REJECTED' : level1Status;
+    const level2DisplayStatus = rejectionLevel === 2 ? 'REJECTED' : level2Status;
+
     this.approvalLevels.push({
       level: 1,
       label: 'Chờ duyệt',
-      approverName: approvalInfo.approverFullNameLevel1 || 'Nguyen Thi Linh hoặc Nguyen Van Tien',
-      statusType: getStatusType(level1Status),
-      statusLabel: getStatusLabel(level1Status),
+      approverName: approvalInfo.approverFullNameLevel1 || 'Chưa có người duyệt',
+      statusType: getStatusType(level1DisplayStatus),
+      statusLabel: getStatusLabel(level1DisplayStatus),
       date: this.formatDate(approvalInfo.approvedAt),
-      description: level1Status === 'SUCCESS'
-        ? `Phê duyệt cấp 1 - Duyệt bởi ${approvalInfo.approverFullNameLevel1 || 'Nguyen Thi Linh'}`
-        : 'Phê duyệt cấp 1',
+      description: (level1DisplayStatus || '').toUpperCase() === 'SUCCESS'
+        ? `Phê duyệt cấp 1 - Duyệt bởi ${approvalInfo.approverFullNameLevel1 || 'Không rõ'}`
+        : (level1DisplayStatus || '').toUpperCase() === 'REJECTED'
+          ? 'Phê duyệt cấp 1 - Từ chối'
+          : 'Phê duyệt cấp 1',
     });
 
-    // Only show level 2 if requiredApprovals >= 2
     if (requiredApprovals >= 2) {
       this.approvalLevels.push({
         level: 2,
         label: 'Chờ duyệt',
-        approverName: approvalInfo.approverFullNameLevel2 || 'Nguyen Van B',
-        statusType: getStatusType(level2Status),
-        statusLabel: getStatusLabel(level2Status),
+        approverName: approvalInfo.approverFullNameLevel2 || 'Chưa có người duyệt',
+        statusType: getStatusType(level2DisplayStatus),
+        statusLabel: getStatusLabel(level2DisplayStatus),
         date: this.formatDate(approvalInfo.approvedAtLevel2),
-        description: 'Phê duyệt cấp 2',
+        description: (level2DisplayStatus || '').toUpperCase() === 'REJECTED'
+          ? 'Phê duyệt cấp 2 - Từ chối'
+          : 'Phê duyệt cấp 2',
       });
     }
   }
@@ -405,14 +414,14 @@ export class DetailTicketManagementPage implements OnInit {
       .subscribe({
         next: () => {
           this.isRejecting = false;
-          this.successMessage = 'Từ chối phiếu thành công!';
+          this.successMessage = 'Tá»« chá»‘i phiáº¿u thÃ nh cÃ´ng!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error rejecting ticket:', err);
           this.isRejecting = false;
-          this.failMessage = 'Từ chối phiếu thất bại. Vui lòng thử lại.';
+          this.failMessage = 'Tá»« chá»‘i phiáº¿u tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.';
           this.showFailPopup = true;
         },
       });
@@ -435,14 +444,14 @@ export class DetailTicketManagementPage implements OnInit {
       .subscribe({
         next: () => {
           this.isApproving = false;
-          this.successMessage = 'Duyệt phiếu thành công!';
+          this.successMessage = 'Duyá»‡t phiáº¿u thÃ nh cÃ´ng!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error approving ticket:', err);
           this.isApproving = false;
-          this.failMessage = 'Duyệt phiếu thất bại. Vui lòng thử lại.';
+          this.failMessage = 'Duyá»‡t phiáº¿u tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.';
           this.showFailPopup = true;
         },
       });
@@ -462,18 +471,18 @@ export class DetailTicketManagementPage implements OnInit {
 
   getStatusBadge(status: TicketStatus): { label: string; bg: string; color: string } {
     if (status === TicketStatus.APPROVED) {
-      return { label: 'Đã duyệt', bg: 'var(--theme-green-50)', color: 'var(--theme-green-700)' };
+      return { label: 'ÄÃ£ duyá»‡t', bg: 'var(--theme-green-50)', color: 'var(--theme-green-700)' };
     }
     if (status === TicketStatus.REJECTED) {
-      return { label: 'Từ chối', bg: 'var(--utility-50)', color: 'var(--utility-600)' };
+      return { label: 'Tá»« chá»‘i', bg: 'var(--utility-50)', color: 'var(--utility-600)' };
     }
     if (status === TicketStatus.CANCELLED) {
-      return { label: 'Đã hủy', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
+      return { label: 'ÄÃ£ há»§y', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
     }
     if (status === TicketStatus.REVIEWING) {
-      return { label: 'Đang xem xét', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
+      return { label: 'Äang xem xÃ©t', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
     }
-    return { label: 'Chưa duyệt', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
+    return { label: 'ChÆ°a duyá»‡t', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
   }
 
   getApprovalProgress(): number {
