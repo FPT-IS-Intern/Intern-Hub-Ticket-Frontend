@@ -241,6 +241,23 @@ export class CreateTicketPage implements OnInit {
       error: (err) => {
         this.isSubmitting = false;
         console.error('Error creating ticket:', err);
+
+        const backendCode = err?.error?.status?.code;
+        const backendMessage = err?.error?.status?.message || '';
+        const isLocationInvalidError =
+          backendCode === 'invalid.value' && /field\s+location/i.test(backendMessage);
+
+        if (isLocationInvalidError) {
+          const locationControl = this.currentForm?.get('location');
+          if (locationControl) {
+            const currentErrors = { ...(locationControl.errors || {}) };
+            locationControl.setErrors({ ...currentErrors, invalidOption: true });
+            locationControl.markAsTouched();
+            locationControl.markAsDirty();
+            this.currentForm?.markAsTouched();
+          }
+        }
+
         this.errorMessage =
           err?.error?.status?.message ||
           err?.error?.message ||
@@ -261,7 +278,7 @@ export class CreateTicketPage implements OnInit {
 
   confirmSuccessPopup(): void {
     this.showSuccessPopup = false;
-    this.goToHome();
+    this.router.navigate(['/my-ticket']);
   }
 
   closeErrorPopup(): void {

@@ -64,10 +64,11 @@
 // ==============================================
 .ticket-info-card,
 .approval-card {
-  background-color: var(--neutral-color-50);
+  background-color: var(--neutral-color-10);
   border: 1px solid var(--neutral-color-200);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-6);
+  border-radius: 20px;
+  padding: 20px;
+  gap: 20px;
   box-shadow: none;
 }
 
@@ -305,7 +306,7 @@
 
 .btn-back {
   ::ng-deep .btn-container {
-    background-color: var(--neutral-color-10) !important;
+    background-color: var(--neutral-color-50) !important;
     color: var(--neutral-color-700) !important;
     border: 1px solid var(--neutral-color-300) !important;
   }
@@ -314,8 +315,11 @@
 .btn-reject {
   ::ng-deep .btn-container {
     background-color: var(--utility-color) !important;
-    color: var(--neutral-color-10) !important;
     border: none !important;
+  }
+
+  ::ng-deep .btn-container .button-content {
+    color: var(--neutral-color-10) !important;
   }
 
   &.is-disabled ::ng-deep .btn-container {
@@ -327,7 +331,7 @@
 
 .btn-approve {
   ::ng-deep .btn-container {
-    background-color: var(--functional-color) !important;
+    background-color: var(--theme-green-500) !important;
     color: var(--neutral-color-10) !important;
     border: none !important;
   }

@@ -127,7 +127,7 @@ const requiredAttachmentValidator: ValidatorFn = (
       .leave-info-message {
         margin-top: 4px;
         font-size: 12px;
-        color: var(--neutral-color-200);
+        color: var(--neutral-color-700);
         line-height: 1.4;
       }
     `,

@@ -1,4 +1,5 @@
 import {
+  OnDestroy,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -68,7 +69,7 @@ interface RequestTicketTableRow {
   templateUrl: './request-ticket-management.html',
   styleUrl: './request-ticket-management.scss',
 })
-export class RequestTicketManagementPage implements OnInit, AfterViewInit {
+export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('selectTemplate') selectTemplate!: TemplateRef<any>;
   @ViewChild('sttTemplate') sttTemplate!: TemplateRef<any>;
   @ViewChild('nameTemplate') nameTemplate!: TemplateRef<any>;
@@ -116,6 +117,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   showBulkConfirm = false;
   bulkAction: 'approve' | 'reject' = 'approve';
   isHeaderChecked = false;
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private canApproveLevel1 = false;
   private canApproveLevel2 = false;
   private isApproverPermissionUnavailable = false;
@@ -274,6 +276,15 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
 
   onSearchChange(value: string): void {
     this.searchKeyword = value;
+    this.currentPage = 0;
+
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.loadTickets();
+    }, 350);
   }
 
   onSearch(): void {
@@ -314,6 +325,11 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
   }
 
   onRefresh(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
+
     this.searchKeyword = '';
     this.selectedTicketType = '';
     this.selectedStatus = '';
@@ -641,5 +657,12 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit {
       this.canApproveRow(row) ? row : { ...row, selected: false },
     );
     this.syncHeaderCheckboxState();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
   }
 }

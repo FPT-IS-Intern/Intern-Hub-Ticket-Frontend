@@ -14,6 +14,7 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent } from '@goat-bravos/intern-hub-layout';
 import { WorkLocationService } from '../../../services/work-location.service';
+import { TimePickerComponent } from '../../../shared/components/time-picker/time-picker.component';
 
 const completeDateRangeValidator: ValidatorFn = (
   control: AbstractControl,
@@ -38,7 +39,7 @@ const requiredAttachmentValidator: ValidatorFn = (
 @Component({
   selector: 'app-remote-onsite-form',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DatePickerComponent, FileUploadDropzoneComponent, InputTextComponent, TimePickerComponent],
   template: `
     <form [formGroup]="form" class="ticket-form">
       <div class="onsite-grid">
@@ -73,28 +74,24 @@ const requiredAttachmentValidator: ValidatorFn = (
         </div>
 
         <div class="form-group">
-          <app-input-text
+          <app-time-picker
             headerInput="Giờ làm"
             [required]="true"
-            typeInput="text"
-            placeholder="VD: 08:30 AM"
             [value]="form.get('startTime')?.value || ''"
             (valueChange)="onTimeInputChange('startTime', $event)"
-          ></app-input-text>
+          ></app-time-picker>
           @if (showControlError('startTime')) {
             <div class="error-message">{{ getControlErrorMessage('startTime') }}</div>
           }
         </div>
 
         <div class="form-group">
-          <app-input-text
+          <app-time-picker
             headerInput="Giờ tan"
             [required]="true"
-            typeInput="text"
-            placeholder="VD: 05:30 PM"
             [value]="form.get('endTime')?.value || ''"
             (valueChange)="onTimeInputChange('endTime', $event)"
-          ></app-input-text>
+          ></app-time-picker>
           @if (showControlError('endTime')) {
             <div class="error-message">{{ getControlErrorMessage('endTime') }}</div>
           }
@@ -116,7 +113,7 @@ const requiredAttachmentValidator: ValidatorFn = (
             }
           </select>
           @if (showControlError('location')) {
-            <div class="error-message">Vui lòng chọn địa điểm</div>
+            <div class="error-message">{{ getLocationErrorMessage() }}</div>
           }
         </div>
       </div>
@@ -268,7 +265,7 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
   }
 
   onTimeInputChange(controlName: 'startTime' | 'endTime', value: string): void {
-    const normalized = this.normalizeMeridiemLabel(value);
+    const normalized = value?.trim() || '';
     const control = this.form.get(controlName);
     control?.setValue(normalized);
     control?.markAsDirty();
@@ -293,7 +290,7 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
     }
 
     if (errors['invalidTime']) {
-      return 'Định dạng giờ chưa hợp lệ, vui lòng dùng AM/PM';
+      return 'Định dạng giờ chưa hợp lệ, vui lòng chọn theo 24 giờ (HH:mm)';
     }
 
     if (errors['endBeforeStart']) {
@@ -301,6 +298,20 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
     }
 
     return 'Dữ liệu chưa hợp lệ';
+  }
+
+  getLocationErrorMessage(): string {
+    const errors = this.form.get('location')?.errors || {};
+
+    if (errors['required']) {
+      return 'Vui lòng chọn địa điểm';
+    }
+
+    if (errors['invalidOption']) {
+      return 'Địa điểm này chưa được hỗ trợ cho phiếu Remote Onsite, vui lòng chọn địa điểm khác';
+    }
+
+    return 'Địa điểm chưa hợp lệ';
   }
 
   private validateTimeRange(): void {
@@ -328,21 +339,11 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const normalized = this.normalizeMeridiemLabel(value);
+    const normalized = value.trim();
 
     if (normalized !== value) {
       this.form.get(controlName)?.setValue(normalized, { emitEvent: false });
     }
-  }
-
-  private normalizeMeridiemLabel(value: string): string {
-    return value
-      .trim()
-      .replace(/\s*:\s*(SA|CH|AM|PM)$/i, ' $1')
-      .replace(/\s+SA$/i, ' AM')
-      .replace(/\s+CH$/i, ' PM')
-      .replace(/\s+/g, ' ')
-      .toUpperCase();
   }
 
   private setControlCustomError(
