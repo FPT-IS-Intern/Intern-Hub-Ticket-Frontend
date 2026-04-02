@@ -57,7 +57,7 @@ interface ApprovalLevel {
 export class DetailTicketManagementPage implements OnInit {
   ticketId = '';
   ticketType: TicketType = TicketTypeCode.LEAVE_REQUEST;
-  ticketTitle = 'Phiáº¿u nghá»‰ phÃ©p';
+  ticketTitle = 'Phiếu nghỉ phép';
   ticketDetail: TicketDetailDto | null = null;
   approvalInfo: TicketApprovalInfo | null = null;
   evidences: EvidenceDto[] = [];
@@ -116,7 +116,7 @@ export class DetailTicketManagementPage implements OnInit {
       } else {
         this.ticketType = TicketTypeCode.LEAVE_REQUEST;
       }
-      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiáº¿u nghá»‰ phÃ©p';
+      this.ticketTitle = TICKET_TYPE_CODE_TO_NAME[this.ticketType] ?? 'Phiếu nghỉ phép';
 
       if (this.ticketId) {
         this.loadTicketDetail();
@@ -414,14 +414,14 @@ export class DetailTicketManagementPage implements OnInit {
       .subscribe({
         next: () => {
           this.isRejecting = false;
-          this.successMessage = 'Tá»« chá»‘i phiáº¿u thÃ nh cÃ´ng!';
+          this.successMessage = 'Từ chối phiếu thành công!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error rejecting ticket:', err);
           this.isRejecting = false;
-          this.failMessage = 'Tá»« chá»‘i phiáº¿u tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.';
+          this.failMessage = 'Từ chối phiếu thất bại. Vui lòng thử lại.';
           this.showFailPopup = true;
         },
       });
@@ -444,14 +444,14 @@ export class DetailTicketManagementPage implements OnInit {
       .subscribe({
         next: () => {
           this.isApproving = false;
-          this.successMessage = 'Duyá»‡t phiáº¿u thÃ nh cÃ´ng!';
+          this.successMessage = 'Duyệt phiếu thành công!';
           this.showSuccessPopup = true;
           this.loadTicketDetail();
         },
         error: (err) => {
           console.error('Error approving ticket:', err);
           this.isApproving = false;
-          this.failMessage = 'Duyá»‡t phiáº¿u tháº¥t báº¡i. Vui lÃ²ng thá»­ láº¡i.';
+          this.failMessage = 'Duyệt phiếu thất bại. Vui lòng thử lại.';
           this.showFailPopup = true;
         },
       });
@@ -471,18 +471,18 @@ export class DetailTicketManagementPage implements OnInit {
 
   getStatusBadge(status: TicketStatus): { label: string; bg: string; color: string } {
     if (status === TicketStatus.APPROVED) {
-      return { label: 'ÄÃ£ duyá»‡t', bg: 'var(--theme-green-50)', color: 'var(--theme-green-700)' };
+      return { label: 'Đã duyệt', bg: 'var(--theme-green-50)', color: 'var(--theme-green-700)' };
     }
     if (status === TicketStatus.REJECTED) {
-      return { label: 'Tá»« chá»‘i', bg: 'var(--utility-50)', color: 'var(--utility-600)' };
+      return { label: 'Từ chối', bg: 'var(--utility-50)', color: 'var(--utility-600)' };
     }
     if (status === TicketStatus.CANCELLED) {
-      return { label: 'ÄÃ£ há»§y', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
+      return { label: 'Đã hủy', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
     }
     if (status === TicketStatus.REVIEWING) {
-      return { label: 'Äang xem xÃ©t', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
+      return { label: 'Đang xem xét', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
     }
-    return { label: 'ChÆ°a duyá»‡t', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
+    return { label: 'Chưa duyệt', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
   }
 
   getApprovalProgress(): number {
