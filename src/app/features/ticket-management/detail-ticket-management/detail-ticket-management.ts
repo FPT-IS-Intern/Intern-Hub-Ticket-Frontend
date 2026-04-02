@@ -261,7 +261,7 @@ export class DetailTicketManagementPage implements OnInit {
   ): void {
     this.approvalLevels = [];
 
-    const requiredApprovals = detail.requiredApprovals || 2;
+    const requiredApprovals = Math.min(2, Math.max(1, Number(detail.requiredApprovals || 1)));
     const level1Status = approvalInfo.statusLevel1;
     const level2Status = approvalInfo.statusLevel2;
 
@@ -478,7 +478,7 @@ export class DetailTicketManagementPage implements OnInit {
 
   getApprovalProgress(): number {
     if (!this.approvalInfo || !this.ticketDetail) return 0;
-    const total = this.ticketDetail.requiredApprovals || 2;
+    const total = Math.min(2, Math.max(1, Number(this.ticketDetail.requiredApprovals || 1)));
     let done = 0;
     if (this.approvalInfo.statusLevel1 === 'SUCCESS') done++;
     if (total >= 2 && this.approvalInfo.statusLevel2 === 'SUCCESS') done++;
