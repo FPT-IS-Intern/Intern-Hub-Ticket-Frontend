@@ -524,7 +524,11 @@ export class DetailTicketManagementPage implements OnInit {
       return;
     }
 
-    const currentLevel = Math.max(1, Number(this.ticketDetail.currentApprovalLevel || 1));
+    const currentLevel = this.ticketDetail.status === TicketStatus.PENDING
+      ? 1
+      : this.ticketDetail.status === TicketStatus.REVIEWING
+        ? 2
+        : Math.max(1, Number(this.ticketDetail.currentApprovalLevel || 1));
     this.canApproveCurrentTicket = currentLevel <= 1
       ? this.canApproveLevel1
       : this.canApproveLevel2;
