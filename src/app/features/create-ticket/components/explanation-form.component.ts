@@ -60,7 +60,7 @@ const requiredAttachmentValidator: ValidatorFn = (
       </div>
 
       <!-- Attachments -->
-      <div class="form-group">
+      <div class="form-group attachment-required">
         <label>Tải minh chứng <span class="required">*</span></label>
         <app-file-upload-dropzone
           label=""

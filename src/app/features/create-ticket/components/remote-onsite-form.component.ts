@@ -120,9 +120,8 @@ const requiredAttachmentValidator: ValidatorFn = (
 
       <!-- Attachments -->
       <div class="form-group">
-        <label>Tải minh chứng <span class="required">*</span></label>
         <app-file-upload-dropzone
-          label=""
+          label="Tải minh chứng"
           maxSize="2MB"
           acceptFormats=".png, .jpeg, .jpg, .pdf, .docx"
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"

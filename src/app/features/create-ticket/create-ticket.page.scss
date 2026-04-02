@@ -97,6 +97,9 @@
   }
   width: 100%;
 
+}
+
+.attachment-required {
   ::ng-deep app-file-upload-dropzone .dropzone-label {
     display: none;
   }
