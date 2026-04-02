@@ -91,10 +91,23 @@
     color: var(--neutral-700);
 
     .required {
-      color: var(--error-500);
+      color: #ef4444 !important;
+      font-weight: 700;
     }
   }
   width: 100%;
+
+  ::ng-deep app-file-upload-dropzone .dropzone-label {
+    display: none;
+  }
+}
+
+/* Force required mark color on create-ticket labels */
+.form-group > label > .required,
+.form-group > label .required,
+label .required {
+  color: #ef4444 !important;
+  font-weight: 700;
 }
 
 .date-work {
