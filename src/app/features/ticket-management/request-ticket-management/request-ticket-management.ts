@@ -43,6 +43,7 @@ interface RequestTicketTableRow {
   ticketTypeId: string;
   status: TicketStatus;
   createdAt: number;
+  approvedAt: number | null;
   updatedAt: number;
   stt: number;
   selected: boolean;
@@ -76,6 +77,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
   @ViewChild('ticketTypeTemplate') ticketTypeTemplate!: TemplateRef<any>;
   @ViewChild('statusTemplate') statusTemplate!: TemplateRef<any>;
   @ViewChild('approverTemplate') approverTemplate!: TemplateRef<any>;
+  @ViewChild('createdAtTemplate') createdAtTemplate!: TemplateRef<any>;
+  @ViewChild('approvedAtTemplate') approvedAtTemplate!: TemplateRef<any>;
 
   readonly columns: ColumnConfig[] = [
     { header: '', key: 'select', width: '50px' },
@@ -83,6 +86,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
     { header: 'Họ và tên TTS', key: 'fullName', width: '220px' },
     { header: 'Phòng ban', key: 'department', width: '150px' },
     { header: 'Loại phiếu', key: 'ticketType', width: '250px' },
+    { header: 'Ngày tạo', key: 'createdAt', width: '130px' },
+    { header: 'Ngày duyệt', key: 'approvedAt', width: '130px' },
     { header: 'Trạng thái', key: 'status', width: '120' },
     { header: 'Người duyệt', key: 'approver', width: '220' },
   ];
@@ -224,6 +229,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
         ticketTypeId: ticket.ticketTypeId || '',
         status: ticket.status,
         createdAt: ticket.createdAt,
+        approvedAt:
+          ticket.approvedAt ??
+          (ticket.status === TicketStatus.APPROVED ? ticket.updatedAt : null),
         updatedAt: ticket.updatedAt,
         stt: this.currentPage * this.pageSize + index + 1,
         selected: false,
@@ -242,6 +250,8 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
       stt: this.sttTemplate,
       fullName: this.nameTemplate,
       ticketType: this.ticketTypeTemplate,
+      createdAt: this.createdAtTemplate,
+      approvedAt: this.approvedAtTemplate,
       status: this.statusTemplate,
       approver: this.approverTemplate,
     };
@@ -526,6 +536,18 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
       return 'var(--brand-600)';
     }
     return 'var(--neutral-color-600)';
+  }
+
+  formatDate(value: number | null | undefined): string {
+    if (value == null) return '-';
+    const date = new Date(Number(value));
+    if (Number.isNaN(date.getTime())) return '-';
+    const day = `${date.getDate()}`.padStart(2, '0');
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = `${date.getHours()}`.padStart(2, '0');
+    const minutes = `${date.getMinutes()}`.padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
   }
 
   getShowingRange(): string {

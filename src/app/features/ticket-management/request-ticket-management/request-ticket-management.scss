@@ -474,6 +474,50 @@
   padding-left: var(--sem-dimension-padding-sm);
 }
 
+/* Center only header content: Ngày tạo (6), Ngày duyệt (7), Trạng thái (8), Người duyệt (9) */
+::ng-deep .request-table tr[app-table-header] th:nth-child(6),
+::ng-deep .request-table tr[app-table-header] th:nth-child(7),
+::ng-deep .request-table tr[app-table-header] th:nth-child(8),
+::ng-deep .request-table tr[app-table-header] th:nth-child(9) {
+  text-align: center;
+}
+
+::ng-deep .request-table tr[app-table-header] th:nth-child(6) .header-container,
+::ng-deep .request-table tr[app-table-header] th:nth-child(7) .header-container,
+::ng-deep .request-table tr[app-table-header] th:nth-child(8) .header-container,
+::ng-deep .request-table tr[app-table-header] th:nth-child(9) .header-container {
+  justify-content: center;
+}
+
+/* Strong override for Angular encapsulation + intern-hub table header */
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(6) .header-container,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(7) .header-container,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(8) .header-container,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(9) .header-container {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(6) .header-content,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(7) .header-content,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(8) .header-content,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(9) .header-content {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(6) .header-container *,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(7) .header-container *,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(8) .header-container *,
+:host ::ng-deep .request-ticket-management-page .request-table tr[app-table-header] th:nth-child(9) .header-container * {
+  text-align: center !important;
+}
+
 @media (max-width: 1280px) {
   .stat-card {
     min-width: calc(50% - 6px);

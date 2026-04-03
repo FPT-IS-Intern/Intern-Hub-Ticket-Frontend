@@ -99,7 +99,7 @@ export class TicketService {
       params['endDate'] = filter.endDate.toString();
     }
 
-    return this.http.get<ResponseApi<PaginatedData<TicketManagementDto>>>(`${this.baseUrl}/all`, {
+    return this.http.get<ResponseApi<PaginatedData<TicketManagementDto>>>(`${this.baseUrl}/management/all`, {
       params,
     });
   }

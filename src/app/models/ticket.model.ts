@@ -132,6 +132,7 @@ export interface TicketManagementDto {
   ticketTypeId: string;
   status: TicketStatus;
   createdAt: number;
+  approvedAt?: number | null;
   updatedAt: number;
   createdBy: string;
   updatedBy: string;

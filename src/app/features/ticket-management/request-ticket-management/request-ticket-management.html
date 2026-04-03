@@ -257,6 +257,14 @@
     <div class="ticket-type-cell" (click)="onViewDetail(row, $event)">{{ row.typeName }}</div>
   </ng-template>
 
+  <ng-template #createdAtTemplate let-value>
+    <div class="cell-center">{{ formatDate(value) }}</div>
+  </ng-template>
+
+  <ng-template #approvedAtTemplate let-value>
+    <div class="cell-center">{{ formatDate(value) }}</div>
+  </ng-template>
+
 
 
   <ng-template #statusTemplate let-value>
@@ -272,7 +280,7 @@
   </ng-template>
 
   <ng-template #approverTemplate let-row="row">
-    {{ row.approverFullName || '-' }}
+    <div class="cell-center">{{ row.approverFullName || '-' }}</div>
   </ng-template>
 
   @if (showBulkConfirm) {
