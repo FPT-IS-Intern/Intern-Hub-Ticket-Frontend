@@ -146,6 +146,9 @@
 // Approval timeline
 // ==============================================
 .approval-timeline-vertical {
+  --timeline-left-col: 132px;
+  --timeline-center-col: 40px;
+  --timeline-node-size: 28px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -153,13 +156,16 @@
 }
 
 .timeline-step {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-5);
-  min-height: 82px;
+  display: grid;
+  grid-template-columns: var(--timeline-left-col) var(--timeline-center-col) minmax(0, 1fr);
+  column-gap: var(--spacing-4);
+  align-items: start;
+  min-height: 84px;
+  padding: var(--spacing-2) 0 var(--spacing-4);
 
   &:last-child {
-    min-height: auto;
+    min-height: 0;
+    padding-bottom: 0;
 
     .step-connector {
       display: none;
@@ -168,13 +174,13 @@
 }
 
 .timeline-step-left {
-  width: 96px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  justify-content: flex-start;
   text-align: right;
-  padding-top: var(--spacing-0_5);
+  padding-top: 2px;
+  min-width: 0;
 
   .step-status-label {
     font-size: var(--text-sm);
@@ -202,14 +208,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   position: relative;
-  width: 36px;
-  flex-shrink: 0;
-  margin: 0 var(--spacing-1);
+  width: var(--timeline-center-col);
+  min-height: 64px;
 
   .step-icon {
-    width: 28px;
-    height: 28px;
+    width: var(--timeline-node-size);
+    height: var(--timeline-node-size);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -229,8 +235,8 @@
   }
 
   .step-number {
-    width: 28px;
-    height: 28px;
+    width: var(--timeline-node-size);
+    height: var(--timeline-node-size);
     border-radius: 50%;
     background-color: var(--neutral-color-100);
     color: var(--neutral-color-500);
@@ -245,19 +251,29 @@
   }
 
   .step-connector {
-    position: absolute;
-    top: 28px;
-    bottom: -6px;
-    width: 1px;
-    background-color: var(--neutral-color-200);
-    z-index: 1;
+    display: none;
   }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: calc(var(--timeline-node-size) + 4px);
+    bottom: -18px;
+    transform: translateX(-50%);
+    border-right: 2px dashed var(--neutral-color-300);
+    z-index: 0;
+  }
+}
+
+.timeline-step:last-child .timeline-step-center::after {
+  display: none;
 }
 
 .timeline-step-right {
   flex: 1;
   min-width: 0;
-  padding-top: var(--spacing-0_5);
+  padding-top: 2px;
 
   .step-approver-name {
     font-size: var(--text-base);
@@ -497,11 +513,26 @@
   }
 
   .timeline-step {
-    gap: var(--spacing-3);
+    grid-template-columns: 96px 34px minmax(0, 1fr);
+    column-gap: var(--spacing-2);
+    min-height: 76px;
+    padding: var(--spacing-1_5) 0 var(--spacing-3);
   }
 
   .timeline-step-left {
-    width: 84px;
+    .step-status-label,
+    .step-date {
+      font-size: var(--text-xs);
+    }
+  }
+
+  .timeline-step-center {
+    --timeline-node-size: 24px;
+    min-height: 56px;
+
+    .step-number {
+      font-size: var(--text-xs);
+    }
   }
 
   .timeline-step-right {
