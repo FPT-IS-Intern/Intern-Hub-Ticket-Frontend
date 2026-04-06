@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -43,8 +43,6 @@ export class CreateTicketPage implements OnInit {
   ticketTypesList: TicketTypeDto[] = [];
   selectedTicketTypeId: string | null = null;
   private readonly hiddenTicketTypeNames = new Set([
-    'Phiếu đăng tin tức',
-    'Phiếu duyệt đăng bài',
     'Phiếu Update Profile',
   ]);
 
@@ -323,3 +321,5 @@ export class CreateTicketPage implements OnInit {
     return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }
 }
+
+

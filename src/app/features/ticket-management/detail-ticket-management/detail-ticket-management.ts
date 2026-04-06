@@ -219,7 +219,7 @@ export class DetailTicketManagementPage implements OnInit {
     const payload = detail.payload || {};
     const createdAtVal = detail.createdAt || (detail as any)['createdAt'] || '';
     const createdDate = this.formatDateTime(createdAtVal);
-    const fullName = detail.senderFullName || 'â€”';
+    const fullName = detail.senderFullName || '-';
 
     switch (this.ticketType) {
       case TicketTypeCode.LEAVE_REQUEST:
