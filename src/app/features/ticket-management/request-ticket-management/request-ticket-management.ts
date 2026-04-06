@@ -97,7 +97,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
   // Filter state
   searchKeyword = '';
   selectedTicketType = '';
-  selectedStatus: '' | TicketStatus = TicketStatus.PENDING;
+  selectedStatus: '' | TicketStatus = '';
   startDate: Date | null = null;
   endDate: Date | null = null;
   selectedSortBy: 'createdAt' | 'updatedAt' | 'status' = 'createdAt';
@@ -347,7 +347,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
 
     this.searchKeyword = '';
     this.selectedTicketType = '';
-    this.selectedStatus = TicketStatus.PENDING;
+    this.selectedStatus = '';
     this.startDate = null;
     this.endDate = null;
     this.selectedSortBy = 'createdAt';
