@@ -1,4 +1,4 @@
-<div class="request-ticket-management-page">
+﻿<div class="request-ticket-management-page">
   <div class="breadcrumb">
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
@@ -9,10 +9,10 @@
       ></app-icon>
     </span>
     <span class="breadcrumb-separator">/</span>
-    <span class="breadcrumb-current">Quản lý phiếu yêu cầu</span>
+    <span class="breadcrumb-current">Quáº£n lÃ½ phiáº¿u yÃªu cáº§u</span>
   </div>
 
-  <div class="page-title">Quản lý phiếu yêu cầu</div>
+  <div class="page-title">Quáº£n lÃ½ phiáº¿u yÃªu cáº§u</div>
 
   <div class="card-container">
     <div class="stat-card">
@@ -25,26 +25,10 @@
         ></app-icon>
       </div>
       <div class="stat-content">
-        <p class="stat-label">Tổng yêu cầu</p>
+        <p class="stat-label">Tá»•ng yÃªu cáº§u</p>
         <h3 class="stat-value">{{ totalRequests }}</h3>
       </div>
     </div>
-
-    <div class="stat-card">
-      <div class="stat-icon icon-approved">
-        <app-icon
-          icon="dsi-check-circle-line"
-          colorIcon="var(--theme-green-700)"
-          width="28px"
-          height="28px"
-        ></app-icon>
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">Đã duyệt</p>
-        <h3 class="stat-value">{{ approvedRequests }}</h3>
-      </div>
-    </div>
-
     <div class="stat-card">
       <div class="stat-icon icon-pending">
         <app-icon
@@ -55,23 +39,8 @@
         ></app-icon>
       </div>
       <div class="stat-content">
-        <p class="stat-label">Chưa duyệt</p>
+        <p class="stat-label">ChÆ°a duyá»‡t</p>
         <h3 class="stat-value">{{ pendingRequests }}</h3>
-      </div>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-icon icon-rejected">
-        <app-icon
-          icon="dsi-x-circle-line"
-          colorIcon="var(--utility-600)"
-          width="28px"
-          height="28px"
-        ></app-icon>
-      </div>
-      <div class="stat-content">
-        <p class="stat-label">Từ chối</p>
-        <h3 class="stat-value">{{ rejectedRequests }}</h3>
       </div>
     </div>
   </div>
@@ -79,7 +48,7 @@
   <div class="filter">
     <div class="search-box-wrapper">
       <app-input-text
-        placeholder="Tìm kiếm tên hoặc email"
+        placeholder="TÃ¬m kiáº¿m tÃªn hoáº·c email"
         icon="dsi dsi-search-lg-line"
         [value]="searchKeyword"
         [showLabel]="false"
@@ -95,7 +64,7 @@
         [(ngModel)]="selectedTicketType"
         (change)="onTicketTypeChange()"
       >
-        <option value="">Loại phiếu yêu cầu</option>
+        <option value="">Loáº¡i phiáº¿u yÃªu cáº§u</option>
         @for (type of ticketTypes; track type.ticketTypeId) {
           <option [value]="type.typeName">{{ type.typeName }}</option>
         }
@@ -105,7 +74,7 @@
 
     <div class="filter-select-field">
       <select class="status-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
-        <option value="">Trạng thái</option>
+        <option value="">Tráº¡ng thÃ¡i</option>
         @for (status of filterStatusOptions; track status.value) {
           <option [value]="status.value">{{ status.label }}</option>
         }
@@ -155,7 +124,7 @@
 
       @if (tableRows.length === 0) {
         <div class="empty-data">
-          Không có dữ liệu
+          KhÃ´ng cÃ³ dá»¯ liá»‡u
         </div>
       }
 
@@ -176,7 +145,7 @@
     @if (tableRows.length > 0) {
       <div class="pagination">
         <div class="pagination-info">
-          <span>Hiển thị {{ getShowingRange() }}</span>
+          <span>Hiá»ƒn thá»‹ {{ getShowingRange() }}</span>
           <i class="dsi dsi-info-circle-line pagination-info-icon"></i>
         </div>
 
@@ -186,7 +155,7 @@
             [disabled]="selectedCount === 0 || isBulkApproving"
             (click)="openBulkConfirm('approve')"
           >
-            Duyệt tất cả
+            Duyá»‡t táº¥t cáº£
           </button>
 
           <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
@@ -202,7 +171,7 @@
                 (click)="pageNum !== -1 && goToPage(pageNum)"
                 [disabled]="pageNum === -1"
               >
-                {{ pageNum === -1 ? '···' : pageNum }}
+                {{ pageNum === -1 ? 'Â·Â·Â·' : pageNum }}
               </button>
             }
             <span class="total-pages">{{ totalPages }}</span>
@@ -288,10 +257,11 @@
       [title]="confirmTitle"
       [content]="confirmContent"
       [colorButton]="confirmButtonColor"
-      confirmLabel="Xác nhận"
-      cancelLabel="Hủy"
+      confirmLabel="XÃ¡c nháº­n"
+      cancelLabel="Há»§y"
       (confirmClick)="confirmBulkAction()"
       (cancelClick)="cancelBulkConfirm()"
     ></app-pop-up-confirm>
   }
 </div>
+
