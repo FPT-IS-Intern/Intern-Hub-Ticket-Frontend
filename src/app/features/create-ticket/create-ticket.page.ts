@@ -285,7 +285,7 @@ export class CreateTicketPage implements OnInit {
 
   confirmSuccessPopup(): void {
     this.showSuccessPopup = false;
-    this.router.navigate(['/my-ticket']);
+    this.router.navigate(['/ticket/my-ticket']);
   }
 
   closeErrorPopup(): void {
