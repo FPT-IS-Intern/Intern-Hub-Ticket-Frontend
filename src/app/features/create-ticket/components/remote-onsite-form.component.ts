@@ -26,16 +26,6 @@ const completeDateRangeValidator: ValidatorFn = (
   return null;
 };
 
-const requiredAttachmentValidator: ValidatorFn = (
-  control: AbstractControl,
-): ValidationErrors | null => {
-  const files = control.value;
-  if (!Array.isArray(files) || files.length === 0) {
-    return { required: true };
-  }
-  return null;
-};
-
 @Component({
   selector: 'app-remote-onsite-form',
   standalone: true,
@@ -127,9 +117,6 @@ const requiredAttachmentValidator: ValidatorFn = (
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
-        @if (showControlError('attachments')) {
-          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
-        }
       </div>
     </form>
   `,
@@ -171,7 +158,7 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
       startTime: [null, Validators.required],
       endTime: [null, Validators.required],
       location: [null, Validators.required],
-      attachments: [[], [requiredAttachmentValidator]]
+      attachments: [[]]
     });
 
     this.loadLocations();

@@ -22,6 +22,16 @@ const requiredAttachmentValidator: ValidatorFn = (
   return null;
 };
 
+const requiredTrimmedTextValidator: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const value = control.value;
+  if (typeof value !== 'string' || value.trim().length === 0) {
+    return { required: true };
+  }
+  return null;
+};
+
 @Component({
   selector: 'app-explanation-form',
   standalone: true,
@@ -87,7 +97,7 @@ export class ExplanationFormComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       date: [null, Validators.required],
-      reason: [null, Validators.required],
+      reason: [null, [Validators.required, requiredTrimmedTextValidator]],
       attachments: [[], [requiredAttachmentValidator]]
     });
 

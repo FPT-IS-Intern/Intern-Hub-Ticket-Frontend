@@ -24,11 +24,11 @@ const completeDateRangeValidator: ValidatorFn = (
   return null;
 };
 
-const requiredAttachmentValidator: ValidatorFn = (
+const requiredTrimmedTextValidator: ValidatorFn = (
   control: AbstractControl,
 ): ValidationErrors | null => {
-  const files = control.value;
-  if (!Array.isArray(files) || files.length === 0) {
+  const value = control.value;
+  if (typeof value !== 'string' || value.trim().length === 0) {
     return { required: true };
   }
   return null;
@@ -94,9 +94,6 @@ const requiredAttachmentValidator: ValidatorFn = (
           helperText="Tối đa 2MB. Định dạng .png, .jpeg, .jpg, .pdf, .docx"
           (filesChange)="onFilesChange($event)"
         ></app-file-upload-dropzone>
-        @if (showControlError('attachments')) {
-          <div class="error-message">Vui lòng tải ít nhất 1 file minh chứng</div>
-        }
       </div>
     </form>
   `,
@@ -115,8 +112,8 @@ export class RemoteWfhFormComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.form = this.fb.group({
       dateRange: [[], [completeDateRangeValidator]],
-      reason: [null, Validators.required],
-      attachments: [[], [requiredAttachmentValidator]]
+      reason: [null, [Validators.required, requiredTrimmedTextValidator]],
+      attachments: [[]]
     });
 
     // Watch dateRange for validation
