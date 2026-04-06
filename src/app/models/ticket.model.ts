@@ -15,6 +15,7 @@ export enum TicketTypeCode {
   REMOTE_WFH = 'REMOTE_WFH',
   LEAVE_REQUEST = 'LEAVE_REQUEST',
   EXPLANATION = 'EXPLANATION',
+  NEWS_APPROVAL = 'NEWS_APPROVAL',
   UPDATE_PROFILE = 'UPDATE_PROFILE',
 }
 
@@ -34,22 +35,23 @@ export function registerTicketTypeIds(types: TicketTypeDto[]): void {
 }
 
 export const TICKET_TYPE_NAME_MAP: Record<string, TicketTypeCode> = {
-  'Phiếu Remote - Onsite': TicketTypeCode.REMOTE_ONSITE,
-  'Phiếu Remote - WFH': TicketTypeCode.REMOTE_WFH,
-  'Phiếu nghỉ phép': TicketTypeCode.LEAVE_REQUEST,
-  'Phiếu giải trình': TicketTypeCode.EXPLANATION,
-  'Phiếu đăng tin tức': TicketTypeCode.EXPLANATION,
-  'Phiếu Update Profile': TicketTypeCode.UPDATE_PROFILE,
+  'Phi\u1ebfu Remote - Onsite': TicketTypeCode.REMOTE_ONSITE,
+  'Phi\u1ebfu Remote - WFH': TicketTypeCode.REMOTE_WFH,
+  'Phi\u1ebfu ngh\u1ec9 ph\u00e9p': TicketTypeCode.LEAVE_REQUEST,
+  'Phi\u1ebfu gi\u1ea3i tr\u00ecnh': TicketTypeCode.EXPLANATION,
+  'Phi\u1ebfu \u0111\u0103ng tin t\u1ee9c': TicketTypeCode.NEWS_APPROVAL,
+  'Phi\u1ebfu duy\u1ec7t \u0111\u0103ng b\u00e0i': TicketTypeCode.NEWS_APPROVAL,
+  'Phi\u1ebfu Update Profile': TicketTypeCode.UPDATE_PROFILE,
 };
 
 export const TICKET_TYPE_CODE_TO_NAME: Record<TicketTypeCode, string> = {
-  [TicketTypeCode.REMOTE_ONSITE]: 'Phiếu Remote - Onsite',
-  [TicketTypeCode.REMOTE_WFH]: 'Phiếu Remote - WFH',
-  [TicketTypeCode.LEAVE_REQUEST]: 'Phiếu nghỉ phép',
-  [TicketTypeCode.EXPLANATION]: 'Phiếu giải trình',
-  [TicketTypeCode.UPDATE_PROFILE]: 'Phiếu Update Profile',
+  [TicketTypeCode.REMOTE_ONSITE]: 'Phi\u1ebfu Remote - Onsite',
+  [TicketTypeCode.REMOTE_WFH]: 'Phi\u1ebfu Remote - WFH',
+  [TicketTypeCode.LEAVE_REQUEST]: 'Phi\u1ebfu ngh\u1ec9 ph\u00e9p',
+  [TicketTypeCode.EXPLANATION]: 'Phi\u1ebfu gi\u1ea3i tr\u00ecnh',
+  [TicketTypeCode.NEWS_APPROVAL]: 'Phi\u1ebfu duy\u1ec7t \u0111\u0103ng b\u00e0i',
+  [TicketTypeCode.UPDATE_PROFILE]: 'Phi\u1ebfu Update Profile',
 };
-
 export enum EvidenceStatus {
   UPLOADED = 'UPLOADED',
   DELETED = 'DELETED',
@@ -308,3 +310,5 @@ export interface TicketPayload {
   totalDays?: number;
   workDate?: string;
 }
+
+

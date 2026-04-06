@@ -11,6 +11,10 @@ import {
   DetailUpdateProfileComponent,
   UpdateProfileDetail,
 } from './components/detail-update-profile.component';
+import {
+  DetailNewsApprovalComponent,
+  NewsApprovalDetail,
+} from './components/detail-news-approval.component';
 import { TicketService } from '../../../services/ticket.service';
 import {
   TicketDetailDto,
@@ -49,6 +53,7 @@ interface ApprovalLevel {
     ButtonContainerComponent,
     DetailLeaveRequestComponent,
     DetailUpdateProfileComponent,
+    DetailNewsApprovalComponent,
   ],
   providers: [DatePipe],
   templateUrl: './detail-ticket-management.html',
@@ -91,6 +96,19 @@ export class DetailTicketManagementPage implements OnInit {
     createdDate: '',
     oldProfile: {} as any,
     newProfile: {} as any,
+  };
+
+  newsApprovalData: NewsApprovalDetail = {
+    senderFullName: '',
+    createdDate: '',
+    newsId: '',
+    title: '',
+    summary: '',
+    category: '',
+    reason: '',
+    content: '',
+    previewUrl: '',
+    imageUrls: [],
   };
 
   approvalLevels: ApprovalLevel[] = [];
@@ -252,7 +270,56 @@ export class DetailTicketManagementPage implements OnInit {
           newProfile: payload['newProfile'] || {},
         };
         break;
+      case TicketTypeCode.NEWS_APPROVAL:
+        this.newsApprovalData = {
+          senderFullName: fullName,
+          createdDate,
+          newsId: String(payload['news_id'] || payload['newsId'] || ''),
+          title: payload['title'] || '',
+          summary: payload['summary'] || payload['shortDescription'] || '',
+          category: payload['category'] || '',
+          reason: payload['reason'] || '',
+          content: payload['content'] || payload['body'] || '',
+          previewUrl: payload['preview_url'] || payload['previewUrl'] || '',
+          imageUrls: this.resolveImageUrls(payload),
+        };
+        break;
     }
+  }
+
+  private resolveImageUrls(payload: Record<string, any>): string[] {
+    const imageCandidates: string[] = [];
+
+    const images = payload['image_urls'] || payload['imageUrls'];
+    if (Array.isArray(images)) {
+      for (const item of images) {
+        if (typeof item === 'string' && item.trim()) {
+          imageCandidates.push(item.trim());
+        }
+      }
+    } else if (typeof images === 'string' && images.trim()) {
+      try {
+        const parsed = JSON.parse(images);
+        if (Array.isArray(parsed)) {
+          for (const item of parsed) {
+            if (typeof item === 'string' && item.trim()) {
+              imageCandidates.push(item.trim());
+            }
+          }
+        } else {
+          imageCandidates.push(images.trim());
+        }
+      } catch {
+        imageCandidates.push(images.trim());
+      }
+    }
+
+    const thumbnail = payload['thumbnail_url'] || payload['thumbnailUrl'] || payload['thumbnail'];
+    if (typeof thumbnail === 'string' && thumbnail.trim()) {
+      imageCandidates.unshift(thumbnail.trim());
+    }
+
+    return [...new Set(imageCandidates)];
   }
 
   private buildApprovalLevels(

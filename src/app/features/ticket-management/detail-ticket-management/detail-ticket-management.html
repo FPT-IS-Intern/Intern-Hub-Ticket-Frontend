@@ -34,6 +34,9 @@
         @case ('UPDATE_PROFILE') {
           <app-detail-update-profile [data]="updateProfileData"></app-detail-update-profile>
         }
+        @case ('NEWS_APPROVAL') {
+          <app-detail-news-approval [data]="newsApprovalData"></app-detail-news-approval>
+        }
         @default {
           <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
         }
