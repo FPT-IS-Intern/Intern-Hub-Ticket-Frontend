@@ -97,7 +97,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
   // Filter state
   searchKeyword = '';
   selectedTicketType = '';
-  selectedStatus: '' | TicketStatus = '';
+  selectedStatus: '' | TicketStatus = TicketStatus.PENDING;
   startDate: Date | null = null;
   endDate: Date | null = null;
   selectedSortBy: 'createdAt' | 'updatedAt' | 'status' = 'createdAt';
@@ -212,7 +212,9 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
     if (!data) return;
     this.totalItems = data.totalItems || 0;
     this.totalPagesCount = data.totalPages || 0;
-    const items: TicketManagementDto[] = data.items || [];
+    const items: TicketManagementDto[] = (data.items || [])
+      .slice()
+      .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
 
     this.tableRows = items.map((ticket, index) => {
       // Resolve typeName from ticketTypes list using ticketTypeId
@@ -342,7 +344,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
 
     this.searchKeyword = '';
     this.selectedTicketType = '';
-    this.selectedStatus = '';
+    this.selectedStatus = TicketStatus.PENDING;
     this.startDate = null;
     this.endDate = null;
     this.selectedSortBy = 'createdAt';
