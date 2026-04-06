@@ -214,7 +214,10 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
     this.totalPagesCount = data.totalPages || 0;
     const items: TicketManagementDto[] = (data.items || [])
       .slice()
-      .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+      .sort(
+        (a: TicketManagementDto, b: TicketManagementDto) =>
+          Number(b.createdAt || 0) - Number(a.createdAt || 0),
+      );
 
     this.tableRows = items.map((ticket, index) => {
       // Resolve typeName from ticketTypes list using ticketTypeId
