@@ -78,14 +78,14 @@ const requiredTrimmedTextValidator: ValidatorFn = (
             typeInput="number"
             [readonly]="true"
           ></app-input-text>
-          @if (form.get('totalDays')?.value > 0 && form.get('totalDays')?.value < 5) {
+          @if (form.get('totalDays')?.value > 0 && form.get('totalDays')?.value <= 10) {
             <div class="leave-info-message">
-              Vì tổng ngày nghỉ của bạn ít hơn 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ xem
+              Vì tổng ngày nghỉ của bạn từ 10 ngày trở xuống, đơn này sẽ do mentor duyệt và ban quản lý sẽ xem
             </div>
           }
-          @if (form.get('totalDays')?.value >= 5) {
+          @if (form.get('totalDays')?.value > 10) {
             <div class="leave-info-message">
-              Vì tổng ngày nghỉ của bạn lớn hơn hoặc bằng 5 ngày, đơn này sẽ do mentor duyệt và ban quản lý sẽ duyệt cuối
+              Vì tổng ngày nghỉ của bạn lớn hơn 10 ngày, đơn này cần phê duyệt cấp 2
             </div>
           }
         </div>

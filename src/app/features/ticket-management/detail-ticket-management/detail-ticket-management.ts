@@ -480,7 +480,7 @@ export class DetailTicketManagementPage implements OnInit {
       return { label: 'Đã hủy', bg: 'var(--neutral-color-200)', color: 'var(--neutral-color-600)' };
     }
     if (status === TicketStatus.REVIEWING) {
-      return { label: 'Đang xem xét', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
+      return { label: 'Chờ duyệt cấp 2', bg: 'var(--brand-50)', color: 'var(--brand-600)' };
     }
     return { label: 'Chưa duyệt', bg: 'var(--neutral-color-100)', color: 'var(--neutral-color-600)' };
   }

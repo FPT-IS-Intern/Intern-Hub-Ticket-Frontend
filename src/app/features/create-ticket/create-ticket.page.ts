@@ -154,6 +154,8 @@ export class CreateTicketPage implements OnInit {
       payload['date'] = this.formatDate(rawValue.date);
     }
 
+    let totalDaysFromRange: number | null = null;
+
     if (rawValue.dateRange && rawValue.dateRange.length === 2) {
       const startDate = rawValue.dateRange[0];
       const endDate = rawValue.dateRange[1];
@@ -161,6 +163,7 @@ export class CreateTicketPage implements OnInit {
       if (componentKey === 'LEAVE' || componentKey === 'REMOTE_WFH' || componentKey === 'REMOTE_ONSITE') {
         payload['start_date'] = this.formatDate(startDate);
         payload['end_date'] = this.formatDate(endDate);
+        totalDaysFromRange = this.calculateInclusiveDays(startDate, endDate);
       }
       delete payload['dateRange'];
     }
@@ -176,10 +179,14 @@ export class CreateTicketPage implements OnInit {
       }
     }
 
-    if (componentKey === 'LEAVE' && payload['totalDays'] !== undefined) {
-      payload['total_days'] = payload['totalDays'];
-      delete payload['totalDays'];
-    } else if (payload['totalDays'] !== undefined) {
+    if (componentKey === 'LEAVE' || componentKey === 'REMOTE_WFH' || componentKey === 'REMOTE_ONSITE') {
+      if (totalDaysFromRange != null) {
+        payload['total_days'] = totalDaysFromRange;
+      } else if (componentKey === 'LEAVE' && payload['totalDays'] !== undefined) {
+        payload['total_days'] = payload['totalDays'];
+      }
+    }
+    if (payload['totalDays'] !== undefined) {
       delete payload['totalDays'];
     }
 
@@ -292,5 +299,23 @@ export class CreateTicketPage implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private calculateInclusiveDays(startDate: any, endDate: any): number | null {
+    if (!startDate || !endDate) {
+      return null;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      return null;
+    }
+
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const diffTime = end.getTime() - start.getTime();
+
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
   }
 }
