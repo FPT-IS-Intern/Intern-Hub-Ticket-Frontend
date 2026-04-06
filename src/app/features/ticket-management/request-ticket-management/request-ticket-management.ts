@@ -501,7 +501,7 @@ export class RequestTicketManagementPage implements OnInit, AfterViewInit, OnDes
       return 'Đã hủy';
     }
     if (status === TicketStatus.REVIEWING) {
-      return 'Đang xem xét';
+      return 'Chờ duyệt cấp 2';
     }
     return 'Chưa duyệt';
   }
