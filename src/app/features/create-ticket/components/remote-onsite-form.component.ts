@@ -197,12 +197,15 @@ export class RemoteOnsiteFormComponent implements OnInit, OnDestroy {
   }
 
   loadLocations(): void {
-    this.workLocationService.getAllLocations().subscribe({
+    this.workLocationService.getAllBranches().subscribe({
       next: (res) => {
-        this.locations = res.data || [];
+        const branches = res.data || [];
+        this.locations = branches
+          .map((branch) => branch?.name?.trim())
+          .filter((name): name is string => !!name);
       },
       error: (err) => {
-        console.error('Error loading work locations:', err);
+        console.error('Error loading branches:', err);
       },
     });
   }
