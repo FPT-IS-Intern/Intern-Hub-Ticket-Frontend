@@ -1,4 +1,4 @@
-﻿<div class="request-ticket-management-page">
+<div class="request-ticket-management-page">
   <div class="breadcrumb">
     <span class="breadcrumb-home" (click)="goToHome()">
       <app-icon
@@ -9,10 +9,10 @@
       ></app-icon>
     </span>
     <span class="breadcrumb-separator">/</span>
-    <span class="breadcrumb-current">Quáº£n lÃ½ phiáº¿u yÃªu cáº§u</span>
+    <span class="breadcrumb-current">Quản lý phiếu yêu cầu</span>
   </div>
 
-  <div class="page-title">Quáº£n lÃ½ phiáº¿u yÃªu cáº§u</div>
+  <div class="page-title">Quản lý phiếu yêu cầu</div>
 
   <div class="card-container">
     <div class="stat-card">
@@ -25,10 +25,12 @@
         ></app-icon>
       </div>
       <div class="stat-content">
-        <p class="stat-label">Tá»•ng yÃªu cáº§u</p>
+        <p class="stat-label">Tổng yêu cầu</p>
         <h3 class="stat-value">{{ totalRequests }}</h3>
       </div>
     </div>
+
+
     <div class="stat-card">
       <div class="stat-icon icon-pending">
         <app-icon
@@ -39,16 +41,17 @@
         ></app-icon>
       </div>
       <div class="stat-content">
-        <p class="stat-label">ChÆ°a duyá»‡t</p>
+        <p class="stat-label">Chưa duyệt</p>
         <h3 class="stat-value">{{ pendingRequests }}</h3>
       </div>
     </div>
+
   </div>
 
   <div class="filter">
     <div class="search-box-wrapper">
       <app-input-text
-        placeholder="TÃ¬m kiáº¿m tÃªn hoáº·c email"
+        placeholder="Tìm kiếm tên hoặc email"
         icon="dsi dsi-search-lg-line"
         [value]="searchKeyword"
         [showLabel]="false"
@@ -64,7 +67,7 @@
         [(ngModel)]="selectedTicketType"
         (change)="onTicketTypeChange()"
       >
-        <option value="">Loáº¡i phiáº¿u yÃªu cáº§u</option>
+        <option value="">Loại phiếu yêu cầu</option>
         @for (type of ticketTypes; track type.ticketTypeId) {
           <option [value]="type.typeName">{{ type.typeName }}</option>
         }
@@ -74,7 +77,7 @@
 
     <div class="filter-select-field">
       <select class="status-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
-        <option value="">Tráº¡ng thÃ¡i</option>
+        <option value="">Trạng thái</option>
         @for (status of filterStatusOptions; track status.value) {
           <option [value]="status.value">{{ status.label }}</option>
         }
@@ -124,7 +127,7 @@
 
       @if (tableRows.length === 0) {
         <div class="empty-data">
-          KhÃ´ng cÃ³ dá»¯ liá»‡u
+          Không có dữ liệu
         </div>
       }
 
@@ -145,7 +148,7 @@
     @if (tableRows.length > 0) {
       <div class="pagination">
         <div class="pagination-info">
-          <span>Hiá»ƒn thá»‹ {{ getShowingRange() }}</span>
+          <span>Hiển thị {{ getShowingRange() }}</span>
           <i class="dsi dsi-info-circle-line pagination-info-icon"></i>
         </div>
 
@@ -155,7 +158,7 @@
             [disabled]="selectedCount === 0 || isBulkApproving"
             (click)="openBulkConfirm('approve')"
           >
-            Duyá»‡t táº¥t cáº£
+            Duyệt tất cả
           </button>
 
           <button class="pagination-btn" [disabled]="currentPage === 1" (click)="previousPage()">
@@ -171,7 +174,7 @@
                 (click)="pageNum !== -1 && goToPage(pageNum)"
                 [disabled]="pageNum === -1"
               >
-                {{ pageNum === -1 ? 'Â·Â·Â·' : pageNum }}
+                {{ pageNum === -1 ? '···' : pageNum }}
               </button>
             }
             <span class="total-pages">{{ totalPages }}</span>
@@ -257,11 +260,10 @@
       [title]="confirmTitle"
       [content]="confirmContent"
       [colorButton]="confirmButtonColor"
-      confirmLabel="XÃ¡c nháº­n"
-      cancelLabel="Há»§y"
+      confirmLabel="Xác nhận"
+      cancelLabel="Hủy"
       (confirmClick)="confirmBulkAction()"
       (cancelClick)="cancelBulkConfirm()"
     ></app-pop-up-confirm>
   }
 </div>
-
