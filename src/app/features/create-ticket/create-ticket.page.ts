@@ -43,6 +43,8 @@ export class CreateTicketPage implements OnInit {
   ticketTypesList: TicketTypeDto[] = [];
   selectedTicketTypeId: string | null = null;
   private readonly hiddenTicketTypeNames = new Set([
+    'Phiếu đăng tin tức',
+    'Phiếu duyệt đăng bài',
     'Phiếu Update Profile',
   ]);
 
