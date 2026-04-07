@@ -282,13 +282,19 @@ export class DetailTicketManagementPage implements OnInit {
         };
         break;
       case TicketTypeCode.REMOTE_WFH:
+        {
+        const wfhTime = this.formatTimeRange(
+          payload['start_time'] || payload['startTime'],
+          payload['end_time'] || payload['endTime'],
+        );
         this.remoteWfhData = {
           fullName,
           createdDate,
           workDate: this.formatDate(payload['start_date'] || payload['startDate'] || payload['work_date'] || payload['workDate'] || ''),
-          startTime: this.formatTimeRange(payload['start_time'] || payload['startTime'], payload['end_time'] || payload['endTime']),
+          startTime: wfhTime === '-' ? 'Cả ngày' : wfhTime,
           reason: payload['reason'] || '',
         };
+        }
         break;
       case TicketTypeCode.EXPLANATION:
         this.explanationData = {
