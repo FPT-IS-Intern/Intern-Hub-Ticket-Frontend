@@ -15,6 +15,18 @@ import {
   DetailNewsApprovalComponent,
   NewsApprovalDetail,
 } from './components/detail-news-approval.component';
+import {
+  DetailRemoteWfhComponent,
+  RemoteWfhDetail,
+} from './components/detail-remote-wfh.component';
+import {
+  DetailRemoteOnsiteComponent,
+  RemoteOnsiteDetail,
+} from './components/detail-remote-onsite.component';
+import {
+  DetailExplanationComponent,
+  ExplanationDetail,
+} from './components/detail-explanation.component';
 import { TicketService } from '../../../services/ticket.service';
 import {
   TicketDetailDto,
@@ -54,6 +66,9 @@ interface ApprovalLevel {
     DetailLeaveRequestComponent,
     DetailUpdateProfileComponent,
     DetailNewsApprovalComponent,
+    DetailRemoteWfhComponent,
+    DetailRemoteOnsiteComponent,
+    DetailExplanationComponent,
   ],
   providers: [DatePipe],
   templateUrl: './detail-ticket-management.html',
@@ -96,6 +111,30 @@ export class DetailTicketManagementPage implements OnInit {
     createdDate: '',
     oldProfile: {} as any,
     newProfile: {} as any,
+  };
+
+  remoteWfhData: RemoteWfhDetail = {
+    fullName: '',
+    createdDate: '',
+    startTime: '',
+    reason: '',
+    workDate: '',
+  };
+
+  remoteOnsiteData: RemoteOnsiteDetail = {
+    fullName: '',
+    createdDate: '',
+    startTime: '',
+    reason: '',
+    workDate: '',
+    location: '',
+  };
+
+  explanationData: ExplanationDetail = {
+    fullName: '',
+    createdDate: '',
+    date: '',
+    reason: '',
   };
 
   newsApprovalData: NewsApprovalDetail = {
@@ -233,33 +272,30 @@ export class DetailTicketManagementPage implements OnInit {
         };
         break;
       case TicketTypeCode.REMOTE_ONSITE:
-        this.leaveRequestData = {
-          senderFullName: fullName,
+        this.remoteOnsiteData = {
+          fullName,
           createdDate,
-          startDate: payload['work_date'] || payload['workDate'] || '',
-          endDate: payload['start_time'] || payload['startTime'] || '',
+          workDate: this.formatDate(payload['start_date'] || payload['startDate'] || payload['work_date'] || payload['workDate'] || ''),
+          startTime: this.formatTimeRange(payload['start_time'] || payload['startTime'], payload['end_time'] || payload['endTime']),
           reason: payload['reason'] || '',
-          totalDays: 0,
+          location: payload['location'] || '-',
         };
         break;
       case TicketTypeCode.REMOTE_WFH:
-        this.leaveRequestData = {
-          senderFullName: fullName,
+        this.remoteWfhData = {
+          fullName,
           createdDate,
-          startDate: payload['work_date'] || payload['workDate'] || '',
-          endDate: payload['start_time'] || payload['startTime'] || '',
+          workDate: this.formatDate(payload['start_date'] || payload['startDate'] || payload['work_date'] || payload['workDate'] || ''),
+          startTime: this.formatTimeRange(payload['start_time'] || payload['startTime'], payload['end_time'] || payload['endTime']),
           reason: payload['reason'] || '',
-          totalDays: 0,
         };
         break;
       case TicketTypeCode.EXPLANATION:
-        this.leaveRequestData = {
-          senderFullName: fullName,
+        this.explanationData = {
+          fullName,
           createdDate,
-          startDate: payload['date'] || '',
-          endDate: '',
+          date: this.formatDate(payload['date'] || payload['work_date'] || payload['workDate'] || ''),
           reason: payload['reason'] || '',
-          totalDays: 0,
         };
         break;
       case TicketTypeCode.UPDATE_PROFILE:
@@ -320,6 +356,16 @@ export class DetailTicketManagementPage implements OnInit {
     }
 
     return [...new Set(imageCandidates)];
+  }
+
+  private formatTimeRange(startTime: any, endTime: any): string {
+    const start = (startTime || '').toString().trim();
+    const end = (endTime || '').toString().trim();
+
+    if (start && end) {
+      return `${start} - ${end}`;
+    }
+    return start || end || '-';
   }
 
   private buildApprovalLevels(

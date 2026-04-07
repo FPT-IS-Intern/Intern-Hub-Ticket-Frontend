@@ -16,18 +16,22 @@ export interface ExplanationDetail {
     <div class="detail-info-grid">
       <div class="detail-row">
         <div class="detail-field">
-          <span class="field-label">Họ & Tên</span>
-          <span class="field-value bold">{{ data.fullName }}</span>
+          <span class="field-label">H&#7885; &amp; T&ecirc;n</span>
+          <span class="field-value bold">{{ data.fullName || '-' }}</span>
         </div>
         <div class="detail-field">
-          <span class="field-label">Ngày tạo phiếu</span>
-          <span class="field-value">{{ data.createdDate }}</span>
+          <span class="field-label">Ng&agrave;y t&#7841;o phi&#7871;u</span>
+          <span class="field-value">{{ data.createdDate || '-' }}</span>
+        </div>
+        <div class="detail-field">
+          <span class="field-label">Ng&agrave;y gi&#7843;i tr&igrave;nh</span>
+          <span class="field-value bold">{{ data.date || '-' }}</span>
         </div>
       </div>
       <div class="detail-row">
         <div class="detail-field">
-          <span class="field-label">Lý do</span>
-          <span class="field-value">{{ data.reason }}</span>
+          <span class="field-label">L&yacute; do</span>
+          <span class="field-value">{{ data.reason || '-' }}</span>
         </div>
         <div class="detail-field"></div>
         <div class="detail-field"></div>

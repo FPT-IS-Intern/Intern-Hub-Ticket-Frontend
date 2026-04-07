@@ -31,6 +31,15 @@
         @case ('LEAVE_REQUEST') {
           <app-detail-leave-request [data]="leaveRequestData"></app-detail-leave-request>
         }
+        @case ('REMOTE_WFH') {
+          <app-detail-remote-wfh [data]="remoteWfhData"></app-detail-remote-wfh>
+        }
+        @case ('REMOTE_ONSITE') {
+          <app-detail-remote-onsite [data]="remoteOnsiteData"></app-detail-remote-onsite>
+        }
+        @case ('EXPLANATION') {
+          <app-detail-explanation [data]="explanationData"></app-detail-explanation>
+        }
         @case ('UPDATE_PROFILE') {
           <app-detail-update-profile [data]="updateProfileData"></app-detail-update-profile>
         }
