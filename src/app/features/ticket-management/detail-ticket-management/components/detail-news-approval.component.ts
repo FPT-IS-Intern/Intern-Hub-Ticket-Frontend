@@ -32,13 +32,6 @@ export interface NewsApprovalDetail {
             <span class="meta-item">Ngày tạo: <strong>{{ data.createdDate || '-' }}</strong></span>
           </div>
         </div>
-        <div class="header-right">
-          @if (data.previewUrl) {
-            <a class="preview-btn" [href]="data.previewUrl" target="_blank" rel="noopener">
-              Xem preview
-            </a>
-          }
-        </div>
       </section>
 
       <section class="news-ticket-section info-grid-section">
@@ -111,7 +104,6 @@ export interface NewsApprovalDetail {
 
     .news-ticket-header {
       display: flex;
-      justify-content: space-between;
       gap: 16px;
     }
 
@@ -159,27 +151,6 @@ export interface NewsApprovalDetail {
     .meta-dot {
       color: var(--neutral-color-300);
       font-size: 13px;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: flex-start;
-    }
-
-    .preview-btn {
-      white-space: nowrap;
-      text-decoration: none;
-      color: var(--neutral-color-10);
-      background: var(--brand-600);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 14px;
-      font-weight: 600;
-      transition: background-color 0.2s ease;
-    }
-
-    .preview-btn:hover {
-      background: var(--brand-700);
     }
 
     .info-grid-section {
