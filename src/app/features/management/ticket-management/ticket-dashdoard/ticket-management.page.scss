@@ -135,12 +135,91 @@
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
   overflow: hidden;
+  width: 352px;
 }
 
 .date-panel ::ng-deep .ant-picker-panel-container,
 .date-panel ::ng-deep .ant-picker-panel {
   border: none;
   box-shadow: none;
+}
+
+.date-panel ::ng-deep .ant-picker-date-panel,
+.date-panel ::ng-deep .ant-picker-body,
+.date-panel ::ng-deep .ant-picker-content,
+.date-panel ::ng-deep table {
+  width: 100% !important;
+}
+
+.date-panel ::ng-deep .ant-picker-panel-layout,
+.date-panel ::ng-deep .ant-picker-panel-container {
+  background: var(--neutral-white);
+}
+
+.date-panel ::ng-deep .ant-picker-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.date-panel ::ng-deep .ant-picker-header button {
+  color: var(--neutral-500) !important;
+}
+
+.date-panel ::ng-deep .ant-picker-header-view {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--neutral-900);
+}
+
+.date-panel ::ng-deep .ant-picker-content th,
+.date-panel ::ng-deep .ant-picker-content td {
+  width: 40px !important;
+  min-width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  color: var(--neutral-900) !important;
+}
+
+.date-panel ::ng-deep .ant-picker-content th {
+  font-weight: 600;
+  color: var(--neutral-700) !important;
+}
+
+.date-panel ::ng-deep .ant-picker-cell-inner {
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  border-radius: 8px !important;
+  margin: 0 auto !important;
+}
+
+.date-panel ::ng-deep .ant-picker-cell-in-view {
+  color: var(--neutral-900) !important;
+}
+
+.date-panel ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: var(--brand-500) !important;
+  color: var(--neutral-white) !important;
+}
+
+.date-panel ::ng-deep .ant-picker-cell-today .ant-picker-cell-inner::before {
+  border-color: var(--brand-500) !important;
+  border-radius: 8px !important;
+}
+
+.date-panel ::ng-deep .ant-picker-footer {
+  border-top: 1px solid var(--neutral-200);
+}
+
+.date-panel ::ng-deep .ant-picker-today-btn {
+  display: block;
+  padding: 12px 16px;
+  text-align: center;
+  color: var(--brand-500) !important;
+  font-weight: 600;
 }
 
 .chart-placeholder {
