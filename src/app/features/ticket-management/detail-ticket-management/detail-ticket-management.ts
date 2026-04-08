@@ -397,18 +397,19 @@ export class DetailTicketManagementPage implements OnInit {
     const isLevel1Rejected = normalizeStatus(level1Status) === 'REJECTED' || normalizeStatus(level1Status) === 'REJECT';
     const isLevel2Rejected = normalizeStatus(level2Status) === 'REJECTED' || normalizeStatus(level2Status) === 'REJECT';
     const isLevel1Pending = !isLevel1Approved && !isLevel1Rejected;
-    const isOutOfOrderLevel2Decision = requiredApprovals >= 2 && isLevel1Pending && (isLevel2Approved || isLevel2Rejected);
 
     const currentApprovalLevel = Number(detail.currentApprovalLevel || 1);
-    const rejectionLevel = isTicketRejected
+    const rejectionStartLevel = isTicketRejected
       ? (
-        isLevel2Rejected
-          ? 2
-          : isLevel1Rejected
-            ? 1
-            : (requiredApprovals >= 2 && (isLevel1Approved || currentApprovalLevel >= 2))
-              ? 2
-              : 1
+        requiredApprovals >= 2
+          ? (
+            isLevel1Pending
+              ? 1
+              : (isLevel2Rejected || isLevel2Approved || currentApprovalLevel >= 2)
+                ? 2
+                : 1
+          )
+          : 1
       )
       : null;
 
@@ -439,16 +440,10 @@ export class DetailTicketManagementPage implements OnInit {
       return 'Chờ duyệt';
     };
 
-    const level1DisplayStatus = isOutOfOrderLevel2Decision
+    const level1DisplayStatus = rejectionStartLevel === 1 ? 'REJECTED' : level1Status;
+    const level2DisplayStatus = requiredApprovals >= 2 && (rejectionStartLevel === 1 || rejectionStartLevel === 2)
       ? 'REJECTED'
-      : rejectionLevel === 1
-        ? 'REJECTED'
-        : level1Status;
-    const level2DisplayStatus = isOutOfOrderLevel2Decision
-      ? 'REJECTED'
-      : rejectionLevel === 2
-        ? 'REJECTED'
-        : level2Status;
+      : level2Status;
 
     this.approvalLevels.push({
       level: 1,
