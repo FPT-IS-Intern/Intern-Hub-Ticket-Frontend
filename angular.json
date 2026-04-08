@@ -17,7 +17,11 @@
         "build": {
           "builder": "@angular-architects/native-federation:build",
           "options": {
-            "styles": ["node_modules/dynamic-ds/styles/system-design.scss", "src/styles.scss"]
+            "styles": [
+              "node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+              "node_modules/dynamic-ds/styles/system-design.scss",
+              "src/styles.scss"
+            ]
           },
           "configurations": {
             "production": {
