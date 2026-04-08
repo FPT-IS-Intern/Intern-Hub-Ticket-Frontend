@@ -1,0 +1,93 @@
+:host {
+  display: inline-block;
+  width: 100%;
+}
+
+.date-picker {
+  width: 100%;
+}
+
+// Override NG-ZORRO styles for consistent look
+::ng-deep .ant-picker {
+  border-radius: 8px;
+  transition: all 0.2s;
+
+  &:hover {
+    border-color: var(--brand-500);
+  }
+
+  &.ant-picker-focused {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(var(--brand-500-rgb, 225, 131, 8), 0.15);
+  }
+
+  &.ant-picker-disabled {
+    background: var(--neutral-100);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+
+  .ant-picker-input > input {
+    font-size: 14px;
+    color: var(--neutral-900);
+
+    &::placeholder {
+      color: var(--neutral-400);
+    }
+  }
+
+  .ant-picker-suffix {
+    color: var(--neutral-500);
+  }
+
+  .ant-picker-clear {
+    color: var(--neutral-400);
+
+    &:hover {
+      color: var(--neutral-600);
+    }
+  }
+}
+
+// Inline mode
+.date-picker-inline {
+  border: none;
+  box-shadow: none;
+}
+
+// Size variants
+::ng-deep .ant-picker-large {
+  height: 40px;
+
+  .ant-picker-input > input {
+    font-size: 15px;
+  }
+}
+
+::ng-deep .ant-picker-small {
+  height: 28px;
+
+  .ant-picker-input > input {
+    font-size: 12px;
+  }
+}
+
+// Dropdown panel customization
+::ng-deep .ant-picker-dropdown {
+  .ant-picker-cell-selected .ant-picker-cell-inner {
+    background: var(--brand-500);
+    color: #fff;
+  }
+
+  .ant-picker-cell-today .ant-picker-cell-inner::before {
+    border-color: var(--brand-500);
+  }
+
+  .ant-picker-today-btn {
+    color: var(--brand-500);
+  }
+
+  .ant-picker-header-view button:hover {
+    color: var(--brand-500);
+  }
+}

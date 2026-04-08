@@ -13,6 +13,34 @@ export const routes: Routes = [
       import('./features/create-ticket/create-ticket.page').then((m) => m.CreateTicketPage),
   },
   {
+    path: 'manage-tickets',
+    loadComponent: () =>
+      import('./features/management/ticket-management/ticket-dashdoard/ticket-management.page').then(
+        (m) => m.TicketManagementPage,
+      ),
+  },
+  {
+    path: 'manage-tickets/registration',
+    loadComponent: () =>
+      import('./features/management/ticket-management/registration-ticket/registrantion-ticket.page').then(
+        (m) => m.RegistrationTicketPage,
+      ),
+  },
+  {
+    path: 'manage-tickets/registration/:id',
+    loadComponent: () =>
+      import('./features/management/ticket-management/detail-registration-ticket/detail-registration-ticket.page').then(
+        (m) => m.DetailRegistrationTicketPage,
+      ),
+  },
+  {
+    path: 'manage-tickets/attendance',
+    loadComponent: () =>
+      import('./features/management/attendance-management/attendance-management.page').then(
+        (m) => m.AttendancePage,
+      ),
+  },
+  {
     path: 'request-ticket-management',
     loadComponent: () =>
       import('./features/ticket-management/request-ticket-management/request-ticket-management').then(

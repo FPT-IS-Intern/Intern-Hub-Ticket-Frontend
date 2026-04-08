@@ -1,0 +1,169 @@
+<div class="registration-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        <span>/</span>
+        <span class="breadcrumb-link" (click)="goToManageTickets()">Quản lý phiếu yêu cầu</span>
+        <span>/</span>
+        <span class="breadcrumb-active">Quản lý duyệt tài khoản</span>
+    </div>
+
+    <!-- Page Title -->
+    <h1 class="page-title">Quản lý duyệt tài khoản</h1>
+
+    <!-- Stat Cards -->
+    <div class="card-container">
+        <div class="stat-card">
+            <div class="stat-icon icon-total">
+                <app-icon icon="dsi dsi-file-05-line" colorIcon="var(--brand-600)" width="28px" height="28px"></app-icon>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">TỔNG YÊU CẦU</p>
+                <h3 class="stat-value">{{ totalCount() }}</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-approved">
+                <app-icon icon="dsi-check-circle-line" colorIcon="var(--secondary-600)" width="28px"
+                    height="28px"></app-icon>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">ĐÃ DUYỆT</p>
+                <h3 class="stat-value">{{ approvedCount() }}</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-pending">
+                <app-icon icon="dsi-clock-line" colorIcon="var(--brand-600)" width="28px" height="28px"></app-icon>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">CHỜ DUYỆT</p>
+                <h3 class="stat-value">{{ pendingCount() }}</h3>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon icon-rejected">
+                <app-icon icon="dsi-x-circle-line" colorIcon="var(--utility-600)" width="28px" height="28px"></app-icon>
+            </div>
+            <div class="stat-content">
+                <p class="stat-label">TỪ CHỐI</p>
+                <h3 class="stat-value">{{ rejectedCount() }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Container -->
+    <div class="filter-container">
+        <app-input-text class="search-box" placeholder="Tìm kiếm tên hoặc email" icon="dsi dsi-search-lg-line"
+            widthIcon="16px" heightIcon="16px" height="36px" border="1px solid var(--neutral-300)" borderRadius="8px"
+            padding="0 12px" fontSizeContent="14px" [showLabel]="false" [value]="searchKeyword()"
+            (valueChange)="onSearchChange($event)" (iconClick)="onSearch()" backgroundColor="var(--neutral-color-10)">
+        </app-input-text>
+
+        <select class="custom-select" icon="dsi dsi-search-lg-line"
+            style="background-color: var(--neutral-color-10); cursor: not-allowed; opacity: 0.85;" disabled>
+            <option value="REGISTRATION" [selected]="selectTicketType() === 'REGISTRATION'">Đăng ký</option>
+            <app-icon icon="dsi-arrow-down-line">
+            </app-icon>
+        </select>
+
+        <select class="custom-select" style="background-color: var(--neutral-color-10);"
+            (change)="onStatusChange($any($event.target).value)">
+            <option value="" [selected]="selectedStatus() === ''">Tất cả trạng thái</option>
+            <option value="APPROVED" [selected]="selectedStatus() === 'APPROVED'">Đã duyệt</option>
+            <option value="PENDING" [selected]="selectedStatus() === 'PENDING'">Chờ duyệt</option>
+            <option value="REJECTED" [selected]="selectedStatus() === 'REJECTED'">Từ chối</option>
+            <option value="SUSPENDED" [selected]="selectedStatus() === 'SUSPENDED'">Tạm ngưng</option>
+        </select>
+
+        <button class="refresh-btn" (click)="onRefresh()" title="Làm mới">
+            <app-icon icon="dsi dsi-refresh-ccw-02-line dsi-neutral-10" colorIcon="var(--neutral-white)" width="18px" height="18px"></app-icon>
+        </button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container">
+        <!-- Loading -->
+        @if (loadingTable()) {
+        <div class="table-loading">
+            <div class="table-spinner"></div>
+            <span>Đang tải dữ liệu...</span>
+        </div>
+        }
+
+        @if (!loadingTable()) {
+        <div class="table-wrapper">
+            <table class="registration-table">
+                <thead>
+                    <tr app-table-header [columns]="columns" backgroundColor="var(--brand-600)"
+                        textColor="var(--neutral-900)" fontSize="12px">
+                    </tr>
+                </thead>
+                <tbody app-table-body [columns]="columns" [rows]="paginatedRows()" backgroundColor="var(--neutral-10)"
+                    [columnTemplates]="columnTemplates" fontSize="14px"
+                    (click)="onRowClick($event)">
+                </tbody>
+            </table>
+
+            @if (registrationRows().length === 0) {
+            <div class="empty-state">
+                <app-icon icon="dsi-inbox-01-line" colorIcon="var(--neutral-400)" width="48px" height="48px"></app-icon>
+                <p>Không có dữ liệu</p>
+            </div>
+            }
+        </div>
+        }
+
+        <!-- Pagination -->
+        @if (registrationRows().length > 0) {
+        <div class="pagination">
+            <!-- Show count info -->
+            <div class="pagination-info">
+                <span>Hiển thị {{ getShowingRange() }} / {{ totalItems() }}</span>
+            </div>
+
+            <!-- Page navigation -->
+            <div class="pagination-nav">
+                <button class="pagination-btn" [disabled]="currentPage() === 1" (click)="previousPage()">
+                    <i class="dsi dsi-chevron-left-line" style="font-size: 16px;"></i>
+                </button>
+
+                <div class="page-numbers">
+                    @for (pageNum of getVisiblePages(); track pageNum) {
+                    <button class="page-number" [class.active]="currentPage() === pageNum"
+                        [class.ellipsis]="pageNum === -1" (click)="pageNum !== -1 && goToPage(pageNum)"
+                        [disabled]="pageNum === -1">
+                        {{ pageNum === -1 ? '...' : pageNum }}
+                    </button>
+                    }
+                    <span class="total-pages">{{ totalPages() }}</span>
+                </div>
+
+                <button class="pagination-btn" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+                    <i class="dsi dsi-chevron-right-line" style="font-size: 16px;"></i>
+                </button>
+
+                <!-- Page size dropdown -->
+                <div class="page-size-dropdown">
+                    <select (change)="onPageSizeChange($any($event.target).value)">
+                        <option value="7" [selected]="pageSize() === 7">7 / trang</option>
+                        <option value="10" [selected]="pageSize() === 10">10 / trang</option>
+                        <option value="20" [selected]="pageSize() === 20">20 / trang</option>
+                        <option value="50" [selected]="pageSize() === 50">50 / trang</option>
+                    </select>
+                    <i class="dsi dsi-chevron-down-line dropdown-icon" style="font-size: 12px;"></i>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+</div>
+
+<!-- Column Templates -->
+<ng-template #statusTemplate let-value let-row="row">
+    <app-label-button [label]="value.text" [bgColor]="getStatusBgColor(value.tone)"
+        [textColor]="getStatusTextColor(value.tone)" [borderColor]="getStatusBorderColor(value.tone)" width="auto"
+        height="28px">
+    </app-label-button>
+</ng-template>
+

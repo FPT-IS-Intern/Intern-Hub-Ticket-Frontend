@@ -1,0 +1,87 @@
+<!-- Single Date Picker -->
+@if (!isRange && !inline) {
+  <nz-date-picker
+    [nzMode]="mode"
+    [(ngModel)]="selectedDate"
+    [nzFormat]="fullFormat"
+    [nzShowTime]="showTime"
+    [nzPlaceHolder]="placeholder"
+    [nzDisabled]="disabled"
+    [nzAllowClear]="allowClear"
+    [nzSize]="size"
+    [nzVariant]="nzVariant"
+    [nzDropdownClassName]="popupClassName"
+    [nzPlacement]="dropdownPosition"
+    [nzDisabledDate]="disabledDate"
+    [nzInputReadOnly]="inputReadOnly"
+    [style.width]="width"
+    [style.height]="height"
+    (ngModelChange)="onDateChange($event)"
+    (nzOnOpenChange)="onOpenChange($event)"
+    (nzOnOk)="onOk($event)"
+    (nzOnPanelChange)="onPanelChange($event)"
+    class="date-picker"
+  ></nz-date-picker>
+}
+
+<!-- Inline Date Picker -->
+@if (!isRange && inline) {
+  <nz-date-picker
+    [nzMode]="mode"
+    [(ngModel)]="selectedDate"
+    [nzFormat]="fullFormat"
+    [nzShowTime]="showTime"
+    [nzDisabled]="disabled"
+    [nzSize]="size"
+    [nzDisabledDate]="disabledDate"
+    [nzInputReadOnly]="inputReadOnly"
+    [nzInline]="true"
+    (ngModelChange)="onDateChange($event)"
+    (nzOnPanelChange)="onPanelChange($event)"
+    class="date-picker date-picker-inline"
+  ></nz-date-picker>
+}
+
+<!-- Range Picker -->
+@if (isRange && !inline) {
+  <nz-range-picker
+    [nzMode]="mode"
+    [(ngModel)]="selectedRange"
+    [nzFormat]="fullFormat"
+    [nzShowTime]="showTime"
+    [nzPlaceHolder]="rangePlaceholder"
+    [nzDisabled]="disabled"
+    [nzAllowClear]="allowClear"
+    [nzSize]="size"
+    [nzVariant]="nzVariant"
+    [nzDropdownClassName]="popupClassName"
+    [nzPlacement]="dropdownPosition"
+    [nzDisabledDate]="disabledDate"
+    [nzInputReadOnly]="inputReadOnly"
+    [style.width]="width"
+    [style.height]="height"
+    (ngModelChange)="onRangeChange($event)"
+    (nzOnOpenChange)="onOpenChange($event)"
+    (nzOnOk)="onOk($event)"
+    (nzOnCalendarChange)="onPanelChange($event)"
+    class="date-picker"
+  ></nz-range-picker>
+}
+
+<!-- Inline Range Picker -->
+@if (isRange && inline) {
+  <nz-range-picker
+    [nzMode]="mode"
+    [(ngModel)]="selectedRange"
+    [nzFormat]="fullFormat"
+    [nzShowTime]="showTime"
+    [nzDisabled]="disabled"
+    [nzSize]="size"
+    [nzDisabledDate]="disabledDate"
+    [nzInputReadOnly]="inputReadOnly"
+    [nzInline]="true"
+    (ngModelChange)="onRangeChange($event)"
+    (nzOnCalendarChange)="onPanelChange($event)"
+    class="date-picker date-picker-inline"
+  ></nz-range-picker>
+}

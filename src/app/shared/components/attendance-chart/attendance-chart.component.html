@@ -1,0 +1,22 @@
+<div class="attendance-chart-wrapper">
+  @if (loading()) {
+    <div class="chart-loading">
+      <span>Đang tải dữ liệu...</span>
+    </div>
+  } @else {
+    <div class="chart-container">
+      <apx-chart
+        [series]="chartOptions.series!"
+        [chart]="chartOptions.chart!"
+        [labels]="chartOptions.labels!"
+        [colors]="chartOptions.colors!"
+        [plotOptions]="chartOptions.plotOptions!"
+        [dataLabels]="chartOptions.dataLabels!"
+        [legend]="chartOptions.legend!"
+        [responsive]="chartOptions.responsive!"
+        [stroke]="chartOptions.stroke!"
+        [tooltip]="chartOptions.tooltip!"
+      ></apx-chart>
+    </div>
+  }
+</div>

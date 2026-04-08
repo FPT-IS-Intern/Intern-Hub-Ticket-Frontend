@@ -1,0 +1,174 @@
+<div class="detail-registration-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        <span>/</span>
+        <span class="breadcrumb-link" (click)="goToManageTickets()">Quản lý phiếu yêu cầu</span>
+        <span>/</span>
+        <span class="breadcrumb-link" (click)="goToRegistration()">Quản lý duyệt tài khoản</span>
+        <span>/</span>
+        <span class="breadcrumb-active">Chi tiết phiếu</span>
+    </div>
+
+    <!-- Page Title -->
+    <h1 class="page-title">Chi tiết phiếu</h1>
+
+    <!-- Loading State -->
+    @if (loading()) {
+    <div class="loading-state">
+        <div class="spinner"></div>
+        <span>Đang tải dữ liệu...</span>
+    </div>
+    }
+
+    <!-- Error State -->
+    @if (!loading() && error()) {
+    <div class="error-state">
+        <app-icon icon="dsi-alert-circle-line" colorIcon="var(--utility-600)" width="48px" height="48px"></app-icon>
+        <p>Không thể tải thông tin phiếu</p>
+        <button class="btn btn-back" (click)="goBack()">Trở về</button>
+    </div>
+    }
+
+    <!-- Content -->
+    @if (!loading() && !error() && detail(); as d) {
+    <div class="detail-registration-container">
+
+        <!-- Card 1: Internship Info -->
+        <div class="internship-info-section" style="background-color: var(--neutral-color-10);">
+            <div class="avatar-block">
+                <span class="avatar-label">HÌNH ẢNH</span>
+                @if (!avatarUrl() || avatarLoadError()) {
+                <div class="avatar-placeholder avatar-initials">
+                    {{ getInitials(d.fullName) }}
+                </div>
+                }
+                @if (avatarUrl() && !avatarLoadError()) {
+                <img [src]="avatarUrl()" alt="Avatar" class="avatar-img" (error)="onAvatarError()" />
+                }
+            </div>
+
+            <div class="internship-details">
+                <div class="details-row">
+                    <div class="detail-item">
+                        <span class="detail-label">VỊ TRÍ</span>
+                        <span class="detail-value">{{ d.positionName || '—' }}</span>
+                    </div>
+                    @if (d.positionName === 'INTERN') {
+                    <div class="detail-item">
+                        <span class="detail-label">NGÀY BẮT ĐẦU</span>
+                        <span class="detail-value">{{ formatDate(d.internshipStartDate) }}</span>
+                    </div>
+                    }
+                </div>
+                <div class="details-row">
+                    <div class="detail-item">
+                        <span class="detail-label">LINK CV</span>
+                        @if (cvUrl()) {
+                        <a [href]="cvUrl()" target="_blank" class="cv-link">
+                            <app-icon icon="dsi dsi-file-01-line" colorIcon="var(--brand-600)" width="14px"
+                                height="14px"></app-icon>
+                            Linkcv.com
+                        </a>
+                        } @else {
+                        <span class="detail-value">—</span>
+                        }
+                    </div>
+                    @if (d.positionName === 'INTERN') {
+                    <div class="detail-item">
+                        <span class="detail-label">NGÀY KẾT THÚC</span>
+                        <span class="detail-value">{{ formatDate(d.internshipEndDate) }}</span>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 2: Personal Info -->
+        <div class="personal-info-section" style="background-color: var(--neutral-color-10);">
+            <h2 class="intern-name">{{ d.fullName }}</h2>
+
+            <div class="info-grid">
+                <div class="info-row">
+                    <span class="info-label">CCCD:</span>
+                    <span class="info-value">{{ d.idNumber }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Ngày sinh:</span>
+                    <span class="info-value">{{ formatDate(d.dateOfBirth) }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">SĐT:</span>
+                    <span class="info-value">{{ d.phoneNumber }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Email FPT:</span>
+                    <span class="info-value">{{ d.companyEmail }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Địa chỉ:</span>
+                    <span class="info-value">{{ d.address }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card 3: Role + Action Buttons -->
+        <div class="role-actions-card" style="background-color: var(--neutral-color-10);">
+            <!-- VAI TRÒ -->
+            <div class="role-section">
+                <span class="role-label">VAI TRÒ</span>
+                <div class="role-select-wrapper">
+                    <select class="role-select" [disabled]="!canAction()"
+                        (change)="selectedRoleId.set($any($event.target).value)">
+                        <option value="" disabled selected>Chọn vai trò</option>
+                        @for (role of roles(); track role.id) {
+                        <option [value]="role.id">{{ role.name }}</option>
+                        }
+                    </select>
+                    <app-icon icon="dsi-chevron-down-line" colorIcon="var(--neutral-500)" width="16px" height="16px"
+                        class="select-arrow"></app-icon>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-back" (click)="goBack()">Trở về</button>
+                <button class="btn btn-reject" [disabled]="!canAction() || rejecting()" (click)="onReject()">
+                    {{ rejecting() ? 'Đang xử lý...' : 'Từ chối' }}
+                </button>
+                <button class="btn btn-approve" [disabled]="!canAction() || approving() || !selectedRoleId()"
+                    (click)="onApprove()">
+                    {{ approving() ? 'Đang xử lý...' : 'Duyệt' }}
+                </button>
+            </div>
+        </div>
+
+    </div>
+    }
+
+    @if (showSuccessPopup()) {
+    <app-pop-up-confirm
+        imgUrl="https://s3.vn-hcm-1.vietnix.cloud/bravos/uploads/success-popup.svg"
+        [title]="popupTitle()"
+        [content]="popupMessage()"
+        confirmLabel="OK"
+        [showCancel]="false"
+        colorButton="var(--brand-600)"
+        (confirmClick)="onPopupClose()"
+        (cancelClick)="onPopupClose()">
+    </app-pop-up-confirm>
+    }
+
+    @if (showFailPopup()) {
+    <app-pop-up-confirm
+        imgUrl="https://s3.vn-hcm-1.vietnix.cloud/bravos/uploads/failed-popup.svg"
+        [title]="popupTitle()"
+        [content]="popupMessage()"
+        confirmLabel="Đóng"
+        [showCancel]="false"
+        colorButton="var(--utility-600)"
+        (confirmClick)="onPopupClose()"
+        (cancelClick)="onPopupClose()">
+    </app-pop-up-confirm>
+    }
+</div>

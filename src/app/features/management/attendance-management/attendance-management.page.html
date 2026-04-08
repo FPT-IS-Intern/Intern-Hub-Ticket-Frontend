@@ -1,0 +1,217 @@
+<div class="attendance-management-container">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <span class="breadcrumb-home" (click)="goToHome()">
+            <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+        </span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Quản Lý Chấm Công</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1 class="page-title">Quản Lý Chấm Công</h1>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <!-- Search Box -->
+        <div class="search-box-wrapper">
+            <app-input-text placeholder="Tìm kiếm tên hoặc email" icon="dsi dsi-search-lg-line" [value]="searchKeyword"
+                [showLabel]="false" border="1px solid var(--neutral-300)" (valueChange)="onSearchChange($event)"
+                (iconClick)="onSearch()">
+            </app-input-text>
+        </div>
+
+        <div class="filter-group">
+            <!-- Start Date -->
+            <div class="filter-date-field">
+                <label class="filter-date-label">Ngày bắt đầu <span class="required">*</span></label>
+                <div class="date-picker-wrapper">
+                    <app-date-picker
+                        mode="date"
+                        placeholder="dd/mm/yyyy"
+                        format="dd/MM/yyyy"
+                        [size]="'default'"
+                        [(ngModel)]="startDate"
+                        (dateChange)="onStartDateChange($event)"
+                        (keydown)="onlyDateInput($event)"
+                        width="100%"
+                    ></app-date-picker>
+                </div>
+            </div>
+
+            <!-- End Date -->
+            <div class="filter-date-field">
+                <label class="filter-date-label">Ngày kết thúc <span class="required">*</span></label>
+                <div class="date-picker-wrapper">
+                    <app-date-picker
+                        mode="date"
+                        placeholder="dd/mm/yyyy"
+                        format="dd/MM/yyyy"
+                        [size]="'default'"
+                        [(ngModel)]="endDate"
+                        (dateChange)="onEndDateChange($event)"
+                        (keydown)="onlyDateInput($event)"
+                        width="100%"
+                    ></app-date-picker>
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="filter-select-field">
+                <select class="status-select" [(ngModel)]="selectedStatus" (change)="onStatusChange()">
+                    <option value="">Trạng thái</option>
+                    @for (status of filterStatusOptions; track status.value) {
+                    <option [value]="status.value">{{ status.label }}</option>
+                    }
+                </select>
+                <i class="dsi dsi-chevron-down-line select-icon"></i>
+            </div>
+        </div>
+
+        <!-- Refresh Button -->
+        <div class="refresh-action-wrapper">
+            <app-button-container size="sm" leftIcon="dsi dsi-refresh-ccw-02-line" backgroundColor="var(--brand-500)"
+                color="var(--neutral-white)" border="none" borderRadius="8px" width="40px" height="40px"
+                (buttonClick)="onRefresh()">
+            </app-button-container>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    @if (error) {
+    <div class="error-message">{{ error }}</div>
+    }
+
+    <!-- Loading State -->
+    @if (loading) {
+    <div class="loading-overlay">
+        <div class="spinner"></div>
+        <span>Đang tải dữ liệu...</span>
+    </div>
+    }
+
+    <!-- Data Table -->
+    @if (!loading) {
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr class="custom-header-row">
+                    @for (col of columns; track col.key) {
+                    <th class="custom-header-cell" [style.width]="col.width"
+                        [class.sortable]="isSortableColumn(col.key)"
+                        (click)="isSortableColumn(col.key) && toggleSort(col.key)">
+                        <div class="header-cell-content">
+                            <span class="header-text">{{ col.header }}</span>
+                            @if (isSortableColumn(col.key)) {
+                            <app-icon [icon]="getSortIcon(col.key)"
+                                [colorIcon]="getSortDirection(col.key) ? 'var(--neutral-white)' : 'var(--brand-300)'"
+                                width="14px" height="14px">
+                            </app-icon>
+                            }
+                        </div>
+                    </th>
+                    }
+                </tr>
+            </thead>
+            <tbody app-table-body [columns]="columns" [rows]="tableRows" [columnTemplates]="columnTemplates">
+            </tbody>
+        </table>
+
+        <!-- Empty State -->
+        @if (attendanceLogs.length === 0) {
+        <div class="empty-state">
+            <div class="empty-content">
+                <app-icon icon="dsi-inbox-01-line" colorIcon="var(--neutral-400)" width="48px" height="48px"></app-icon>
+                <span>Không có dữ liệu chấm công</span>
+            </div>
+        </div>
+        }
+
+        <!-- Pagination -->
+        @if (attendanceLogs.length > 0) {
+        <div class="pagination">
+            <div class="pagination-info">
+                <span>Hiển thị {{ getShowingRange() }}</span>
+                <i class="dsi dsi-info-circle-line" style="font-size: 16px; color: var(--neutral-color-400);"></i>
+            </div>
+            <div class="pagination-nav">
+                <button class="pagination-btn" [disabled]="currentPage === 0" (click)="previousPage()">
+                    <i class="dsi dsi-chevron-left-line" style="font-size: 16px;"></i>
+                </button>
+                <div class="page-numbers">
+                    @for (pageNum of getVisiblePages(); track pageNum) {
+                    <button class="page-number" [class.active]="currentPage === pageNum - 1"
+                        [class.ellipsis]="pageNum === -1" (click)="pageNum !== -1 && goToPage(pageNum)"
+                        [disabled]="pageNum === -1">
+                        {{ pageNum === -1 ? '...' : pageNum }}
+                    </button>
+                    }
+                </div>
+                <button class="pagination-btn" [disabled]="currentPage === totalPages - 1" (click)="nextPage()">
+                    <i class="dsi dsi-chevron-right-line" style="font-size: 16px;"></i>
+                </button>
+                <div class="page-size-dropdown">
+                    <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+                        <option [value]="7">7 / trang</option>
+                        <option [value]="10">10 / trang</option>
+                        <option [value]="20">20 / trang</option>
+                        <option [value]="50">50 / trang</option>
+                    </select>
+                    <i class="dsi dsi-chevron-down-line dropdown-icon"
+                        style="font-size: 12px; color: var(--neutral-color-700);"></i>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+    }
+</div>
+
+<!-- Full Name + Email Template -->
+<ng-template #fullNameTemplate let-value let-row="row">
+    <div class="name-email-cell">
+        <span class="name-text">{{ value }}</span>
+        <span class="email-text">{{ row.companyEmail }}</span>
+    </div>
+</ng-template>
+
+<!-- Status Badge Template -->
+<ng-template #statusTemplate let-value let-row="row">
+    <span class="status-badge"
+        [class.status-check-in-on-time]="value === 'CHECK_IN_ON_TIME'"
+        [class.status-check-in-late]="value === 'CHECK_IN_LATE'"
+        [class.status-check-out-on-time]="value === 'CHECK_OUT_ON_TIME'"
+        [class.status-check-out-early]="value === 'CHECK_OUT_EARLY'"
+        [class.status-absent]="value === 'ABSENT'">
+        {{ getStatusLabel(value) }}
+    </span>
+</ng-template>
+
+<!-- Working Method Template -->
+<ng-template #workingMethodTemplate let-value let-row="row">
+    <span>{{ getWorkingMethodLabel(value) }}</span>
+</ng-template>
+
+<!-- Check-in Time Template -->
+<ng-template #checkInTimeTemplate let-value let-row="row">
+    <span class="time-cell" [class.time-late]="row.status === 'CHECK_IN_LATE'">
+        {{ formatTime(value) }}
+    </span>
+</ng-template>
+
+<!-- Check-out Time Template -->
+<ng-template #checkOutTimeTemplate let-value let-row="row">
+    <span class="time-cell" [class.time-early]="row.status === 'CHECK_OUT_EARLY'">
+        {{ formatTime(value) }}
+    </span>
+</ng-template>
+
+<!-- Location Template -->
+<ng-template #locationTemplate let-value let-row="row">
+    <span class="location-text">{{ value || 'Chi nhánh FIS Quận 7' }}</span>
+</ng-template>

@@ -1,0 +1,171 @@
+<div class="ticket-page">
+  <div class="breadcrumb">
+    <app-icon icon="dsi-home-01-line" colorIcon="var(--brand-600)" width="18px" height="18px"></app-icon>
+    <span>/</span>
+    <span>Quản Lý Phiếu Yêu Cầu</span>
+  </div>
+
+  <h1 class="page-title">Quản Lý Phiếu Yêu Cầu</h1>
+
+  <div class="stats-row">
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">
+          <app-icon icon="dsi-users-01-line" colorIcon="var(--brand-600)" width="32px" height="32px"></app-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Tổng thực tập sinh</p>
+          <h3 class="stat-value">{{ totalIntern() !== null ? totalIntern() : '...' }}</h3>
+          <p class="stat-sub">{{ internshipChanging() || '...' }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <app-icon icon="dsi-building-03-line" colorIcon="var(--secondary-600)" width="32px" height="32px"></app-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Làm tại khách hàng</p>
+          <h3 class="stat-value">{{ workingAtClient() !== null ? workingAtClient() : 'Chưa có thông tin' }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <app-icon icon="dsi dsi-laptop-01-line" colorIcon="var(--brand-600)" width="32px"
+            height="32px"></app-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Làm tại văn phòng</p>
+          <h3 class="stat-value">{{ workingAtOffice() !== null ? workingAtOffice() : 'Chưa có thông tin' }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <app-icon icon="dsi-home-01-line" colorIcon="var(--functional-600)" width="32px" height="32px"></app-icon>
+        </div>
+        <div class="stat-content">
+          <p class="stat-label">Làm tại nhà</p>
+          <h3 class="stat-value">{{ workingFromHome() !== null ? workingFromHome() : 'Chưa có thông tin' }}</h3>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title-row">
+          <h3>Quản lí chấm công</h3>
+          <div class="chart-date-filter-row">
+            <div class="chart-date-item">
+              <span>From Date</span>
+              <app-date-picker
+                mode="date"
+                placeholder="DD/MM/YYYY"
+                format="dd/MM/yyyy"
+                [size]="'small'"
+                [allowClear]="false"
+                [(ngModel)]="attendanceFromDate"
+                (dateChange)="onAttendanceFromDateChange($event)"
+                width="140px"
+              ></app-date-picker>
+            </div>
+            <div class="chart-date-item">
+              <span>To Date</span>
+              <app-date-picker
+                mode="date"
+                placeholder="DD/MM/YYYY"
+                format="dd/MM/yyyy"
+                [size]="'small'"
+                [allowClear]="false"
+                [(ngModel)]="attendanceToDate"
+                (dateChange)="onAttendanceToDateChange($event)"
+                width="140px"
+              ></app-date-picker>
+            </div>
+          </div>
+        </div>
+        <button class="link-button" (click)="goToAttendance()">Xem tất cả →</button>
+      </div>
+      <app-attendance-chart [fromDate]="attendanceFromDate" [toDate]="attendanceToDate"></app-attendance-chart>
+    </div>
+  </div>
+
+  <div class="content-grid">
+
+    <div class="table-column">
+      <div class="section-card">
+        <div class="section-header">
+          <h3>Quản lý giải trình</h3>
+          <button class="link-button" (click)="goToTicketManagement()">Xem tất cả →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="explanation-table">
+            <thead>
+              <tr app-table-header [columns]="columns" backgroundColor="transparent" textColor="var(--neutral-700)" fontSize="var(--font-sm)"></tr>
+            </thead>
+            <tbody app-table-body [columns]="columns" [rows]="explainationRows()" [columnTemplates]="columnTemplates()"
+              fontSize="var(--font-sm)"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h3>Quản lý Remote</h3>
+          <button class="link-button" (click)="goToTicketManagement()">Xem tất cả →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="explanation-table">
+            <thead>
+              <tr app-table-header [columns]="columns" backgroundColor="transparent" textColor="var(--neutral-700)" fontSize="var(--font-sm)"></tr>
+            </thead>
+            <tbody app-table-body [columns]="columns" [rows]="remoteRows()" [columnTemplates]="columnTemplates()"
+              fontSize="var(--font-sm)"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-column">
+      <div class="section-card">
+        <div class="section-header">
+          <h3>Quản lý duyệt tài khoản</h3>
+          <button class="link-button" (click)="goToRegistration()">Xem tất cả →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="explanation-table">
+            <thead>
+              <tr app-table-header [columns]="columns" backgroundColor="transparent" textColor="var(--neutral-700)" fontSize="var(--font-sm)"></tr>
+            </thead>
+            <tbody app-table-body [columns]="columns" [rows]="approvalRows()" [columnTemplates]="columnTemplates()"
+              fontSize="var(--font-sm)"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-header">
+          <h3>Quản lý nghỉ phép</h3>
+          <button class="link-button" (click)="goToTicketManagement()">Xem tất cả →</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="explanation-table">
+            <thead>
+              <tr app-table-header [columns]="columns" backgroundColor="transparent" textColor="var(--neutral-700)" fontSize="var(--font-sm)"></tr>
+            </thead>
+            <tbody app-table-body [columns]="columns" [rows]="leaveRows()" [columnTemplates]="columnTemplates()"
+              fontSize="var(--font-sm)"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #userTemplate let-value let-row="row">
+    <div class="user-cell">
+      <span class="user-name">{{ value.name }}</span>
+      <span class="created-at">Ngày tạo đơn: {{ value.createdAt }}</span>
+    </div>
+  </ng-template>
+
+  <ng-template #statusTemplate let-value let-row="row">
+    <span class="status-text" [style.color]="getStatusColor(value.tone)">{{ value.text }}</span>
+  </ng-template>
+</div>
