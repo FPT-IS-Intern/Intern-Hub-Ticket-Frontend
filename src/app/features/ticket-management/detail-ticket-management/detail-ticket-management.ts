@@ -388,11 +388,28 @@ export class DetailTicketManagementPage implements OnInit {
     const normalizeStatus = (status: string | null | undefined): string =>
       (status || '').toUpperCase();
 
+    const isLevel1Approved = normalizeStatus(level1Status) === 'SUCCESS'
+      || normalizeStatus(level1Status) === 'APPROVED'
+      || normalizeStatus(level1Status) === 'APPROVE';
+    const isLevel2Approved = normalizeStatus(level2Status) === 'SUCCESS'
+      || normalizeStatus(level2Status) === 'APPROVED'
+      || normalizeStatus(level2Status) === 'APPROVE';
     const isLevel1Rejected = normalizeStatus(level1Status) === 'REJECTED' || normalizeStatus(level1Status) === 'REJECT';
     const isLevel2Rejected = normalizeStatus(level2Status) === 'REJECTED' || normalizeStatus(level2Status) === 'REJECT';
+    const isLevel1Pending = !isLevel1Approved && !isLevel1Rejected;
+    const isOutOfOrderLevel2Decision = requiredApprovals >= 2 && isLevel1Pending && (isLevel2Approved || isLevel2Rejected);
 
+    const currentApprovalLevel = Number(detail.currentApprovalLevel || 1);
     const rejectionLevel = isTicketRejected
-      ? (isLevel2Rejected ? 2 : isLevel1Rejected ? 1 : (Number(detail.currentApprovalLevel || 1) <= 1 ? 1 : 2))
+      ? (
+        isLevel2Rejected
+          ? 2
+          : isLevel1Rejected
+            ? 1
+            : (requiredApprovals >= 2 && (isLevel1Approved || currentApprovalLevel >= 2))
+              ? 2
+              : 1
+      )
       : null;
 
     const getStatusType = (
@@ -412,25 +429,33 @@ export class DetailTicketManagementPage implements OnInit {
       return 'PENDING';
     };
 
-    const getStatusLabel = (lvStatus: string | null | undefined): string => {
+    const getStatusLabel = (lvStatus: string | null | undefined, level: number): string => {
       const normalized = (lvStatus || '').toUpperCase();
 
       if (normalized === 'SUCCESS' || normalized === 'APPROVE' || normalized === 'APPROVED') {
         return 'Đã duyệt';
       }
-      if (normalized === 'REJECT' || normalized === 'REJECTED') return 'Từ chối';
+      if (normalized === 'REJECT' || normalized === 'REJECTED') return `Từ chối cấp ${level}`;
       return 'Chờ duyệt';
     };
 
-    const level1DisplayStatus = rejectionLevel === 1 ? 'REJECTED' : level1Status;
-    const level2DisplayStatus = rejectionLevel === 2 ? 'REJECTED' : level2Status;
+    const level1DisplayStatus = isOutOfOrderLevel2Decision
+      ? 'REJECTED'
+      : rejectionLevel === 1
+        ? 'REJECTED'
+        : level1Status;
+    const level2DisplayStatus = isOutOfOrderLevel2Decision
+      ? 'REJECTED'
+      : rejectionLevel === 2
+        ? 'REJECTED'
+        : level2Status;
 
     this.approvalLevels.push({
       level: 1,
       label: 'Chờ duyệt',
       approverName: approvalInfo.approverFullNameLevel1 || 'Chưa có người duyệt',
       statusType: getStatusType(level1DisplayStatus),
-      statusLabel: getStatusLabel(level1DisplayStatus),
+      statusLabel: getStatusLabel(level1DisplayStatus, 1),
       date: this.formatDate(approvalInfo.approvedAt),
       description: (level1DisplayStatus || '').toUpperCase() === 'SUCCESS'
         ? `Phê duyệt cấp 1 - Duyệt bởi ${approvalInfo.approverFullNameLevel1 || 'Không rõ'}`
@@ -445,7 +470,7 @@ export class DetailTicketManagementPage implements OnInit {
         label: 'Chờ duyệt',
         approverName: approvalInfo.approverFullNameLevel2 || 'Chưa có người duyệt',
         statusType: getStatusType(level2DisplayStatus),
-        statusLabel: getStatusLabel(level2DisplayStatus),
+        statusLabel: getStatusLabel(level2DisplayStatus, 2),
         date: this.formatDate(approvalInfo.approvedAtLevel2),
         description: (level2DisplayStatus || '').toUpperCase() === 'REJECTED'
           ? 'Phê duyệt cấp 2 - Từ chối'
