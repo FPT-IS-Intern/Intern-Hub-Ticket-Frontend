@@ -1,4 +1,5 @@
 @use 'dynamic-ds/src/lib/styles/system-design';
+@import 'ng-zorro-antd/ng-zorro-antd.min.css';
 
 body {
   margin: 0;
@@ -8,5 +9,9 @@ body {
 
 .cdk-overlay-container,
 .cdk-overlay-pane {
+  z-index: 2000;
+}
+
+.ant-picker-dropdown {
   z-index: 2000;
 }
