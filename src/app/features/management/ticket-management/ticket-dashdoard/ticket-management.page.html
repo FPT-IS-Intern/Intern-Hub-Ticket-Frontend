@@ -67,14 +67,35 @@
               </button>
               @if (activeDatePanel === 'from') {
                 <div class="date-panel" (click)="$event.stopPropagation()">
-                  <app-date-picker
-                    mode="date"
-                    format="dd/MM/yyyy"
-                    [allowClear]="false"
-                    [inline]="true"
-                    [(ngModel)]="attendanceFromDate"
-                    (dateChange)="onAttendanceFromDateChange($event)"
-                  ></app-date-picker>
+                  <div class="calendar-panel">
+                    <div class="calendar-header">
+                      <button type="button" class="calendar-nav" (click)="previousMonth('from', $event)">&#8249;</button>
+                      <div class="calendar-title">{{ getPanelMonthLabel('from') }}</div>
+                      <button type="button" class="calendar-nav" (click)="nextMonth('from', $event)">&#8250;</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                      @for (weekday of weekdayLabels; track weekday) {
+                        <span>{{ weekday }}</span>
+                      }
+                    </div>
+                    <div class="calendar-grid">
+                      @for (item of getPanelDates('from'); track item.date.toISOString()) {
+                        <button
+                          type="button"
+                          class="calendar-cell"
+                          [class.outside]="!item.inCurrentMonth"
+                          [class.selected]="isSelectedDate('from', item.date)"
+                          [class.today]="isToday(item.date)"
+                          (click)="selectPanelDate('from', item.date, $event)"
+                        >
+                          {{ item.date.getDate() }}
+                        </button>
+                      }
+                    </div>
+                    <button type="button" class="calendar-today" (click)="goToToday('from', $event)">
+                      Hôm nay
+                    </button>
+                  </div>
                 </div>
               }
               </div>
@@ -93,14 +114,35 @@
               </button>
               @if (activeDatePanel === 'to') {
                 <div class="date-panel" (click)="$event.stopPropagation()">
-                  <app-date-picker
-                    mode="date"
-                    format="dd/MM/yyyy"
-                    [allowClear]="false"
-                    [inline]="true"
-                    [(ngModel)]="attendanceToDate"
-                    (dateChange)="onAttendanceToDateChange($event)"
-                  ></app-date-picker>
+                  <div class="calendar-panel">
+                    <div class="calendar-header">
+                      <button type="button" class="calendar-nav" (click)="previousMonth('to', $event)">&#8249;</button>
+                      <div class="calendar-title">{{ getPanelMonthLabel('to') }}</div>
+                      <button type="button" class="calendar-nav" (click)="nextMonth('to', $event)">&#8250;</button>
+                    </div>
+                    <div class="calendar-weekdays">
+                      @for (weekday of weekdayLabels; track weekday) {
+                        <span>{{ weekday }}</span>
+                      }
+                    </div>
+                    <div class="calendar-grid">
+                      @for (item of getPanelDates('to'); track item.date.toISOString()) {
+                        <button
+                          type="button"
+                          class="calendar-cell"
+                          [class.outside]="!item.inCurrentMonth"
+                          [class.selected]="isSelectedDate('to', item.date)"
+                          [class.today]="isToday(item.date)"
+                          (click)="selectPanelDate('to', item.date, $event)"
+                        >
+                          {{ item.date.getDate() }}
+                        </button>
+                      }
+                    </div>
+                    <button type="button" class="calendar-today" (click)="goToToday('to', $event)">
+                      Hôm nay
+                    </button>
+                  </div>
                 </div>
               }
               </div>

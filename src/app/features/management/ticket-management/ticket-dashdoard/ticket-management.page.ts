@@ -25,7 +25,6 @@ import {
 } from '../../../../services/hrm-ticket-statistic.service';
 import { HrmUserManagementService } from '../../../../services/hrm-user-management.service';
 import { AttendanceChartComponent } from '../../../../shared/components/attendance-chart/attendance-chart.component';
-import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-ticket-management',
@@ -37,12 +36,13 @@ import { DatePickerComponent } from '../../../../shared/components/date-picker/d
     TableHeaderComponent,
     IconComponent,
     AttendanceChartComponent,
-    DatePickerComponent,
   ],
   templateUrl: './ticket-management.page.html',
   styleUrls: ['./ticket-management.page.scss'],
 })
 export class TicketManagementPage implements OnInit {
+  readonly weekdayLabels = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+
   // Signal-based ViewChild queries (Angular 17.3+)
   private readonly userTemplate = viewChild<TemplateRef<unknown>>('userTemplate');
   private readonly statusTemplate = viewChild<TemplateRef<unknown>>('statusTemplate');
@@ -79,6 +79,8 @@ export class TicketManagementPage implements OnInit {
   attendanceFromDate: Date = this.getToday();
   attendanceToDate: Date = this.getToday();
   activeDatePanel: 'from' | 'to' | null = null;
+  fromPanelMonth: Date = this.getMonthStart(this.getToday());
+  toPanelMonth: Date = this.getMonthStart(this.getToday());
 
   constructor() {
     afterNextRender(() => {
@@ -354,8 +356,75 @@ export class TicketManagementPage implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
+  getPanelMonthLabel(panel: 'from' | 'to'): string {
+    const monthDate = panel === 'from' ? this.fromPanelMonth : this.toPanelMonth;
+    return `Tháng ${monthDate.getMonth() + 1}/${monthDate.getFullYear()}`;
+  }
+
+  getPanelDates(panel: 'from' | 'to'): Array<{ date: Date; inCurrentMonth: boolean }> {
+    const monthDate = panel === 'from' ? this.fromPanelMonth : this.toPanelMonth;
+    const monthStart = this.getMonthStart(monthDate);
+    const firstWeekday = monthStart.getDay();
+    const gridStart = new Date(monthStart);
+    gridStart.setDate(monthStart.getDate() - firstWeekday);
+
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(gridStart);
+      date.setDate(gridStart.getDate() + index);
+      return {
+        date,
+        inCurrentMonth: date.getMonth() === monthStart.getMonth(),
+      };
+    });
+  }
+
+  isSelectedDate(panel: 'from' | 'to', date: Date): boolean {
+    const selectedDate = panel === 'from' ? this.attendanceFromDate : this.attendanceToDate;
+    return this.isSameDate(selectedDate, date);
+  }
+
+  isToday(date: Date): boolean {
+    return this.isSameDate(this.getToday(), date);
+  }
+
+  previousMonth(panel: 'from' | 'to', event: MouseEvent): void {
+    event.stopPropagation();
+    const nextDate = new Date(panel === 'from' ? this.fromPanelMonth : this.toPanelMonth);
+    nextDate.setMonth(nextDate.getMonth() - 1);
+    this.setPanelMonth(panel, nextDate);
+  }
+
+  nextMonth(panel: 'from' | 'to', event: MouseEvent): void {
+    event.stopPropagation();
+    const nextDate = new Date(panel === 'from' ? this.fromPanelMonth : this.toPanelMonth);
+    nextDate.setMonth(nextDate.getMonth() + 1);
+    this.setPanelMonth(panel, nextDate);
+  }
+
+  goToToday(panel: 'from' | 'to', event: MouseEvent): void {
+    event.stopPropagation();
+    const today = this.getToday();
+    this.setPanelMonth(panel, today);
+    this.selectPanelDate(panel, today, event);
+  }
+
+  selectPanelDate(panel: 'from' | 'to', date: Date, event?: MouseEvent): void {
+    event?.stopPropagation();
+    const selectedDate = new Date(date);
+    this.setPanelMonth(panel, selectedDate);
+
+    if (panel === 'from') {
+      this.onAttendanceFromDateChange(selectedDate);
+      return;
+    }
+
+    this.onAttendanceToDateChange(selectedDate);
+  }
+
   toggleDatePanel(panel: 'from' | 'to', event: MouseEvent): void {
     event.stopPropagation();
+    const selectedDate = panel === 'from' ? this.attendanceFromDate : this.attendanceToDate;
+    this.setPanelMonth(panel, selectedDate);
     this.activeDatePanel = this.activeDatePanel === panel ? null : panel;
   }
 
@@ -367,6 +436,32 @@ export class TicketManagementPage implements OnInit {
   private getToday(): Date {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+
+  private getMonthStart(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  private setPanelMonth(panel: 'from' | 'to', date: Date): void {
+    const monthStart = this.getMonthStart(date);
+    if (panel === 'from') {
+      this.fromPanelMonth = monthStart;
+      return;
+    }
+
+    this.toPanelMonth = monthStart;
+  }
+
+  private isSameDate(left: Date | null, right: Date | null): boolean {
+    if (!left || !right) {
+      return false;
+    }
+
+    return (
+      left.getFullYear() === right.getFullYear() &&
+      left.getMonth() === right.getMonth() &&
+      left.getDate() === right.getDate()
+    );
   }
 
   goToAttendance(): void {

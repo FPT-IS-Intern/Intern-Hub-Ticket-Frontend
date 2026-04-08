@@ -98,7 +98,7 @@
 .native-date-field {
   width: 140px;
   height: 40px;
-  border: 1px solid var(--neutral-300);
+  border: 1px solid var(--neutral-300) !important;
   border-radius: 12px;
   background: var(--neutral-white);
   display: inline-flex;
@@ -111,10 +111,11 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   appearance: none;
   outline: none;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.04);
 
   &:hover,
   &:focus-within {
-    border-color: var(--brand-500);
+    border-color: var(--brand-500) !important;
     box-shadow: 0 0 0 2px rgba(225, 131, 8, 0.08);
   }
 }
@@ -138,88 +139,110 @@
   width: 352px;
 }
 
-.date-panel ::ng-deep .ant-picker-panel-container,
-.date-panel ::ng-deep .ant-picker-panel {
-  border: none;
-  box-shadow: none;
-}
-
-.date-panel ::ng-deep .ant-picker-date-panel,
-.date-panel ::ng-deep .ant-picker-body,
-.date-panel ::ng-deep .ant-picker-content,
-.date-panel ::ng-deep table {
-  width: 100% !important;
-}
-
-.date-panel ::ng-deep .ant-picker-panel-layout,
-.date-panel ::ng-deep .ant-picker-panel-container {
+.calendar-panel {
   background: var(--neutral-white);
 }
 
-.date-panel ::ng-deep .ant-picker-header {
+.calendar-header {
+  display: grid;
+  grid-template-columns: 32px 1fr 32px;
+  align-items: center;
+  gap: 8px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--neutral-200);
 }
 
-.date-panel ::ng-deep .ant-picker-header button {
-  color: var(--neutral-500) !important;
-}
-
-.date-panel ::ng-deep .ant-picker-header-view {
+.calendar-title {
+  text-align: center;
   font-size: 16px;
   font-weight: 600;
   color: var(--neutral-900);
 }
 
-.date-panel ::ng-deep .ant-picker-content th,
-.date-panel ::ng-deep .ant-picker-content td {
-  width: 40px !important;
-  min-width: 40px !important;
-  height: 40px !important;
-  padding: 0 !important;
-  text-align: center !important;
-  font-size: 14px !important;
-  color: var(--neutral-900) !important;
+.calendar-nav {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--neutral-500);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.date-panel ::ng-deep .ant-picker-content th {
-  font-weight: 600;
-  color: var(--neutral-700) !important;
+.calendar-nav:hover {
+  background: var(--neutral-100);
 }
 
-.date-panel ::ng-deep .ant-picker-cell-inner {
-  width: 32px !important;
-  min-width: 32px !important;
-  height: 32px !important;
-  line-height: 32px !important;
-  border-radius: 8px !important;
-  margin: 0 auto !important;
+.calendar-weekdays,
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  padding: 0 16px;
 }
 
-.date-panel ::ng-deep .ant-picker-cell-in-view {
-  color: var(--neutral-900) !important;
+.calendar-weekdays {
+  padding-top: 12px;
+  padding-bottom: 8px;
 }
 
-.date-panel ::ng-deep .ant-picker-cell-selected .ant-picker-cell-inner {
-  background: var(--brand-500) !important;
-  color: var(--neutral-white) !important;
-}
-
-.date-panel ::ng-deep .ant-picker-cell-today .ant-picker-cell-inner::before {
-  border-color: var(--brand-500) !important;
-  border-radius: 8px !important;
-}
-
-.date-panel ::ng-deep .ant-picker-footer {
-  border-top: 1px solid var(--neutral-200);
-}
-
-.date-panel ::ng-deep .ant-picker-today-btn {
-  display: block;
-  padding: 12px 16px;
+.calendar-weekdays span {
   text-align: center;
-  color: var(--brand-500) !important;
+  font-size: 13px;
   font-weight: 600;
+  color: var(--neutral-700);
+}
+
+.calendar-grid {
+  padding-bottom: 12px;
+}
+
+.calendar-cell {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--neutral-900);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.calendar-cell:hover {
+  background: var(--neutral-100);
+}
+
+.calendar-cell.outside {
+  color: var(--neutral-400);
+}
+
+.calendar-cell.today {
+  box-shadow: inset 0 0 0 1px var(--brand-500);
+}
+
+.calendar-cell.selected {
+  background: var(--brand-500);
+  color: var(--neutral-white);
+  box-shadow: none;
+}
+
+.calendar-today {
+  width: 100%;
+  border: none;
+  border-top: 1px solid var(--neutral-200);
+  background: transparent;
+  padding: 12px 16px;
+  color: var(--brand-500);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calendar-today:hover {
+  background: var(--neutral-50);
 }
 
 .chart-placeholder {
