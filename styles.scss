@@ -5,3 +5,8 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
+
+.cdk-overlay-container,
+.cdk-overlay-pane {
+  z-index: 2000;
+}
