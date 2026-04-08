@@ -55,7 +55,8 @@
           <div class="chart-date-filter-row">
             <div class="chart-date-item">
               <span>From Date</span>
-              <label class="native-date-field">
+              <div class="date-trigger-wrapper">
+              <button type="button" class="native-date-field" (click)="toggleDatePanel('from', $event)">
                 <span class="native-date-text">{{ formatDateForDisplay(attendanceFromDate) }}</span>
                 <app-icon
                   icon="dsi-calendar-date-line"
@@ -63,17 +64,25 @@
                   width="18px"
                   height="18px"
                 ></app-icon>
-                <input
-                  class="native-date-input"
-                  type="date"
-                  [value]="toNativeDateValue(attendanceFromDate)"
-                  (change)="onAttendanceFromDateInputChange($any($event.target).value)"
-                />
-              </label>
+              </button>
+              @if (activeDatePanel === 'from') {
+                <div class="date-panel" (click)="$event.stopPropagation()">
+                  <app-date-picker
+                    mode="date"
+                    format="dd/MM/yyyy"
+                    [allowClear]="false"
+                    [inline]="true"
+                    [(ngModel)]="attendanceFromDate"
+                    (dateChange)="onAttendanceFromDateChange($event)"
+                  ></app-date-picker>
+                </div>
+              }
+              </div>
             </div>
             <div class="chart-date-item">
               <span>To Date</span>
-              <label class="native-date-field">
+              <div class="date-trigger-wrapper">
+              <button type="button" class="native-date-field" (click)="toggleDatePanel('to', $event)">
                 <span class="native-date-text">{{ formatDateForDisplay(attendanceToDate) }}</span>
                 <app-icon
                   icon="dsi-calendar-date-line"
@@ -81,13 +90,20 @@
                   width="18px"
                   height="18px"
                 ></app-icon>
-                <input
-                  class="native-date-input"
-                  type="date"
-                  [value]="toNativeDateValue(attendanceToDate)"
-                  (change)="onAttendanceToDateInputChange($any($event.target).value)"
-                />
-              </label>
+              </button>
+              @if (activeDatePanel === 'to') {
+                <div class="date-panel" (click)="$event.stopPropagation()">
+                  <app-date-picker
+                    mode="date"
+                    format="dd/MM/yyyy"
+                    [allowClear]="false"
+                    [inline]="true"
+                    [(ngModel)]="attendanceToDate"
+                    (dateChange)="onAttendanceToDateChange($event)"
+                  ></app-date-picker>
+                </div>
+              }
+              </div>
             </div>
           </div>
         </div>

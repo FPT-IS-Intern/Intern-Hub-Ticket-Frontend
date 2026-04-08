@@ -91,8 +91,11 @@
   }
 }
 
-.native-date-field {
+.date-trigger-wrapper {
   position: relative;
+}
+
+.native-date-field {
   width: 140px;
   height: 40px;
   border: 1px solid var(--neutral-300);
@@ -106,6 +109,8 @@
   box-sizing: border-box;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  outline: none;
 
   &:hover,
   &:focus-within {
@@ -120,11 +125,22 @@
   white-space: nowrap;
 }
 
-.native-date-input {
+.date-panel {
   position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  background: var(--neutral-white);
+  border: 1px solid var(--neutral-200);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  overflow: hidden;
+}
+
+.date-panel ::ng-deep .ant-picker-panel-container,
+.date-panel ::ng-deep .ant-picker-panel {
+  border: none;
+  box-shadow: none;
 }
 
 .chart-placeholder {

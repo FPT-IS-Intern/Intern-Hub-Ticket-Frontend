@@ -6,6 +6,7 @@ import {
   afterNextRender,
   viewChild,
   TemplateRef,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +25,7 @@ import {
 } from '../../../../services/hrm-ticket-statistic.service';
 import { HrmUserManagementService } from '../../../../services/hrm-user-management.service';
 import { AttendanceChartComponent } from '../../../../shared/components/attendance-chart/attendance-chart.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-ticket-management',
@@ -35,6 +37,7 @@ import { AttendanceChartComponent } from '../../../../shared/components/attendan
     TableHeaderComponent,
     IconComponent,
     AttendanceChartComponent,
+    DatePickerComponent,
   ],
   templateUrl: './ticket-management.page.html',
   styleUrls: ['./ticket-management.page.scss'],
@@ -75,6 +78,7 @@ export class TicketManagementPage implements OnInit {
 
   attendanceFromDate: Date = this.getToday();
   attendanceToDate: Date = this.getToday();
+  activeDatePanel: 'from' | 'to' | null = null;
 
   constructor() {
     afterNextRender(() => {
@@ -331,29 +335,12 @@ export class TicketManagementPage implements OnInit {
 
   onAttendanceFromDateChange(date: Date | null): void {
     this.attendanceFromDate = date ?? this.getToday();
+    this.activeDatePanel = null;
   }
 
   onAttendanceToDateChange(date: Date | null): void {
     this.attendanceToDate = date ?? this.getToday();
-  }
-
-  onAttendanceFromDateInputChange(value: string): void {
-    this.onAttendanceFromDateChange(this.fromNativeDateValue(value));
-  }
-
-  onAttendanceToDateInputChange(value: string): void {
-    this.onAttendanceToDateChange(this.fromNativeDateValue(value));
-  }
-
-  toNativeDateValue(date: Date | null): string {
-    if (!date) {
-      return '';
-    }
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    this.activeDatePanel = null;
   }
 
   formatDateForDisplay(date: Date | null): string {
@@ -367,13 +354,14 @@ export class TicketManagementPage implements OnInit {
     return `${day}/${month}/${year}`;
   }
 
-  private fromNativeDateValue(value: string): Date | null {
-    if (!value) {
-      return null;
-    }
+  toggleDatePanel(panel: 'from' | 'to', event: MouseEvent): void {
+    event.stopPropagation();
+    this.activeDatePanel = this.activeDatePanel === panel ? null : panel;
+  }
 
-    const date = new Date(`${value}T00:00:00`);
-    return Number.isNaN(date.getTime()) ? null : date;
+  @HostListener('document:click')
+  closeDatePanel(): void {
+    this.activeDatePanel = null;
   }
 
   private getToday(): Date {
