@@ -24,7 +24,6 @@ import {
 } from '../../../../services/hrm-ticket-statistic.service';
 import { HrmUserManagementService } from '../../../../services/hrm-user-management.service';
 import { AttendanceChartComponent } from '../../../../shared/components/attendance-chart/attendance-chart.component';
-import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-ticket-management',
@@ -36,7 +35,6 @@ import { DatePickerComponent } from '../../../../shared/components/date-picker/d
     TableHeaderComponent,
     IconComponent,
     AttendanceChartComponent,
-    DatePickerComponent,
   ],
   templateUrl: './ticket-management.page.html',
   styleUrls: ['./ticket-management.page.scss'],
@@ -337,6 +335,45 @@ export class TicketManagementPage implements OnInit {
 
   onAttendanceToDateChange(date: Date | null): void {
     this.attendanceToDate = date ?? this.getToday();
+  }
+
+  onAttendanceFromDateInputChange(value: string): void {
+    this.onAttendanceFromDateChange(this.fromNativeDateValue(value));
+  }
+
+  onAttendanceToDateInputChange(value: string): void {
+    this.onAttendanceToDateChange(this.fromNativeDateValue(value));
+  }
+
+  toNativeDateValue(date: Date | null): string {
+    if (!date) {
+      return '';
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  formatDateForDisplay(date: Date | null): string {
+    if (!date) {
+      return 'DD/MM/YYYY';
+    }
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  private fromNativeDateValue(value: string): Date | null {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private getToday(): Date {

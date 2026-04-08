@@ -55,29 +55,39 @@
           <div class="chart-date-filter-row">
             <div class="chart-date-item">
               <span>From Date</span>
-              <app-date-picker
-                mode="date"
-                placeholder="DD/MM/YYYY"
-                format="dd/MM/yyyy"
-                [size]="'small'"
-                [allowClear]="false"
-                [(ngModel)]="attendanceFromDate"
-                (dateChange)="onAttendanceFromDateChange($event)"
-                width="140px"
-              ></app-date-picker>
+              <label class="native-date-field">
+                <span class="native-date-text">{{ formatDateForDisplay(attendanceFromDate) }}</span>
+                <app-icon
+                  icon="dsi-calendar-date-line"
+                  colorIcon="var(--neutral-600)"
+                  width="18px"
+                  height="18px"
+                ></app-icon>
+                <input
+                  class="native-date-input"
+                  type="date"
+                  [value]="toNativeDateValue(attendanceFromDate)"
+                  (change)="onAttendanceFromDateInputChange($any($event.target).value)"
+                />
+              </label>
             </div>
             <div class="chart-date-item">
               <span>To Date</span>
-              <app-date-picker
-                mode="date"
-                placeholder="DD/MM/YYYY"
-                format="dd/MM/yyyy"
-                [size]="'small'"
-                [allowClear]="false"
-                [(ngModel)]="attendanceToDate"
-                (dateChange)="onAttendanceToDateChange($event)"
-                width="140px"
-              ></app-date-picker>
+              <label class="native-date-field">
+                <span class="native-date-text">{{ formatDateForDisplay(attendanceToDate) }}</span>
+                <app-icon
+                  icon="dsi-calendar-date-line"
+                  colorIcon="var(--neutral-600)"
+                  width="18px"
+                  height="18px"
+                ></app-icon>
+                <input
+                  class="native-date-input"
+                  type="date"
+                  [value]="toNativeDateValue(attendanceToDate)"
+                  (change)="onAttendanceToDateInputChange($any($event.target).value)"
+                />
+              </label>
             </div>
           </div>
         </div>

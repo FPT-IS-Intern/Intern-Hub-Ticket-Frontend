@@ -91,6 +91,42 @@
   }
 }
 
+.native-date-field {
+  position: relative;
+  width: 140px;
+  height: 40px;
+  border: 1px solid var(--neutral-300);
+  border-radius: 12px;
+  background: var(--neutral-white);
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: var(--brand-500);
+    box-shadow: 0 0 0 2px rgba(225, 131, 8, 0.08);
+  }
+}
+
+.native-date-text {
+  font-size: 14px;
+  color: var(--neutral-900);
+  white-space: nowrap;
+}
+
+.native-date-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
 .chart-placeholder {
   flex: 1;
   border: 1px dashed var(--neutral-200);
