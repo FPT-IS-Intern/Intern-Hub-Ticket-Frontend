@@ -384,8 +384,15 @@ export class DetailTicketManagementPage implements OnInit {
     const level1Status = approvalInfo.statusLevel1;
     const level2Status = approvalInfo.statusLevel2;
     const isTicketRejected = detail.status === TicketStatus.REJECTED;
+
+    const normalizeStatus = (status: string | null | undefined): string =>
+      (status || '').toUpperCase();
+
+    const isLevel1Rejected = normalizeStatus(level1Status) === 'REJECTED' || normalizeStatus(level1Status) === 'REJECT';
+    const isLevel2Rejected = normalizeStatus(level2Status) === 'REJECTED' || normalizeStatus(level2Status) === 'REJECT';
+
     const rejectionLevel = isTicketRejected
-      ? (Number(detail.currentApprovalLevel || 1) <= 1 ? 1 : 2)
+      ? (isLevel2Rejected ? 2 : isLevel1Rejected ? 1 : (Number(detail.currentApprovalLevel || 1) <= 1 ? 1 : 2))
       : null;
 
     const getStatusType = (
@@ -615,6 +622,10 @@ export class DetailTicketManagementPage implements OnInit {
 
   get canShowApprovalActions(): boolean {
     if (!this.ticketDetail) return false;
+    const level2Rejected = (this.approvalInfo?.statusLevel2 || '').toUpperCase() === 'REJECTED'
+      || (this.approvalInfo?.statusLevel2 || '').toUpperCase() === 'REJECT';
+    if (level2Rejected) return false;
+
     const isPendingOrReviewing =
       this.ticketDetail.status === TicketStatus.PENDING ||
       this.ticketDetail.status === TicketStatus.REVIEWING;
