@@ -332,7 +332,7 @@ export class TicketManagementPage implements OnInit {
   }
 
   goToTicketManagement(): void {
-    this.router.navigate(['/ticket/manage-tickets/registration']);
+    this.router.navigate(['/ticket/request-ticket-management']);
   }
 
   onAttendanceFromDateChange(date: Date | null): void {
