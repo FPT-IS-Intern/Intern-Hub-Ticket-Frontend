@@ -1,4 +1,6 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://internhub-v2.bbtech.io.vn/api',
+  apiUrl: (window as any).__env?.apiUrl || 'http://localhost:8765/api',
 };
+
+

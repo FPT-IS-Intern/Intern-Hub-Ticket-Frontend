@@ -1,6 +1,6 @@
 {
   "/ticket": {
-    "target": "https://internhub-v2.bbtech.io.vn/api",
+    "target": "http://localhost:8765",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

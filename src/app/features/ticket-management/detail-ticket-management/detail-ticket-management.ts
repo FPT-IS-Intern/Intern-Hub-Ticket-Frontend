@@ -490,8 +490,25 @@ export class DetailTicketManagementPage implements OnInit {
 
   getEvidenceUrl(evidence: EvidenceDto): string {
     if (!evidence.evidenceKey) return '';
-    // Construct download URL from evidenceKey
-    return `https://internhub-v2.bbtech.io.vn/api/ticket/evidences/download/${evidence.evidenceKey}`;
+    const baseUrl = (window as any).__env?.apiUrl || (() => {
+      const hostname = window.location?.hostname;
+      return (!hostname || hostname === 'localhost' || hostname === '127.0.0.1')
+        ? 'http://localhost:8765/api'
+        : '/api';
+    })();
+    return `${baseUrl.replace(/\/$/, '')}/ticket/evidences/download/${evidence.evidenceKey}`;
+  }
+
+  private getApiBaseUrl(): string {
+    const envUrl = (window as any).__env?.apiUrl;
+    if (envUrl) return envUrl;
+
+    const hostname = window.location?.hostname;
+    if (!hostname || hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:8765/api';
+    }
+    console.warn('Runtime env not found, using relative path');
+    return '/api';
   }
 
   getFileName(key: string): string {
